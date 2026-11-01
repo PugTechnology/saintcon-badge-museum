@@ -8,6 +8,7 @@ emulator/web/badges/<year>/layout.json, and draw
 emulator/build/check-overlay-<year>.png.
 
 Supports:
+  --year 2018  (Saintcon2018.kicad_pcb — 8x32 LED matrix badge)
   --year 2023  (Saintcon2023.kicad_pcb — "Incidents" Dungeon RPG)
   --year 2024  (Saintcon2024MainBoard + Saintcon2024TopBoard — "Wrist Communicator" / Tower Battle)
   --year 2025  (Saintcon2025.kicad_pcb — "The Wrench")
@@ -43,6 +44,30 @@ ZIP_PATH = (
 )
 KICAD_DIR = BUILD_DIR / "kicad"
 PCB_PATH = KICAD_DIR / "Saintcon2025.kicad_pcb"
+
+
+def find_2018_pcb_default() -> Path:
+  candidates = [
+      ROOT
+      / "upstream"
+      / "Saintcon2018"
+      / "Badge"
+      / "Hardware Files"
+      / "KiCad Files"
+      / "Saintcon2018.kicad_pcb",
+      Path.home()
+      / "Projects"
+      / "saintcon-museum-research"
+      / "Saintcon2018"
+      / "Badge"
+      / "Hardware Files"
+      / "KiCad Files"
+      / "Saintcon2018.kicad_pcb",
+  ]
+  for c in candidates:
+    if c.exists():
+      return c
+  return candidates[0]
 
 
 def find_2023_kicad_zip_default() -> Path:
@@ -259,7 +284,7 @@ def parse_footprints_and_graphics(tree):
           "center": (cx, cy),
           "radius": math.hypot(ex - cx, ey - cy),
       })
-    elif tag0 == "footprint":
+    elif tag0 in ("footprint", "module"):
       fp_lib = node[1]
       layer = "F.Cu"
       fx = fy = rot = 0.0
@@ -288,6 +313,9 @@ def parse_footprints_and_graphics(tree):
         elif tag == "fp_text" and len(sub) >= 3 and sub[1] == "reference":
           if ref is None:
             ref = sub[2]
+        elif tag == "fp_text" and len(sub) >= 3 and sub[1] == "value":
+          if val is None:
+            val = sub[2]
         elif tag == "pad":
           pad_num = sub[1]
           pad_type = sub[2] if len(sub) > 2 else ""
@@ -2617,12 +2645,619 @@ def build_2023(pcb_override: Path = None):
   )
 
 
+# ============================================================================
+# 2018 (8x32 LED matrix badge) extraction & rendering
+# ============================================================================
+
+def extract_geometry_2018(tree):
+  footprints, _edge_segments, _top_polys, _top_circles = parse_footprints_and_graphics(tree)
+
+  # Extract the 4 closed Edge.Cuts loops from the Lock artwork module (0.001 mm snap
+  # closes sub-micron svg2mod duplicate fragments so KiCad 9 raytraces the positive board).
+  lock_fp = None
+  for fp in footprints.values():
+    if fp["lib"] == "Lock":
+      lock_fp = fp
+      break
+  if not lock_fp:
+    raise RuntimeError("Could not find Lock outline module in Saintcon2018.kicad_pcb")
+
+  board_segs = []
+  local_segs = []
+  for l in lock_fp["lines"]:
+    if l["layer"] == "Edge.Cuts":
+      ba = (round(l["start"][0], 3), round(l["start"][1], 3))
+      bb = (round(l["end"][0], 3), round(l["end"][1], 3))
+      if ba != bb:
+        board_segs.append((ba, bb))
+      la = (round(l["local_start"][0], 3), round(l["local_start"][1], 3))
+      lb = (round(l["local_end"][0], 3), round(l["local_end"][1], 3))
+      if la != lb:
+        local_segs.append((la, lb))
+
+  def build_closed_loops(segs):
+    adj = defaultdict(list)
+    for idx, (a, b) in enumerate(segs):
+      adj[a].append((idx, b))
+      adj[b].append((idx, a))
+    used = set()
+    res = []
+    for idx in range(len(segs)):
+      if idx in used:
+        continue
+      used.add(idx)
+      a, b = segs[idx]
+      pts = [a, b]
+      cur = b
+      while True:
+        nxt = None
+        for nidx, nb in adj[cur]:
+          if nidx not in used:
+            used.add(nidx)
+            pts.append(nb)
+            cur = nb
+            nxt = nb
+            break
+        if nxt is None:
+          break
+      if len(pts) > 20 and pts[0] == pts[-1]:
+        clean = [pts[0]]
+        for p in pts[1:]:
+          if p != clean[-1]:
+            clean.append(p)
+        res.append(clean)
+    res.sort(key=len, reverse=True)
+    return res
+
+  board_loops = build_closed_loops(board_segs)
+  local_loops = build_closed_loops(local_segs)
+  if len(board_loops) < 4:
+    raise RuntimeError(f"Expected 4 closed Edge.Cuts loops in Lock, found {len(board_loops)}")
+  outer_loop = board_loops[0]
+  shackle_cutout_loop = board_loops[1]
+
+  # Trace all 256 LEDs (8 rows x 32 columns) directly from U2 (IS31FL3730 @ 0x60)
+  # and U3 (IS31FL3730 @ 0x61) C1..C8 / R1..R8 pin nets in Saintcon2018.kicad_pcb.
+  c_pins = ["24", "23", "22", "21", "19", "18", "17", "16"]  # C1..C8 on QFN-24
+  r_pins = ["7", "8", "9", "10", "12", "13", "14", "15"]    # R1..R8 on QFN-24
+
+  def chip_pin_nets(ref):
+    fp = footprints[ref]
+    by_num = {p["num"]: p["net_name"] for p in fp["pads"] if p["net_name"]}
+    return [by_num[n] for n in c_pins], [by_num[n] for n in r_pins]
+
+  u2_c, u2_r = chip_pin_nets("U2")
+  u3_c, u3_r = chip_pin_nets("U3")
+
+  # Map (cathode_net, anode_net) -> LED footprint (pad 1 = cathode K, pad 2 = anode A)
+  ka_to_led = {}
+  for ref, fp in footprints.items():
+    if ref and re.fullmatch(r"D\d+", ref):
+      p_by_num = {p["num"]: p["net_name"] for p in fp["pads"]}
+      k_net = p_by_num.get("1")
+      a_net = p_by_num.get("2")
+      if k_net and a_net:
+        ka_to_led[(k_net, a_net)] = fp
+
+  # Order LEDs as index = row * 32 + col (row 0 = inner arch bit 0 .. row 7 = outer arch bit 7,
+  # col 0..7 = U2 Matrix 1, col 8..15 = U2 Matrix 2, col 16..23 = U3 Matrix 1, col 24..31 = U3 Matrix 2).
+  leds = []
+  for row in range(8):
+    for col in range(32):
+      if col < 8:
+        k_net, a_net = u2_c[col], u2_r[row]
+        driver_ref, i2c_addr, matrix_num = "U2", "0x60", 1
+      elif col < 16:
+        k_net, a_net = u2_r[row], u2_c[col - 8]
+        driver_ref, i2c_addr, matrix_num = "U2", "0x60", 2
+      elif col < 24:
+        k_net, a_net = u3_c[col - 16], u3_r[row]
+        driver_ref, i2c_addr, matrix_num = "U3", "0x61", 1
+      else:
+        k_net, a_net = u3_r[row], u3_c[col - 24]
+        driver_ref, i2c_addr, matrix_num = "U3", "0x61", 2
+
+      fp = ka_to_led.get((k_net, a_net))
+      if not fp:
+        raise RuntimeError(f"Missing LED for col={col} row={row} (K={k_net}, A={a_net})")
+      leds.append({
+          "index": len(leds),
+          "ref": fp["ref"],
+          "col": col,
+          "row": row,
+          "driver": driver_ref,
+          "i2c_addr": i2c_addr,
+          "matrix": matrix_num,
+          "cathode_net": k_net,
+          "anode_net": a_net,
+          "din_net": f"{driver_ref}:M{matrix_num} ({k_net}/{a_net})",
+          "x_mm": round(fp["x"], 4),
+          "y_mm": round(fp["y"], 4),
+          "rot_deg": round(fp["rot"], 2),
+      })
+
+  if len(leds) != 256:
+    raise RuntimeError(f"Expected 256 matrix LEDs, found {len(leds)}")
+
+  # Tactile buttons: SW1 = UP (GPIO 16, bit 1), SW2 = DOWN (GPIO 17, bit 2), SW3 = SELECT (GPIO 18, bit 16)
+  btn_specs = [
+      ("SW1", "up", "UP", 1, 16),
+      ("SW2", "down", "DOWN", 2, 17),
+      ("SW3", "center", "SELECT", 16, 18),
+  ]
+  action_buttons = []
+  for ref, bid, bname, bit, gpio in btn_specs:
+    fp = footprints[ref]
+    action_buttons.append({
+        "ref": ref,
+        "id": bid,
+        "name": bname,
+        "bit": bit,
+        "gpio": gpio,
+        "x_mm": round(fp["x"], 4),
+        "y_mm": round(fp["y"], 4),
+        "rot_deg": round(fp["rot"], 2),
+        "radius_mm": 3.8,
+    })
+
+  # 12 Minibadge slots J1..J12 (3 rows x 4 cols)
+  minibadges = []
+  for idx in range(1, 13):
+    ref = f"J{idx}"
+    fp = footprints[ref]
+    pad_xs = [kicad_local_to_board(fp["x"], fp["y"], fp["rot"], fp["layer"], p["lx"], p["ly"])[0] for p in fp["pads"]]
+    pad_ys = [kicad_local_to_board(fp["x"], fp["y"], fp["rot"], fp["layer"], p["lx"], p["ly"])[1] for p in fp["pads"]]
+    silks_pts = [p for l in fp["lines"] if l["layer"] == "F.SilkS" for p in (l["start"], l["end"])]
+    mxs = [p[0] for p in silks_pts]
+    mys = [p[1] for p in silks_pts]
+    minibadges.append({
+        "slot": idx - 1,
+        "ref": ref,
+        "x_mm": round((min(mxs) + max(mxs)) / 2.0, 4),
+        "y_mm": round((min(mys) + max(mys)) / 2.0, 4),
+        "w_mm": round(max(mxs) - min(mxs), 4),
+        "h_mm": round(max(mys) - min(mys), 4),
+        "pad_x0_mm": round(min(pad_xs), 4),
+        "pad_x1_mm": round(max(pad_xs), 4),
+        "pad_y_top_mm": round(min(pad_ys), 4),
+        "pad_y_bot_mm": round(max(pad_ys), 4),
+    })
+
+  # U1 (LOLIN D32), U2/U3 (IS31FL3730), U4/U5 (SOT-23-5)
+  u1 = footprints["U1"]
+  u1_pad_pts = [kicad_local_to_board(u1["x"], u1["y"], u1["rot"], u1["layer"], p["lx"], p["ly"]) for p in u1["pads"]]
+  u1_top_pads = sorted([pt for pt in u1_pad_pts if pt[1] < u1["y"]], key=lambda pt: pt[0])
+  u1_bot_pads = sorted([pt for pt in u1_pad_pts if pt[1] > u1["y"]], key=lambda pt: pt[0])
+
+  return {
+      "outer_loop": outer_loop,
+      "shackle_cutout_loop": shackle_cutout_loop,
+      "local_loops": local_loops,
+      "leds": leds,
+      "action_buttons": action_buttons,
+      "minibadges": minibadges,
+      "u1_top_pads": u1_top_pads,
+      "u1_bot_pads": u1_bot_pads,
+      "u2": {"x_mm": footprints["U2"]["x"], "y_mm": footprints["U2"]["y"]},
+      "u3": {"x_mm": footprints["U3"]["x"], "y_mm": footprints["U3"]["y"]},
+      "u4": {"x_mm": footprints["U4"]["x"], "y_mm": footprints["U4"]["y"]},
+      "u5": {"x_mm": footprints["U5"]["x"], "y_mm": footprints["U5"]["y"]},
+  }
+
+
+def ensure_kicad_renders_2018(pcb_path: Path, geom, out_board_png: Path):
+  work_dir = BUILD_DIR / "kicad-2018"
+  work_dir.mkdir(parents=True, exist_ok=True)
+
+  clean_pcb = work_dir / "render_clean.kicad_pcb"
+  render_3d_png = work_dir / "render-3d-clean.png"
+  fmask_svg = work_dir / "layer-fmask.svg"
+  fsilks_svg = work_dir / "layer-fsilks-sub.svg"
+  fcu_svg = work_dir / "layer-fcu.svg"
+
+  if not (render_3d_png.exists() and fmask_svg.exists() and fsilks_svg.exists() and fcu_svg.exists()):
+    txt = pcb_path.read_text(encoding="utf-8", errors="replace")
+    new_lines = []
+    for lp in geom["local_loops"][:4]:
+      pts = lp if lp[0] == lp[-1] else (lp + [lp[0]])
+      for a, b in zip(pts[:-1], pts[1:]):
+        new_lines.append(
+            f"    (fp_line (start {a[0]:.3f} {a[1]:.3f}) (end {b[0]:.3f} {b[1]:.3f}) (layer Edge.Cuts) (width 0.15))"
+        )
+    txt_clean = re.sub(
+        r"\s*\(fp_line\s+\(start[^)]+\)\s+\(end[^)]+\)\s+\(layer\s+Edge\.Cuts\)\s+\(width[^)]+\)\)",
+        "",
+        txt,
+    )
+    lock_idx = txt_clean.find("(module Lock ")
+    insert_at = txt_clean.find("\n", txt_clean.find("(at ", lock_idx)) + 1
+    txt_clean = txt_clean[:insert_at] + "\n".join(new_lines) + "\n" + txt_clean[insert_at:]
+    clean_pcb.write_text(txt_clean, encoding="utf-8")
+
+    uid_gid = f"{os.getuid()}:{os.getgid()}"
+    rel_clean = clean_pcb.relative_to(ROOT)
+    cmd = (
+        f"kicad-cli pcb render --side top --background transparent --quality basic -w 1800 -h 2800"
+        f" -o emulator/build/kicad-2018/render-3d-clean.png {rel_clean} &&"
+        f" kicad-cli pcb export svg --layers F.Mask --black-and-white --page-size-mode 0"
+        f" --exclude-drawing-sheet -o emulator/build/kicad-2018/layer-fmask.svg {rel_clean} &&"
+        f" kicad-cli pcb export svg --layers F.SilkS --subtract-soldermask --black-and-white"
+        f" --page-size-mode 0 --exclude-drawing-sheet -o emulator/build/kicad-2018/layer-fsilks-sub.svg {rel_clean} &&"
+        f" kicad-cli pcb export svg --layers F.Cu --black-and-white --page-size-mode 0"
+        f" --exclude-drawing-sheet -o emulator/build/kicad-2018/layer-fcu.svg {rel_clean}"
+    )
+    subprocess.run(
+        [
+            "docker",
+            "run",
+            "--rm",
+            "-u",
+            uid_gid,
+            "-v",
+            f"{ROOT}:/w",
+            "-w",
+            "/w",
+            "kicad/kicad:9.0",
+            "sh",
+            "-c",
+            cmd,
+        ],
+        check=True,
+    )
+
+  im3d = Image.open(render_3d_png).convert("RGBA")
+  W_full, H_full = im3d.size
+  arr3d = np.array(im3d, dtype=np.float32)
+  ys, xs = np.where(arr3d[:, :, 3] > 0)
+  xmin_px_full, xmax_px_full = int(xs.min()), int(xs.max())
+  ymin_px_full, ymax_px_full = int(ys.min()), int(ys.max())
+
+  oxs = [p[0] for p in geom["outer_loop"]]
+  oys = [p[1] for p in geom["outer_loop"]]
+  xmin_mm, xmax_mm = min(oxs), max(oxs)
+  ymin_mm, ymax_mm = min(oys), max(oys)
+
+  scale_full = (
+      (xmax_px_full - xmin_px_full) / (xmax_mm - xmin_mm)
+      + (ymax_px_full - ymin_px_full) / (ymax_mm - ymin_mm)
+  ) / 2.0
+  x0_mm = xmin_mm - xmin_px_full / scale_full
+  y0_mm = ymin_mm - ymin_px_full / scale_full
+  w_mm = W_full / scale_full
+  h_mm = H_full / scale_full
+
+  align_svg_layers(
+      work_dir,
+      ("layer-fmask", "layer-fsilks-sub", "layer-fcu"),
+      W_full,
+      H_full,
+      x0_mm,
+      y0_mm,
+      w_mm,
+      h_mm,
+  )
+
+  board_alpha = arr3d[:, :, 3] / 255.0
+  fmask = np.array(Image.open(work_dir / "layer-fmask-aligned.png").convert("RGBA"), dtype=np.float32)[:, :, 3] / 255.0
+  fsilks = np.array(Image.open(work_dir / "layer-fsilks-sub-aligned.png").convert("RGBA"), dtype=np.float32)[:, :, 3] / 255.0
+  fcu = np.array(Image.open(work_dir / "layer-fcu-aligned.png").convert("RGBA"), dtype=np.float32)[:, :, 3] / 255.0
+
+  lum3d = (0.299 * arr3d[:, :, 0] + 0.587 * arr3d[:, :, 1] + 0.114 * arr3d[:, :, 2]) / 255.0
+  rgba = np.zeros((H_full, W_full, 4), dtype=np.float32)
+
+  # Royal/cerulean blue solder mask matching the real 2018 SAINTCON padlock PCB (BadgeBuildSheet.pdf),
+  # subtle copper trace relief underneath the mask, ENIG gold exposed pads, and white silkscreen.
+  mask_over_cu = fcu * (1.0 - fmask)
+  base_r = 20.0 + mask_over_cu * 12.0 + (lum3d - 0.30) * 18.0
+  base_g = 90.0 + mask_over_cu * 18.0 + (lum3d - 0.30) * 22.0
+  base_b = 144.0 + mask_over_cu * 20.0 + (lum3d - 0.30) * 24.0
+
+  yy, xx = np.mgrid[0:H_full, 0:W_full]
+  tex = np.sin(xx * 0.06 + yy * 0.05) * 2.5 + np.cos(xx * 0.03 - yy * 0.08) * 2.5
+  fr4_r = 152.0 + tex
+  fr4_g = 126.0 + tex * 0.8
+  fr4_b = 68.0 + tex * 0.4
+
+  enig_r = 222.0 + tex * 0.8 + (lum3d - 0.5) * 18.0
+  enig_g = 182.0 + tex * 0.6 + (lum3d - 0.5) * 14.0
+  enig_b = 68.0 + tex * 0.3 + (lum3d - 0.5) * 8.0
+
+  exposed_r = fr4_r * (1.0 - fcu) + enig_r * fcu
+  exposed_g = fr4_g * (1.0 - fcu) + enig_g * fcu
+  exposed_b = fr4_b * (1.0 - fcu) + enig_b * fcu
+
+  rgba[:, :, 0] = base_r * (1.0 - fmask) + exposed_r * fmask
+  rgba[:, :, 1] = base_g * (1.0 - fmask) + exposed_g * fmask
+  rgba[:, :, 2] = base_b * (1.0 - fmask) + exposed_b * fmask
+
+  silk_r, silk_g, silk_b = 238.0, 242.0, 248.0
+  rgba[:, :, 0] = rgba[:, :, 0] * (1.0 - fsilks) + silk_r * fsilks
+  rgba[:, :, 1] = rgba[:, :, 0] * 0.0 + rgba[:, :, 1] * (1.0 - fsilks) + silk_g * fsilks
+  rgba[:, :, 2] = rgba[:, :, 2] * (1.0 - fsilks) + silk_b * fsilks
+  rgba[:, :, 3] = board_alpha * 255.0
+
+  pcb_full = Image.fromarray(np.clip(rgba, 0, 255).astype(np.uint8), mode="RGBA")
+
+  margin_mm = 2.0
+  crop_x0 = max(0, int(round((xmin_mm - margin_mm - x0_mm) * scale_full)))
+  crop_y0 = max(0, int(round((ymin_mm - margin_mm - y0_mm) * scale_full)))
+  crop_x1 = min(W_full, int(round((xmax_mm + margin_mm - x0_mm) * scale_full)))
+  crop_y1 = min(H_full, int(round((ymax_mm + margin_mm - y0_mm) * scale_full)))
+  if (crop_x1 - crop_x0) % 2 == 1:
+    crop_x1 -= 1
+  if (crop_y1 - crop_y0) % 2 == 1:
+    crop_y1 -= 1
+
+  pcb_cropped = pcb_full.crop((crop_x0, crop_y0, crop_x1, crop_y1))
+  x0_crop_mm = x0_mm + crop_x0 / scale_full
+  y0_crop_mm = y0_mm + crop_y0 / scale_full
+
+  W_out = pcb_cropped.width // 2
+  H_out = pcb_cropped.height // 2
+  scale_out = scale_full / 2.0
+  res_out = pcb_cropped.resize((W_out, H_out), Image.Resampling.LANCZOS)
+  draw = ImageDraw.Draw(res_out)
+
+  def mm_to_px(xmm, ymm):
+    return (xmm - x0_crop_mm) * scale_out, (ymm - y0_crop_mm) * scale_out
+
+  # 256x 0603 SMD Red LED packages (oriented radially along the 8 shackle arches)
+  led_hw = 0.52 * scale_out
+  led_hh = 0.36 * scale_out
+  die_r = max(1.1, 0.17 * scale_out)
+  for led in geom["leds"]:
+    lx, ly = mm_to_px(led["x_mm"], led["y_mm"])
+    ang = math.radians(-led["rot_deg"])
+    ca, sa = math.cos(ang), math.sin(ang)
+    corners = [
+        (lx + dx * ca - dy * sa, ly + dx * sa + dy * ca)
+        for dx, dy in ((-led_hw, -led_hh), (led_hw, -led_hh), (led_hw, led_hh), (-led_hw, led_hh))
+    ]
+    draw.polygon(corners, fill=(236, 232, 224, 235), outline=(126, 132, 140, 220))
+    draw.ellipse([lx - die_r, ly - die_r, lx + die_r, ly + die_r], fill=(140, 38, 38, 220))
+
+  # Two IS31FL3730 QFN-24 matrix driver ICs (U2 left, U3 right)
+  for ic in (geom["u2"], geom["u3"]):
+    ix, iy = mm_to_px(ic["x_mm"], ic["y_mm"])
+    half_qfn = 1.95 * scale_out
+    draw.rounded_rectangle(
+        [ix - half_qfn, iy - half_qfn, ix + half_qfn, iy + half_qfn],
+        radius=2,
+        fill=(26, 29, 34, 250),
+        outline=(80, 86, 96, 255),
+        width=1,
+    )
+    draw.ellipse(
+        [ix - half_qfn + 2, iy - half_qfn + 2, ix - half_qfn + 5, iy - half_qfn + 5],
+        fill=(180, 186, 194, 240),
+    )
+
+  # U4 (AP22802AW5-7) & U5 (AP2112K-3.3TRG1) SOT-23-5 packages
+  for sot in (geom["u4"], geom["u5"]):
+    sx, sy = mm_to_px(sot["x_mm"], sot["y_mm"])
+    draw.rectangle(
+        [sx - 1.45 * scale_out, sy - 0.85 * scale_out, sx + 1.45 * scale_out, sy + 0.85 * scale_out],
+        fill=(28, 31, 36, 248),
+        outline=(78, 84, 94, 255),
+        width=1,
+    )
+
+  # Two 16-pin black female header strips for U1 (LOLIN D32), leaving the SC shield logo visible
+  for row_pads in (geom["u1_top_pads"], geom["u1_bot_pads"]):
+    if row_pads:
+      hx0, hy = mm_to_px(row_pads[0][0] - 1.35, row_pads[0][1])
+      hx1, _ = mm_to_px(row_pads[-1][0] + 1.35, row_pads[-1][1])
+      hh = 1.25 * scale_out
+      draw.rounded_rectangle(
+          [hx0, hy - hh, hx1, hy + hh],
+          radius=2,
+          fill=(24, 27, 32, 248),
+          outline=(74, 80, 90, 255),
+          width=1,
+      )
+      hole_r = max(1.5, 0.42 * scale_out)
+      for px_mm, py_mm in row_pads:
+        px, py = mm_to_px(px_mm, py_mm)
+        draw.rectangle(
+            [px - hole_r, py - hole_r, px + hole_r, py + hole_r],
+            fill=(16, 18, 22, 255),
+            outline=(192, 158, 62, 220),
+            width=1,
+        )
+
+  # Twelve 2x8 female minibadge header pairs (J1..J12) in the 4-column HHC color palette
+  # shown on BadgeBuildSheet.pdf Page 1 (Red, Green, Blue, Yellow across columns 1..4).
+  col_palettes = [
+      ((158, 36, 36, 245), (96, 20, 20, 255)),     # Red
+      ((36, 128, 62, 245), (20, 78, 36, 255)),     # Green
+      ((34, 86, 168, 245), (18, 48, 102, 255)),    # Blue
+      ((186, 146, 32, 245), (116, 88, 16, 255)),   # Yellow
+  ]
+  for mb in geom["minibadges"]:
+    col_idx = mb["slot"] % 4
+    hfill, hborder = col_palettes[col_idx]
+    hx0, _ = mm_to_px(mb["pad_x0_mm"] - 1.25, mb["pad_y_top_mm"])
+    hx1, _ = mm_to_px(mb["pad_x1_mm"] + 1.25, mb["pad_y_top_mm"])
+    hh = 1.20 * scale_out
+    hole_r = max(1.4, 0.40 * scale_out)
+    for py_mm in (mb["pad_y_top_mm"], mb["pad_y_bot_mm"]):
+      _, hy = mm_to_px(mb["pad_x0_mm"], py_mm)
+      draw.rounded_rectangle([hx0, hy - hh, hx1, hy + hh], radius=2, fill=hfill, outline=hborder, width=1)
+      for p_i in range(8):
+        px_mm = mb["pad_x0_mm"] + p_i * 2.54
+        px, py = mm_to_px(px_mm, py_mm)
+        draw.rectangle(
+            [px - hole_r, py - hole_r, px + hole_r, py + hole_r],
+            fill=(18, 20, 24, 255),
+            outline=(200, 166, 68, 215),
+            width=1,
+        )
+
+  # Three 6x6 mm PTS645 SMD tactile pushbuttons: SW1 (UP), SW2 (DOWN), SW3 (SELECT)
+  for sw in geom["action_buttons"]:
+    bx, by = mm_to_px(sw["x_mm"], sw["y_mm"])
+    half_body = 3.0 * scale_out
+    cap_r = 1.85 * scale_out
+    draw.rounded_rectangle(
+        [bx - half_body, by - half_body, bx + half_body, by + half_body],
+        radius=3,
+        fill=(196, 202, 210, 242),
+        outline=(84, 90, 100, 255),
+        width=2,
+    )
+    draw.ellipse(
+        [bx - cap_r, by - cap_r, bx + cap_r, by + cap_r],
+        fill=(30, 34, 40, 255),
+        outline=(74, 80, 90, 255),
+        width=1,
+    )
+
+  out_board_png.parent.mkdir(parents=True, exist_ok=True)
+  res_out.save(out_board_png, optimize=True)
+
+  return {
+      "width_px": W_out,
+      "height_px": H_out,
+      "scale_px_per_mm": round(scale_out, 6),
+      "origin_x_mm": round(x0_crop_mm, 6),
+      "origin_y_mm": round(y0_crop_mm, 6),
+  }, res_out
+
+
+def build_2018(pcb_override: Path = None):
+  pcb_path = pcb_override if pcb_override else find_2018_pcb_default()
+  if not pcb_path.exists():
+    raise FileNotFoundError(f"2018 KiCad PCB not found: {pcb_path}")
+
+  out_dir = BADGES_DIR / "2018"
+  layout_path = out_dir / "layout.json"
+  board_png_path = out_dir / "board.png"
+  overlay_path = BUILD_DIR / "check-overlay-2018.png"
+
+  tree = parse_sexp(pcb_path.read_text(encoding="utf-8", errors="replace"))
+  geom = extract_geometry_2018(tree)
+  img_meta, board_img = ensure_kicad_renders_2018(pcb_path, geom, board_png_path)
+
+  scale = img_meta["scale_px_per_mm"]
+  x0 = img_meta["origin_x_mm"]
+  y0 = img_meta["origin_y_mm"]
+
+  def to_px(xmm, ymm):
+    return round((xmm - x0) * scale, 2), round((ymm - y0) * scale, 2)
+
+  outer_mm = [[round(x, 4), round(y, 4)] for x, y in geom["outer_loop"]]
+  outer_px = [list(to_px(x, y)) for x, y in geom["outer_loop"]]
+  shackle_mm = [[round(x, 4), round(y, 4)] for x, y in geom["shackle_cutout_loop"]]
+  shackle_px = [list(to_px(x, y)) for x, y in geom["shackle_cutout_loop"]]
+  oxs = [p[0] for p in outer_mm]
+  oys = [p[1] for p in outer_mm]
+  pxs = [p[0] for p in outer_px]
+  pys = [p[1] for p in outer_px]
+
+  led_radius_px = round(max(3.6, 0.45 * scale), 2)
+  for led in geom["leds"]:
+    led["x_px"], led["y_px"] = to_px(led["x_mm"], led["y_mm"])
+    led["radius_px"] = led_radius_px
+
+  for sw in geom["action_buttons"]:
+    sw["x_px"], sw["y_px"] = to_px(sw["x_mm"], sw["y_mm"])
+    sw["radius_px"] = round(sw["radius_mm"] * scale, 2)
+
+  for mb in geom["minibadges"]:
+    mb["x_px"], mb["y_px"] = to_px(mb["x_mm"], mb["y_mm"])
+    mb["w_px"] = round(mb["w_mm"] * scale, 2)
+    mb["h_px"] = round(mb["h_mm"] * scale, 2)
+
+  # The 2018 badge has no LCD panel on the PCB: its display IS the 8x32 arched LED matrix
+  # on the padlock shackle (hidden=True suppresses #screen-holder on the PCB while
+  # #big-screen-canvas renders the 320x96 big 8x32 LED matrix view).
+  led_xs = [l["x_px"] for l in geom["leds"]]
+  led_ys = [l["y_px"] for l in geom["leds"]]
+  screen_obj = {
+      "ref": "U2+U3",
+      "part": "2x IS31FL3730 8x32 Red LED Matrix",
+      "shape": "led_matrix",
+      "hidden": True,
+      "touch": False,
+      "width_dots": 320,
+      "height_dots": 96,
+      "matrix_cols": 32,
+      "matrix_rows": 8,
+      "x_px": round(min(led_xs), 2),
+      "y_px": round(min(led_ys), 2),
+      "w_px": round(max(led_xs) - min(led_xs), 2),
+      "h_px": round(max(led_ys) - min(led_ys), 2),
+  }
+
+  layout = {
+      "board_image": {"file": "board.png", **img_meta},
+      "outline": {
+          "bbox_mm": {"x": round(min(oxs), 4), "y": round(min(oys), 4), "w": round(max(oxs) - min(oxs), 4), "h": round(max(oys) - min(oys), 4)},
+          "bbox_px": {"x": round(min(pxs), 2), "y": round(min(pys), 2), "w": round(max(pxs) - min(pxs), 2), "h": round(max(pys) - min(pys), 2)},
+          "polygon_mm": outer_mm,
+          "polygon_px": outer_px,
+          "shackle_cutout_mm": shackle_mm,
+          "shackle_cutout_px": shackle_px,
+      },
+      "screen": screen_obj,
+      "nav_switch": None,
+      "action_buttons": geom["action_buttons"],
+      "minibadges": geom["minibadges"],
+      "led_matrix_source": {
+          "mcu_ref": "U1",
+          "i2c_scl_gpio": 26,
+          "i2c_sda_gpio": 25,
+          "sdb_gpio": 27,
+          "drivers": [
+              {"ref": "U2", "part": "IS31FL3730", "i2c_addr": "0x60", "cols": "0..15"},
+              {"ref": "U3", "part": "IS31FL3730", "i2c_addr": "0x61", "cols": "16..31"},
+          ],
+          "rows": 8,
+          "cols": 32,
+      },
+      "leds": geom["leds"],
+  }
+
+  out_dir.mkdir(parents=True, exist_ok=True)
+  layout_path.write_text(json.dumps(layout, indent=2) + "\n", encoding="utf-8")
+
+  overlay = board_img.copy()
+  draw = ImageDraw.Draw(overlay)
+  draw.line([tuple(p) for p in outer_px] + [tuple(outer_px[0])], fill=(0, 220, 255, 220), width=2)
+  draw.line([tuple(p) for p in shackle_px] + [tuple(shackle_px[0])], fill=(0, 220, 255, 200), width=2)
+
+  for led in geom["leds"]:
+    lx, ly = led["x_px"], led["y_px"]
+    r = led["radius_px"]
+    col = (255, 60, 60, 215) if led["col"] < 16 else (255, 150, 40, 215)
+    draw.ellipse([lx - r, ly - r, lx + r, ly + r], fill=col, outline=(255, 255, 255, 220), width=1)
+
+  for sw in geom["action_buttons"]:
+    r = sw["radius_px"]
+    draw.ellipse([sw["x_px"] - r, sw["y_px"] - r, sw["x_px"] + r, sw["y_px"] + r], outline=(0, 255, 120, 255), width=3)
+    draw.text((sw["x_px"] - 22, sw["y_px"] - r - 14), f"{sw['ref']} ({sw['name']})", fill=(0, 255, 120, 255))
+
+  for mb in geom["minibadges"]:
+    draw.rectangle(
+        [mb["x_px"] - mb["w_px"] / 2, mb["y_px"] - mb["h_px"] / 2, mb["x_px"] + mb["w_px"] / 2, mb["y_px"] + mb["h_px"] / 2],
+        outline=(190, 120, 255, 220),
+        width=2,
+    )
+
+  overlay_path.parent.mkdir(parents=True, exist_ok=True)
+  overlay.save(overlay_path)
+  print(f"[2018] Wrote {layout_path}, {board_png_path} ({img_meta['width_px']}x{img_meta['height_px']}), {overlay_path}")
+  print(f"[2018] Verified 256 matrix LEDs ({geom['leds'][0]['ref']}..{geom['leds'][-1]['ref']}) across U2 (0x60) & U3 (0x61)")
+
+
 def build_layout_and_overlay():
   parser = argparse.ArgumentParser(description="Extract KiCad badge geometry and render board.png + layout.json")
-  parser.add_argument("--year", choices=["2023", "2024", "2025", "2026", "all"], default="2026", help="Badge year to process")
+  parser.add_argument("--year", choices=["2018", "2023", "2024", "2025", "2026", "all"], default="2026", help="Badge year to process")
   parser.add_argument("--pcb", type=Path, default=None, help="Path to .kicad_pcb (optional override)")
   args = parser.parse_args()
 
+  if args.year in ("2018", "all"):
+    build_2018(args.pcb if args.year == "2018" else None)
   if args.year in ("2023", "all"):
     build_2023(args.pcb if args.year == "2023" else None)
   if args.year in ("2024", "all"):

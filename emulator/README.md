@@ -2,6 +2,7 @@
 
 Browser-based hardware shell (`emulator/web/index.html`), multi-year badge museum (`emulator/web/museum.html`), and native headless script runners for SAINTCON electronic conference badges:
 
+- **2018, LED matrix badge (our description, upstream gives no title)** (`?year=2018`): ESP32 (LOLIN D32) padlock PCB (`Saintcon2018.kicad_pcb`), arched 8×32 discrete red 0603 LED matrix (`D1..D256`) driven by two `IS31FL3730` I2C dual-8×8 matrix drivers (`U2` at `0x60`, `U3` at `0x61`), 3 tactile switches (`SW1`=`UP`, `SW2`=`DOWN`, `SW3`=`SELECT`), second I2C bus (`i2c2`, 10 kHz) for 5 minibadge addresses (`0x01, 0x29, 0x40, 0x41, 0x42`), and `microWebSrv` Wi-Fi AP config portal (`www/`), running `compukidmike` and `miketweaver`'s original SAINTCON 2018 MicroPython firmware (`mode=stock`, "Original Firmware") inside MicroPython `v1.24.1` compiled to WebAssembly (`ports/webassembly`).
 - **2023 — "Incidents"** (`?year=2023`): ESP32-S3 landscape dungeon-crawler badge (`Saintcon2023.kicad_pcb`), rectangular `320×240` ST7789 8-bit 8080 parallel LCD, 20 SK6812MINI LEDs (`D1..D20`), 4-way + center navigation switch (`SW5`) + `A` & `B` action buttons (`SW2`, `SW3`), NEC IR TX/RX, fixed MC3419 accelerometer, silent TFA9879 audio shim, and 4 virtual I2C minibadge slots (`U9, U10, U13, U14`), running `compukidmike`'s original SAINTCON 2023 firmware (`mode=stock`, "Original Firmware") backed by a per-visitor in-browser fake `sc23-api` game server (`badges/2023/fake-server.js`) and `"Incidents Companion"` panel.
 - **2024 — "Tower Battle"** (`?year=2024`): ESP32-S3 landscape wrist badge (`Saintcon2024.kicad_pcb` + `Saintcon2024Top.kicad_pcb`), rectangular `320×240` ST7789 8080 parallel LCD with GT911 capacitive touchscreen, NEC IR TX/RX, MC3419 accelerometer, and TCA9544A Klip-on I2C mux, running `compukidmike`'s original SAINTCON 2024 firmware (`mode=stock`, "Original Firmware") backed by a per-visitor in-browser fake tower server (`badges/2024/fake-server.js`) and an 11-station virtual IR `"Towers"` panel.
 - **2025 — "The Wrench"** (`?year=2025`): ESP32-S3 wrench PCB (`Saintcon2025.kicad_pcb`), rectangular `240×320` ST7789V LCD, 20 WS2812B-2020 LEDs (`D1..D20`), 5-way navigation switch (`SW2`), 512-byte ST25DV04K NFC EEPROM, with **two selectable modes**:
@@ -19,10 +20,18 @@ All year-specific assets, metadata, and compiled WebAssembly cores live under `e
 
 ```text
 emulator/web/
-├── index.html               # Multi-year emulator shell (?year=2023|2024|2025|2026 or <yy>.sc.pug.technology)
-├── museum.html              # Badge museum index (2023, 2024, 2025, and 2026 live)
+├── index.html               # Multi-year emulator shell (?year=2018|2023|2024|2025|2026 or <yy>.sc.pug.technology)
+├── museum.html              # Badge museum index (2018, 2023, 2024, 2025, and 2026 live)
+├── 404.html                 # Custom 404 page with links to museum and live badge years
 ├── mock-core.js             # Fallback JS implementation of the 12-function Core ABI
 └── badges/
+    ├── 2018/
+    │   ├── badge.json       # Year profile: LED matrix badge, 320×96 matrix closeup, 256 LEDs, 3 buttons, 4096B flash config, mode: stock
+    │   ├── layout.json      # Board geometry (858×1385), hidden LCD bezel, SW1/SW2/SW3, 256 arched 0603 LEDs (D1..D256), 12 minibadge headers
+    │   ├── board.png        # 858×1385 KiCad PCB render of Saintcon2018.kicad_pcb
+    │   ├── core.js          # Emscripten MODULARIZE + ASYNCIFY loader (createCore)
+    │   ├── core.wasm        # MicroPython v1.24.1 WebAssembly runtime + scrubbed 2018 Python & frozen modules
+    │   └── THIRD_PARTY_LICENSES.txt # Generated license notices for Saintcon2018, MicroPython, microWebSrv/microWebSocket, uasyncio/aswitch/asyn, sha256, Emscripten/musl
     ├── 2023/
     │   ├── badge.json       # Year profile: "Incidents", 320×240 screen, 20 LEDs, 7 buttons, 128B EEPROM, mode: stock
     │   ├── layout.json      # Board geometry (1182×983), screen rect, SW5/SW2/SW3, 20 LEDs, 4 minibadge slots
@@ -63,6 +72,14 @@ emulator/
 ├── core/                    # 2025 ("The Wrench") platform layer, ABI glue (emu.c/emu.h), and headless CLI
 ├── build-core.sh            # Builds 2025 WASM core (-> web/badges/2025/) and emulator/core/emu-cli
 ├── cores/
+│   ├── 2018/                # 2018 (LED matrix badge, original MicroPython firmware & microWebSrv portal) core
+│   │   ├── UPSTREAM.md      # Provenance, secret-scrubbing, and 2-line flash-parity patch record (commit fee2837, compukidmike & miketweaver)
+│   │   ├── fetch-upstream.sh# Pins Saintcon2018 + MicroPython v1.24.1 into git-ignored upstream/ and scrubs hcid.py/www/configure.py secrets
+│   │   ├── gen-licenses.sh  # Generates web/badges/2018/THIRD_PARTY_LICENSES.txt from upstream license files
+│   │   ├── Makefile         # Builds MicroPython v1.24.1 + platform shims for native (emu-cli) and Emscripten (core.{js,wasm})
+│   │   ├── platform/        # MicroPython port & C shims (machine.Pin/I2C, IS31FL3730 x2, I2C2 minibadges, network.WLAN, socket, _thread, urequests)
+│   │   ├── cli_2018.c       # Headless smoke test runner & composite PNG renderer (board + 2× zoomed 8×32 LED matrix)
+│   │   └── build.sh         # Builds 2018 emu-cli, WASM core (-> web/badges/2018/core.{js,wasm}), and THIRD_PARTY_LICENSES.txt
 │   ├── 2023/                # 2023 ("Incidents" — original conference firmware & dungeon crawler) core
 │   │   ├── UPSTREAM.md      # Provenance & secret-scrubbing record (commit 6f5f340, compukidmike/Saintcon2023)
 │   │   ├── fetch-upstream.sh# Pins Saintcon2023 + ArduinoJson v6.21.3 into git-ignored upstream/ and scrubs Wi-Fi secrets
@@ -98,7 +115,8 @@ emulator/
 
 - **Year & Mode Resolution**: `emulator/web/index.html` resolves the badge year from `?year=<year>` (default `2025`) or from the host `<yy>.sc.pug.technology` (e.g. `24.sc.pug.technology` = 2024, `25.sc.pug.technology` = 2025), fetches `badges/<year>/badge.json`, configures screen dimensions, shape (`rect` vs `round` circular mask), capacitive touch or button bitmask/keybindings, LED count, EEPROM size, modes, and credits, and loads `badges/<year>/core.js` + `core.wasm`.
 - **Per-Year & Per-Mode Browser Storage**: `localStorage` keys are scoped by year and mode:
-  - `saintcon_<year>_<mode>_eeprom` (e.g. `saintcon_2023_stock_eeprom`, `saintcon_2025_pug_eeprom`, `saintcon_2025_stock_eeprom`, `saintcon_2026_stock_eeprom`)
+  - `saintcon_<year>_<mode>_eeprom` (e.g. `saintcon_2018_stock_eeprom`, `saintcon_2023_stock_eeprom`, `saintcon_2025_pug_eeprom`, `saintcon_2025_stock_eeprom`, `saintcon_2026_stock_eeprom`)
+  - `saintcon_2018_stock_minibadges`, `saintcon_2018_stock_hc_score` (virtual I2C2 minibadge selections and stand-in Hacker Challenge score for 2018 stock mode; `wifi.json` flash config is persisted in `saintcon_2018_stock_eeprom`)
   - `saintcon_2023_stock_server`, `saintcon_2023_stock_minibadges` (isolated `sc23-api` server state and 4 virtual minibadge slot selections for 2023 stock mode)
   - `saintcon_2024_stock_nvs`, `saintcon_2024_stock_server` (isolated NVS and fake tower server state for 2024 stock mode)
   - `saintcon_2025_stock_nvs`, `saintcon_2025_stock_se`, `saintcon_2025_stock_server` (isolated NVS, fake ATECC608B slots, and fake game server state for 2025 stock mode)
@@ -137,6 +155,27 @@ For firmwares whose `main()` or FreeRTOS tasks block inside polling, queues, or 
 ---
 
 ## Building Cores & Running Headless Smoke Tests
+
+### 2018 Core (LED matrix badge, `mode=stock`)
+
+```bash
+./emulator/cores/2018/build.sh
+./emulator/cores/2018/emu-cli \
+    --board emulator/web/badges/2018/board.png \
+    --layout emulator/web/badges/2018/layout.json \
+    step 2900 snap_badge emulator/build/2018-smoke/02-saintcon-scroll.png
+```
+
+`emulator/cores/2018/build.sh` runs `fetch-upstream.sh` (staging `Badge/Badge Source Code/` at commit `fee2837d4607` without upstream `Readme.md` files + real `micropython/micropython` `v1.24.1` at `ecfdd5d6f9be` into git-ignored `emulator/cores/2018/upstream/`, scrubbing the `hcid.py` hash salt, conference Wi-Fi password, `flag()`, `www/` HTML-comment flags, and `configure.py` default SSID, applying the two 1-line flash-parity fixes documented in `emulator/cores/2018/UPSTREAM.md`, and verifying zero original secret values exist anywhere in `upstream/Badge/`, `emulator/web/`, or git-tracked files), compiles MicroPython (`ports/webassembly` + `py/`/`extmod/`/`shared/`) and `emulator/cores/2018/platform/` inside `emscripten/emsdk:3.1.73` (`emulator/web/badges/2018/core.{js,wasm}`) and natively (`emulator/cores/2018/emu-cli`), and generates `emulator/web/badges/2018/THIRD_PARTY_LICENSES.txt`.
+
+Hardware shims in `emulator/cores/2018/platform/` (verified against `Badge/Badge Source Code/`):
+- **8×32 LED Matrix (`i2c` bus 1, `SCL=GPIO 26`, `SDA=GPIO 25`, `100 kHz` at `python_files/main.py:31`)**: Two `IS31FL3730` dual-8×8 matrix drivers at `0x60` (left 16 columns `U2`) and `0x61` (right 16 columns `U3`, `python_files/matrix.py:8-9`), capturing register `0x00` (`SSD` shutdown bit 7 and `DM` dual-matrix mode `0x18`, `python_files/IS31FL3730.py:10-12`), `0x0D` (`0x0C` 20 mA current limit, `python_files/IS31FL3730.py:7-9`), `0x19` (`0..128` PWM brightness, initialized to `32` at `python_files/main.py:41,77` and `python_files/IS31FL3730.py:14-20`), `0x01..0x08` (Matrix 1 columns `0..7`) + `0x0E..0x15` (Matrix 2 columns `8..15`, `python_files/IS31FL3730.py:22-43`), `0x0C` (Update Column latch, `python_files/IS31FL3730.py:45-49`), and `displayEnable` (`SDB`) on `GPIO 27` (`python_files/main.py:69-70`), rendered both onto the 256 discrete 0603 LEDs (`D1..D256`) on the padlock shackle and onto the `320×96` zoomed matrix canvas.
+- **Minibadges (`i2c2` bus 2, `SCL=GPIO 22`, `SDA=GPIO 21`, `10 kHz` at `python_files/main.py:32`)**: Emulates the 5 minibadge addresses in `I2CDeviceList = {0x01, 0x29, 0x40, 0x41, 0x42}` (`python_files/main.py:35`) and `pwrEnable` on `GPIO 23` (`python_files/main.py:66-67`), capturing `[0x02, brightness]` PWM writes (`python_files/main.py:80-91,237-248`) and `[0x01, score >> 8, score & 0xFF]` 16-bit score broadcasts (`python_files/main.py:506-519`), and answering `minibadgeComms()` polls (`python_files/main.py:439-498`) with `0x00` idle, `0x01` button status, `0x02` scrolling/centered text messages, or `0x03`/`0x04` 32-column pixel banners.
+- **Buttons**: 3 active-low `PULL_UP` inputs (`UP` on `GPIO 16` / `SW1`, `DOWN` on `GPIO 17` / `SW2`, `SELECT` on `GPIO 18` / `SW3`, `python_files/main.py:72-74`) scanned by the badge's unmodified bundled `aswitch.py`, `asyn.py`, and `uasyncio/*`.
+- **Wi-Fi, `microWebSrv` Config Portal (`www/`), Flash Persistence, & Stand-in Score Server**:
+  - `network.WLAN`: fixed museum MAC `22:18:5c:02:01:80` (`SC_2018` AP SSID at `python_files/main.py:24-26`, museum-salted HCID `738063f1e9` and AP password `d80bb897` via `frozen_modules/hcid.py`), connected STA mode (`"MUSEUM"`), and AP mode (`python_files/configure.py:145-179`).
+  - `socket`/`usocket` + `select`/`uselect`: bridges `MicroWebSrv` (`frozen_modules/microWebSrv.py`, `python_files/configure.py:40-186`) directly to an on-page and popup sandboxed `www/` viewer (`GET /`, `POST /configure`, `GET /reset`, `GET /finish`, `GET /partyparrot.html`) with strict CSP, no script execution, plain-text telemetry, and `wifi.json` persisted to `localStorage['saintcon_2018_stock_eeprom']`.
+  - `urequests`: intercepts `python_files/hc.py`'s score query (`https://www.hackerschallenge.org/scoreapi/keyscore/<id>`, `User-Agent: SCBadge-v1.0 <hcid>`) locally in-page via `window.__sc18FakeScoreServer` (`{"total_score": 180}` by default) so zero network calls leave the browser.
 
 ### 2023 Core ("Incidents" Dungeon Badge — `mode=stock`)
 
@@ -251,6 +290,7 @@ Start the static HTTP server from the repository root:
 `tools/emu-serve` serves `emulator/web/` on port `8765`:
 
 - Museum index: `http://localhost:8765/museum.html`
+- 2018 badge: `http://localhost:8765/?year=2018`
 - 2023 badge: `http://localhost:8765/?year=2023`
 - 2024 badge: `http://localhost:8765/?year=2024`
 - 2025 badge: `http://localhost:8765/?year=2025`
@@ -258,7 +298,7 @@ Start the static HTTP server from the repository root:
 
 ## Public site (live since 2026-11-01)
 
-- Museum `https://sc.pug.technology/`, 2023 `https://23.sc.pug.technology/` (configured in `wrangler.jsonc`), 2023 `https://23.sc.pug.technology/` and 2024 `https://24.sc.pug.technology/` (both live since 2026-11-01), 2025 `https://25.sc.pug.technology/`, 2026 `https://26.sc.pug.technology/`.
+- Museum `https://sc.pug.technology/`, 2018 `https://18.sc.pug.technology/` (configured in `wrangler.jsonc`), 2018 `https://18.sc.pug.technology/`, 2023 `https://23.sc.pug.technology/` and 2024 `https://24.sc.pug.technology/` (all live since 2026-11-01), 2025 `https://25.sc.pug.technology/`, 2026 `https://26.sc.pug.technology/`.
 - Served by the Cloudflare Worker `sc-badge-museum` (static assets only).
   Config: `emulator/deploy/wrangler.jsonc` (no request logs, no workers.dev or preview URLs, 404 page, custom domains).
 - Deploy: `cd emulator/deploy && npx -y wrangler@4 deploy`. It uploads only `emulator/web/`; never put build files,
@@ -269,6 +309,14 @@ Start the static HTTP server from the repository root:
 ---
 
 ## Controls by Year
+
+### 2018 (LED matrix badge, Tactile Switches `SW1` / `SW2` / `SW3`)
+
+| Button | Bit | Hardware | Keyboard | On-Screen |
+|---|---|---|---|---|
+| **UP** | `bit 0` (`0x01`) | `SW1` (`GPIO 16`, active-low) | `ArrowUp` or `W` | Tap/hold `SW1` on left PCB edge or `▲ UP` on pad |
+| **DOWN** | `bit 1` (`0x02`) | `SW2` (`GPIO 17`, active-low) | `ArrowDown` or `S` | Tap/hold `SW2` on left PCB edge or `▼ DOWN` on pad |
+| **SELECT** | `bit 4` (`0x10`) | `SW3` (`GPIO 18`, active-low) | `Enter`, `Space`, `E`, or `C` | Tap/hold `SW3` on right PCB edge or `● SELECT` on pad |
 
 ### 2023 ("Incidents" — 4-Way Switch `SW5` + Action Buttons `SW2`/`SW3`)
 
@@ -321,6 +369,7 @@ Start the static HTTP server from the repository root:
 `emulator/tools/kicad_layout.py` parses `Saintcon2024.kicad_pcb` + `Saintcon2024Top.kicad_pcb`, `Saintcon2025.kicad_pcb`, and `Apollo.kicad_pcb` (automatically converting KiCad 10 syntax in a temporary build copy when rendering with `kicad/kicad:9.0`), traces WS2812 `DIN`→`DOUT` net chains from the MCU GPIO pin where present, extracts screen/button/IR/outline geometry, renders the 3D raytraced PCB, and writes `emulator/web/badges/<year>/{layout.json,board.png}`:
 
 ```bash
+python3 emulator/tools/kicad_layout.py --year 2018
 python3 emulator/tools/kicad_layout.py --year 2023
 python3 emulator/tools/kicad_layout.py --year 2024
 python3 emulator/tools/kicad_layout.py --year 2025

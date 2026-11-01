@@ -1,0 +1,114 @@
+{
+  "year": 2018,
+  "name": "LED matrix badge",
+  "name_is_description": true,
+  "title": "SAINTCON 2018 LED matrix badge",
+  "mcu": "ESP32 (LOLIN D32)",
+  "screen_size": {
+    "width": 320,
+    "height": 96,
+    "shape": "rect",
+    "controller": "2x IS31FL3730 (8×32 Red LEDs)"
+  },
+  "has_touch": false,
+  "has_2018_companion": true,
+  "led_count": 256,
+  "led_summary": "256 Red 0603 LEDs (8×32 Matrix, D1→D256)",
+  "eeprom_bytes": 4096,
+  "has_nfc": false,
+  "has_speed_control": true,
+  "buttons": [
+    {
+      "id": "up",
+      "name": "UP",
+      "bit": 1,
+      "keys": [
+        "ArrowUp",
+        "KeyW",
+        "w",
+        "W"
+      ],
+      "hint": "W / ↑",
+      "ref": "SW1",
+      "kind": "dpad_up"
+    },
+    {
+      "id": "down",
+      "name": "DOWN",
+      "bit": 2,
+      "keys": [
+        "ArrowDown",
+        "KeyS",
+        "s",
+        "S"
+      ],
+      "hint": "S / ↓",
+      "ref": "SW2",
+      "kind": "dpad_down"
+    },
+    {
+      "id": "center",
+      "name": "SELECT",
+      "bit": 16,
+      "keys": [
+        "Enter",
+        "Space",
+        " ",
+        "KeyE",
+        "e",
+        "E",
+        "KeyC",
+        "c",
+        "C"
+      ],
+      "hint": "Enter / Space",
+      "ref": "SW3",
+      "kind": "dpad_center"
+    }
+  ],
+  "files": {
+    "layout": "layout.json",
+    "board": "board.png",
+    "core_js": "core.js",
+    "core_wasm": "core.wasm"
+  },
+  "default_mode": "stock",
+  "modes_available": [
+    "stock"
+  ],
+  "modes_coming_soon": [],
+  "modes": {
+    "stock": {
+      "id": "stock",
+      "name": "Original Firmware",
+      "label": "Original Firmware",
+      "status": "available",
+      "core_js": "core.js",
+      "core_wasm": "core.wasm",
+      "has_speed_control": true,
+      "has_nut_tap": false,
+      "has_2018_companion": true,
+      "description": "Original SAINTCON 2018 MicroPython LED matrix badge firmware & microWebSrv config portal"
+    }
+  },
+  "credits": {
+    "badge_by": "compukidmike",
+    "author_url": "https://github.com/compukidmike",
+    "repo_url": "https://github.com/compukidmike/Saintcon2018",
+    "source_url": "https://github.com/compukidmike/Saintcon2018/tree/fee2837d4607ee8a0360e99709894fc5fc608948/Badge/Badge%20Source%20Code",
+    "commit": "fee2837",
+    "third_party_licenses_url": "badges/2018/THIRD_PARTY_LICENSES.txt",
+    "other_credits": [
+      {
+        "name": "compukidmike",
+        "role": "Badge repository (hardware design files and MicroPython firmware)",
+        "url": "https://github.com/compukidmike/Saintcon2018"
+      },
+      {
+        "name": "miketweaver",
+        "role": "Firmware contributor (commit d21c9a3: hcid.py and frozen modules)",
+        "url": "https://github.com/compukidmike/Saintcon2018/commits?author=miketweaver"
+      }
+    ]
+  }
+}

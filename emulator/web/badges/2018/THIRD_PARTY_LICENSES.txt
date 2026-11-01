@@ -1,0 +1,623 @@
+THIRD-PARTY SOFTWARE NOTICES AND LICENSES
+SAINTCON 2018 LED Matrix Badge Emulator (badges/2018/core.wasm, badges/2018/core.js)
+
+This file contains the licence texts and provenance notices for the upstream
+firmware files, Python modules, fonts, and WebAssembly runtime components
+compiled or bundled into badges/2018/core.wasm and badges/2018/core.js.
+
+================================================================================
+1. SAINTCON 2018 Badge Firmware (compukidmike/Saintcon2018)
+================================================================================
+
+Source: https://github.com/compukidmike/Saintcon2018
+Commit: fee2837d4607ee8a0360e99709894fc5fc608948
+Path:   Badge/Badge Source Code/ (python_files/ and frozen_modules/)
+
+Firmware authors in upstream repository history:
+  - compukidmike (Badge/Badge Source Code/python_files/: main.py, matrix.py,
+    IS31FL3730.py, Font5x7.py, configure.py, wifi_config.py, hc.py, www/*)
+  - miketweaver (commit d21c9a3 "add frozen modules": Badge/Badge Source Code/
+    frozen_modules/hcid.py and frozen module set)
+
+Licence for SAINTCON 2018 badge-specific files (main.py, matrix.py,
+IS31FL3730.py, Font5x7.py, configure.py, wifi_config.py, hc.py, hcid.py,
+and www/*):
+  Licence not stated.
+
+Third-party Python modules included inside Badge/Badge Source Code/ are listed
+individually in Sections 3 through 6 below with the exact notices stated in
+their shipped files.
+
+================================================================================
+2. MicroPython v1.24.1 (micropython/micropython @ ecfdd5d6f9be971852003c2049600dc7b3e2a838) - MIT License
+================================================================================
+
+The MIT License (MIT)
+
+Copyright (c) 2013-2024 Damien P. George
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+--------------------------------------------------------------------------------
+
+Unless specified otherwise (see below), the above license and copyright applies
+to all files in this repository.
+
+Individual files may include additional copyright holders.
+
+The various ports of MicroPython may include third-party software that is
+licensed under different terms. These licenses are summarised in the tree
+below, please refer to these files and directories for further license and
+copyright information. Note that (L)GPL-licensed code listed below is only
+used during the build process and is not part of the compiled source code.
+
+/ (MIT)
+    /drivers
+        /cc3100 (BSD-3-clause)
+    /lib
+        /asf4 (Apache-2.0)
+        /axtls (BSD-3-clause)
+            /config
+                /scripts
+                    /config (GPL-2.0-or-later)
+                /Rules.mak (GPL-2.0)
+        /berkeley-db-1xx (BSD-4-clause)
+        /btstack (See btstack/LICENSE)
+        /cmsis (BSD-3-clause)
+        /crypto-algorithms (NONE)
+        /libhydrogen (ISC)
+        /libmetal (BSD-3-clause)
+        /littlefs (BSD-3-clause)
+        /lwip (BSD-3-clause)
+        /mynewt-nimble (Apache-2.0)
+        /nrfx (BSD-3-clause)
+        /nxp_driver (BSD-3-Clause)
+        /oofatfs (BSD-1-clause)
+        /open-amp (BSD-3-clause)
+        /pico-sdk (BSD-3-clause)
+        /re15 (BSD-3-clause)
+        /stm32lib (BSD-3-clause)
+        /tinyusb (MIT)
+        /uzlib (Zlib)
+        /wiznet5k (MIT)
+    /logo (uses OFL-1.1)
+    /ports
+        /cc3200
+            /hal (BSD-3-clause)
+            /simplelink (BSD-3-clause)
+            /FreeRTOS (GPL-2.0 with FreeRTOS exception)
+        /esp32
+            /ppp_set_auth.* (Apache-2.0)
+        /rp2
+            /mutex_extra.c (BSD-3-clause)
+            /clocks_extra.c (BSD-3-clause)
+        /stm32
+            /usbd*.c (MCD-ST Liberty SW License Agreement V2)
+            /stm32_it.* (MIT + BSD-3-clause)
+            /system_stm32*.c (MIT + BSD-3-clause)
+            /boards
+                /startup_stm32*.s (BSD-3-clause)
+                /*/stm32*.h (BSD-3-clause)
+            /usbdev (MCD-ST Liberty SW License Agreement V2)
+            /usbhost (MCD-ST Liberty SW License Agreement V2)
+        /zephyr
+            /src (Apache-2.0)
+    /tools
+        /dfu.py (LGPL-3.0-only)
+
+
+================================================================================
+2a. re1.5 Regular Expression Engine in MicroPython (lib/re1.5/re1.5.h)
+================================================================================
+
+// Copyright 2007-2009 Russ Cox.  All Rights Reserved.
+// Copyright 2014 Paul Sokolovsky.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
+
+(Note: MicroPython v1.24.1 ships no separate lib/re1.5/LICENSE file; its root
+LICENSE in Section 2 lists /lib/re15 as BSD-3-clause.)
+
+================================================================================
+2b. Brad Conte crypto-algorithms in MicroPython (lib/crypto-algorithms/sha256.c) - Public Domain
+================================================================================
+
+/*********************************************************************
+* Source:     https://github.com/B-Con/crypto-algorithms
+* Filename:   sha256.c
+* Author:     Brad Conte (brad AT bradconte.com)
+* Copyright:  This code is released into the public domain.
+* Disclaimer: This code is presented "as is" without any guarantees.
+* Details:    Implementation of the SHA-256 hashing algorithm.
+              SHA-256 is one of the three algorithms in the SHA2
+              specification. The others, SHA-384 and SHA-512, are not
+              offered in this implementation.
+              Algorithm specification can be found here:
+               * http://csrc.nist.gov/publications/fips/fips180-2/fips180-2withchangenotice.pdf
+              This implementation uses little endian byte order.
+*********************************************************************/
+
+
+================================================================================
+2c. uzlib in MicroPython (lib/uzlib/uzlib.h) - zlib License
+================================================================================
+
+/*
+ * uzlib  -  tiny deflate/inflate library (deflate, gzip, zlib)
+ *
+ * Copyright (c) 2003 by Joergen Ibsen / Jibz
+ * All Rights Reserved
+ * http://www.ibsensoftware.com/
+ *
+ * Copyright (c) 2014-2018 by Paul Sokolovsky
+ *
+ * Optimised for MicroPython:
+ * Copyright (c) 2023 by Jim Mussared
+ *
+ * This software is provided 'as-is', without any express
+ * or implied warranty.  In no event will the authors be
+ * held liable for any damages arising from the use of
+ * this software.
+ *
+ * Permission is granted to anyone to use this software
+ * for any purpose, including commercial applications,
+ * and to alter it and redistribute it freely, subject to
+ * the following restrictions:
+ *
+ * 1. The origin of this software must not be
+ *    misrepresented; you must not claim that you
+ *    wrote the original software. If you use this
+ *    software in a product, an acknowledgment in
+ *    the product documentation would be appreciated
+ *    but is not required.
+ *
+ * 2. Altered source versions must be plainly marked
+ *    as such, and must not be misrepresented as
+ *    being the original software.
+ *
+ * 3. This notice may not be removed or altered from
+ *    any source distribution.
+ */
+
+
+================================================================================
+3. microWebSrv (frozen_modules/microWebSrv.py) - Header Notice (MIT License; full MIT text in Section 2)
+================================================================================
+
+"""
+The MIT License (MIT)
+Copyright © 2018 Jean-Christophe Bos & HC² (www.hc2.fr)
+"""
+
+
+================================================================================
+3a. microWebSocket (frozen_modules/microWebSocket.py) - Header Notice (MIT License; full MIT text in Section 2)
+================================================================================
+
+"""
+The MIT License (MIT)
+Copyright © 2018 Jean-Christophe Bos & HC² (www.hc2.fr)
+"""
+
+
+================================================================================
+4. uasyncio (python_files/uasyncio/__init__.py) - Header Notice (MIT License; full MIT text in Section 2)
+================================================================================
+
+# (c) 2014-2018 Paul Sokolovsky. MIT license.
+
+
+================================================================================
+4a. uasyncio.core (python_files/uasyncio/core.py) - Header Notice (MIT License; full MIT text in Section 2)
+================================================================================
+
+# (c) 2014-2018 Paul Sokolovsky. MIT license.
+
+
+================================================================================
+4b. uasyncio.queues and uasyncio.synchro (python_files/uasyncio/queues.py, synchro.py)
+================================================================================
+
+python_files/uasyncio/queues.py and python_files/uasyncio/synchro.py contain no
+copyright or licence header in the shipped files:
+  Licence not stated.
+
+================================================================================
+5. aswitch.py (python_files/aswitch.py) - MIT License
+================================================================================
+
+# The MIT License (MIT)
+#
+# Copyright (c) 2017 Peter Hinch
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+
+
+================================================================================
+5a. asyn.py (python_files/asyn.py) - MIT License
+================================================================================
+
+# The MIT License (MIT)
+#
+# Copyright (c) 2017 Peter Hinch
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+
+
+================================================================================
+6. sha256.py (frozen_modules/sha256.py)
+================================================================================
+
+frozen_modules/sha256.py contains no copyright or licence header in the shipped
+file:
+  Licence not stated.
+
+================================================================================
+7. Fonts (python_files/Font5x7.py and python_files/www/style.css)
+================================================================================
+
+  - 5x7 LED Matrix Bitmap Font (Badge/Badge Source Code/python_files/Font5x7.py):
+    Contains no copyright or licence header in the shipped file or upstream
+    repository. Licence not stated.
+
+  - Config Web Page Stylesheet (Badge/Badge Source Code/python_files/www/style.css):
+    Declares CSS fallback `font-family: 'Comfortaa', sans-serif;`. No Comfortaa
+    font file is bundled or fetched over the network by the emulator; the
+    browser renders using its local sans-serif font.
+
+================================================================================
+8. Emscripten Runtime (badges/2018/core.js / badges/2018/core.wasm) - MIT / NCSA Dual License
+================================================================================
+
+Emscripten is available under 2 licenses, the MIT license and the
+University of Illinois/NCSA Open Source License.
+
+Both are permissive open source licenses, with little if any
+practical difference between them.
+
+The reason for offering both is that (1) the MIT license is
+well-known, while (2) the University of Illinois/NCSA Open Source
+License allows Emscripten's code to be integrated upstream into
+LLVM, which uses that license, should the opportunity arise.
+
+The full text of both licenses follows.
+
+==============================================================================
+
+Copyright (c) 2010-2014 Emscripten authors, see AUTHORS file.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+==============================================================================
+
+Copyright (c) 2010-2014 Emscripten authors, see AUTHORS file.
+All rights reserved.
+
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files (the
+"Software"), to deal with the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+    Redistributions of source code must retain the above copyright
+    notice, this list of conditions and the following disclaimers.
+
+    Redistributions in binary form must reproduce the above
+    copyright notice, this list of conditions and the following disclaimers
+    in the documentation and/or other materials provided with the
+    distribution.
+
+    Neither the names of Mozilla,
+    nor the names of its contributors may be used to endorse
+    or promote products derived from this Software without specific prior
+    written permission. 
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE CONTRIBUTORS OR COPYRIGHT HOLDERS BE LIABLE FOR
+ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
+
+==============================================================================
+
+This program uses portions of Node.js source code located in src/library_path.js,
+in accordance with the terms of the MIT license. Node's license follows:
+
+    """
+        Copyright Joyent, Inc. and other Node contributors. All rights reserved.
+        Permission is hereby granted, free of charge, to any person obtaining a copy
+        of this software and associated documentation files (the "Software"), to
+        deal in the Software without restriction, including without limitation the
+        rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+        sell copies of the Software, and to permit persons to whom the Software is
+        furnished to do so, subject to the following conditions:
+
+        The above copyright notice and this permission notice shall be included in
+        all copies or substantial portions of the Software.
+
+        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+        IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+        FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+        AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+        LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+        FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+        IN THE SOFTWARE.
+    """
+
+The musl libc project is bundled in this repo, and it has the MIT license, see
+system/lib/libc/musl/COPYRIGHT
+
+The third_party/ subdirectory contains code with other licenses. None of it is
+used by default, but certain options use it (e.g., the optional closure compiler
+flag will run closure compiler from third_party/).
+
+
+
+================================================================================
+9. musl C Standard Library (linked into badges/2018/core.wasm) - MIT License
+================================================================================
+
+musl as a whole is licensed under the following standard MIT license:
+
+----------------------------------------------------------------------
+Copyright © 2005-2020 Rich Felker, et al.
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+"Software"), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+----------------------------------------------------------------------
+
+Authors/contributors include:
+
+A. Wilcox
+Ada Worcester
+Alex Dowad
+Alex Suykov
+Alexander Monakov
+Andre McCurdy
+Andrew Kelley
+Anthony G. Basile
+Aric Belsito
+Arvid Picciani
+Bartosz Brachaczek
+Benjamin Peterson
+Bobby Bingham
+Boris Brezillon
+Brent Cook
+Chris Spiegel
+Clément Vasseur
+Daniel Micay
+Daniel Sabogal
+Daurnimator
+David Carlier
+David Edelsohn
+Denys Vlasenko
+Dmitry Ivanov
+Dmitry V. Levin
+Drew DeVault
+Emil Renner Berthing
+Fangrui Song
+Felix Fietkau
+Felix Janda
+Gianluca Anzolin
+Hauke Mehrtens
+He X
+Hiltjo Posthuma
+Isaac Dunham
+Jaydeep Patil
+Jens Gustedt
+Jeremy Huntwork
+Jo-Philipp Wich
+Joakim Sindholt
+John Spencer
+Julien Ramseier
+Justin Cormack
+Kaarle Ritvanen
+Khem Raj
+Kylie McClain
+Leah Neukirchen
+Luca Barbato
+Luka Perkov
+M Farkas-Dyck (Strake)
+Mahesh Bodapati
+Markus Wichmann
+Masanori Ogino
+Michael Clark
+Michael Forney
+Mikhail Kremnyov
+Natanael Copa
+Nicholas J. Kain
+orc
+Pascal Cuoq
+Patrick Oppenlander
+Petr Hosek
+Petr Skocik
+Pierre Carrier
+Reini Urban
+Rich Felker
+Richard Pennington
+Ryan Fairfax
+Samuel Holland
+Segev Finer
+Shiz
+sin
+Solar Designer
+Stefan Kristiansson
+Stefan O'Rear
+Szabolcs Nagy
+Timo Teräs
+Trutz Behn
+Valentin Ochs
+Will Dietz
+William Haddon
+William Pitcock
+
+Portions of this software are derived from third-party works licensed
+under terms compatible with the above MIT license:
+
+The TRE regular expression implementation (src/regex/reg* and
+src/regex/tre*) is Copyright © 2001-2008 Ville Laurikari and licensed
+under a 2-clause BSD license (license text in the source files). The
+included version has been heavily modified by Rich Felker in 2012, in
+the interests of size, simplicity, and namespace cleanliness.
+
+Much of the math library code (src/math/* and src/complex/*) is
+Copyright © 1993,2004 Sun Microsystems or
+Copyright © 2003-2011 David Schultz or
+Copyright © 2003-2009 Steven G. Kargl or
+Copyright © 2003-2009 Bruce D. Evans or
+Copyright © 2008 Stephen L. Moshier or
+Copyright © 2017-2018 Arm Limited
+and labelled as such in comments in the individual source files. All
+have been licensed under extremely permissive terms.
+
+The ARM memcpy code (src/string/arm/memcpy.S) is Copyright © 2008
+The Android Open Source Project and is licensed under a two-clause BSD
+license. It was taken from Bionic libc, used on Android.
+
+The AArch64 memcpy and memset code (src/string/aarch64/*) are
+Copyright © 1999-2019, Arm Limited.
+
+The implementation of DES for crypt (src/crypt/crypt_des.c) is
+Copyright © 1994 David Burren. It is licensed under a BSD license.
+
+The implementation of blowfish crypt (src/crypt/crypt_blowfish.c) was
+originally written by Solar Designer and placed into the public
+domain. The code also comes with a fallback permissive license for use
+in jurisdictions that may not recognize the public domain.
+
+The smoothsort implementation (src/stdlib/qsort.c) is Copyright © 2011
+Valentin Ochs and is licensed under an MIT-style license.
+
+The x86_64 port was written by Nicholas J. Kain and is licensed under
+the standard MIT terms.
+
+The mips and microblaze ports were originally written by Richard
+Pennington for use in the ellcc project. The original code was adapted
+by Rich Felker for build system and code conventions during upstream
+integration. It is licensed under the standard MIT terms.
+
+The mips64 port was contributed by Imagination Technologies and is
+licensed under the standard MIT terms.
+
+The powerpc port was also originally written by Richard Pennington,
+and later supplemented and integrated by John Spencer. It is licensed
+under the standard MIT terms.
+
+All other files which have no copyright comments are original works
+produced specifically for use as part of this library, written either
+by Rich Felker, the main author of the library, or by one or more
+contibutors listed above. Details on authorship of individual files
+can be found in the git version control history of the project. The
+omission of copyright and license comments in each file is in the
+interest of source tree size.
+
+In addition, permission is hereby granted for all public header files
+(include/* and arch/*/bits/*) and crt files intended to be linked into
+applications (crt/*, ldso/dlstart.c, and arch/*/crt_arch.h) to omit
+the copyright notice and permission notice otherwise required by the
+license, and to use these files without any requirement of
+attribution. These files include substantial contributions from:
+
+Bobby Bingham
+John Spencer
+Nicholas J. Kain
+Rich Felker
+Richard Pennington
+Stefan Kristiansson
+Szabolcs Nagy
+
+all of whom have explicitly granted such permission.
+
+This file previously contained text expressing a belief that most of
+the files covered by the above exception were sufficiently trivial not
+to be subject to copyright, resulting in confusion over whether it
+negated the permissions granted in the license. In the spirit of
+permissive licensing, and of not having licensing issues being an
+obstacle to adoption, that text has been removed.
+
+
