@@ -1175,7 +1175,7 @@
           <strong><a href="https://saintcon.org" target="_blank" rel="noopener">SAINTCON</a></strong> is Utah's annual cybersecurity and hackers conference, celebrated for its custom hardware badges and conference-wide badge games.
         </p>
         <p id="about-author-para">
-          This is a <strong>fan-made hardware emulator</strong> built with the badge author's (<a href="https://github.com/compukidmike" target="_blank" rel="noopener">compukidmike</a>) permission.
+          This is a <strong>fan-made hardware emulator</strong> of the badge by <a href="https://github.com/compukidmike" target="_blank" rel="noopener">compukidmike</a>.
         </p>
         <p id="about-privacy-para">
           <strong>Privacy:</strong> All badge progress (simulated 512-byte EEPROM/NVS) is saved in <strong>your browser only</strong> (<code>localStorage</code>, isolated per year and mode) — no cookies, no analytics, and no external CDNs.
@@ -2754,7 +2754,7 @@
           const authorUrl = c.author_url || `https://github.com/${authorHandle}`;
           const repoUrl = c.repo_url || 'https://github.com/compukidmike/Saintcon2025';
           const repoShort = String(repoUrl).replace(/^https?:\/\/github\.com\//i, '');
-          const licenseText = String(c.license || "Used with the badge author's permission");
+          const licenseText = String(c.license || '');
           const thirdPartyUrl = c.third_party_licenses_url || `badges/${yr}/THIRD_PARTY_LICENSES.txt`;
 
           const buildLicenseNodes = () => {
@@ -2808,15 +2808,17 @@
               createExtLink(repoUrl, repoShort, true),
               ' • Pug pet by ',
               stPugAuthor,
-              ' • ',
-              buildLicenseNodes(),
-              ' • ',
-              createExtLink(thirdPartyUrl, 'Third-party licenses', false)
+              ' • '
             );
+            if (licenseText) {
+              creditsSecondaryLine.append(buildLicenseNodes(), ' • ');
+            }
+            creditsSecondaryLine.append(createExtLink(thirdPartyUrl, 'Third-party licenses', false));
           } else {
+            if (licenseText) {
+              creditsSecondaryLine.append(buildLicenseNodes(), ' • ');
+            }
             creditsSecondaryLine.append(
-              buildLicenseNodes(),
-              ' • ',
               createExtLink(thirdPartyUrl, 'Third-party licenses', false),
               ` • Stock "${name}" firmware (pug pet mode not on the ${yr} page yet)`
             );
@@ -2861,9 +2863,9 @@
             aboutAuthorPara.append(
               'This is a ',
               stFan,
-              " built with the badge author's (",
+              ' of the badge by ',
               createExtLink(authorUrl, authorHandle, false),
-              ') permission (',
+              ' (',
               createExtLink(thirdPartyUrl, 'third-party licenses', false),
               ').'
             );

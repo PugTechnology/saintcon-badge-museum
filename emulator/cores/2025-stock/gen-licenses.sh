@@ -51,8 +51,7 @@ software libraries, components, fonts, and runtime code compiled into the
 SAINTCON 2025 badge WebAssembly cores:
   - Stock Firmware & Faction Game (core-stock.wasm / core-stock.js) from
     compukidmike/Saintcon2025 (https://github.com/compukidmike/Saintcon2025,
-    commit 360c892981968822fbadfdaa6ff580a55f4396af; badge by compukidmike),
-    emulated with permission.
+    commit 360c892981968822fbadfdaa6ff580a55f4396af; badge by compukidmike).
   - Pug Pet (core.wasm / core.js), authored by PugTechnology.
 
 HEADER

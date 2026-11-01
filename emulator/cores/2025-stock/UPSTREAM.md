@@ -5,7 +5,7 @@
 - **Pinned commit**: `360c892981968822fbadfdaa6ff580a55f4396af` (`360c892`, 2025-11-11 — *"add AfterCon code for Nut"*)
 - **Firmware version**: `0.2.1` (`version.txt`)
 - **Author**: [compukidmike](https://github.com/compukidmike)
-- **License**: No `LICENSE` file is published in the upstream repository (default copyright / all rights reserved; emulated here with the author's permission). Upstream source is **not** committed to this repository; `fetch-upstream.sh` stages `Firmware/badge/` into the git-ignored `./upstream/` directory at build time.
+- **License**: No `LICENSE` file is published in the upstream repository. Upstream source is **not** committed to this repository; `fetch-upstream.sh` stages `Firmware/badge/` into the git-ignored `./upstream/` directory at build time.
 
 ## Managed Components
 
