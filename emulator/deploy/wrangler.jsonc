@@ -1,0 +1,21 @@
+// Badge museum: a Cloudflare Worker that only serves the static files in ../web.
+// Deploy from this folder: npx wrangler@4 deploy
+{
+  "$schema": "https://unpkg.com/wrangler@4/config-schema.json",
+  "name": "sc-badge-museum",
+  "compatibility_date": "2026-10-23",
+  "assets": {
+    "directory": "../web",
+    "not_found_handling": "404-page"
+  },
+  // No request logs: the site promises no analytics.
+  "observability": { "enabled": false },
+  // One origin per year only (browser saves are per origin), so no workers.dev or preview URLs.
+  "workers_dev": false,
+  "preview_urls": false,
+  "routes": [
+    { "pattern": "sc.pug.technology", "custom_domain": true },
+    { "pattern": "25.sc.pug.technology", "custom_domain": true },
+    { "pattern": "26.sc.pug.technology", "custom_domain": true }
+  ]
+}

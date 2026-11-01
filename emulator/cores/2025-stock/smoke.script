@@ -1,0 +1,59 @@
+# Headless smoke test script for SAINTCON 2025 ("Stock" firmware & game)
+# Run with:
+#   ./emulator/cores/2025-stock/emu-cli \
+#       --script emulator/cores/2025-stock/smoke.script \
+#       --out emulator/build/2025-stock-smoke --dump-leds
+
+# 1. Boot splash screen + 20-LED mirrored boot progress gradient (red -> yellow -> green)
+wait 2000
+shot-screen 01-boot.png
+shot-badge  01-boot-badge.png
+
+# 2. Wait for 5000 ms boot splash + 500 ms fade-in to Main screen + Registration modal
+wait 4200
+shot-screen 02-registration.png
+
+# 3. Enter player handle "PUG" via 5-way switch roller and click "Register"
+press down 15
+press right
+press down 5
+press right
+press up 14
+press center
+press down
+press center
+
+# Wait for POST /api/badge/register + status sync + modal close
+wait 1500
+shot-screen 03-main.png
+
+# 4. Tap a Sorting Hat Nut (Faction 3 = Dawn Accord) over NFC EEPROM
+#    (nfc_task wakes on GPO + 1000 ms poll + 200 ms write-settle)
+nut SORTING_HAT 3
+wait 1400
+shot-screen 04-redeem-sorting-hat.png
+shot-badge  04-redeem-sorting-hat-badge.png
+
+# Dismiss Sorting Hat Assignment modal -> Main screen now shows "Dawn Accord" & faction LEDs
+press center
+wait 1500
+shot-screen 05-main-faction.png
+shot-badge  05-main-faction-badge.png
+
+# 5. Tap two Telecom Nuts to unlock Telecom nodes & links on the faction game topology map
+nut TELECOM
+wait 1400
+shot-screen 06-redeem-telecom-nut.png
+press center
+wait 1300
+
+nut TELECOM
+wait 1400
+press center
+wait 600
+
+# 6. Open "Game" (default focused top item on main menu) to view the 31-node topology map
+press center
+wait 1000
+shot-screen 07-faction-game.png
+shot-badge  07-faction-game-badge.png

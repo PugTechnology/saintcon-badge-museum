@@ -1,0 +1,138 @@
+{
+  "year": 2026,
+  "name": "Orion Trail",
+  "title": "SAINTCON 2026 Badge (\"Orion Trail\")",
+  "mcu": "RP2350A",
+  "screen_size": {
+    "width": 360,
+    "height": 360,
+    "shape": "round",
+    "diagonal_inches": 1.85,
+    "controller": "ST77916"
+  },
+  "led_count": 9,
+  "led_gpio": 24,
+  "led_summary": "9 WS2812C (D4→D11, D3)",
+  "eeprom_bytes": 1024,
+  "has_nfc": false,
+  "has_speed_control": false,
+  "buttons": [
+    {
+      "id": "up",
+      "name": "UP",
+      "bit": 1,
+      "keys": ["ArrowUp", "KeyW", "w", "W"],
+      "hint": "W / ↑",
+      "ref": "SW4",
+      "kind": "dpad_up",
+      "x_px": 153.11,
+      "y_px": 1295.0
+    },
+    {
+      "id": "down",
+      "name": "DOWN",
+      "bit": 2,
+      "keys": ["ArrowDown", "KeyS", "s", "S"],
+      "hint": "S / ↓",
+      "ref": "SW4",
+      "kind": "dpad_down",
+      "x_px": 153.11,
+      "y_px": 1372.5
+    },
+    {
+      "id": "left",
+      "name": "LEFT",
+      "bit": 4,
+      "keys": ["ArrowLeft", "KeyA", "a", "A"],
+      "hint": "A / ←",
+      "ref": "SW4",
+      "kind": "dpad_left",
+      "x_px": 114.5,
+      "y_px": 1333.79
+    },
+    {
+      "id": "right",
+      "name": "RIGHT",
+      "bit": 8,
+      "keys": ["ArrowRight", "KeyD", "d", "D"],
+      "hint": "D / →",
+      "ref": "SW4",
+      "kind": "dpad_right",
+      "x_px": 191.7,
+      "y_px": 1333.79
+    },
+    {
+      "id": "c",
+      "name": "C",
+      "bit": 16,
+      "keys": ["KeyC", "c", "C"],
+      "hint": "C",
+      "ref": "SW4",
+      "kind": "dpad_center",
+      "x_px": 153.11,
+      "y_px": 1333.79,
+      "radius_px": 65.44
+    },
+    {
+      "id": "b",
+      "name": "B",
+      "bit": 32,
+      "keys": ["KeyX", "x", "X"],
+      "hint": "X",
+      "ref": "SW3",
+      "kind": "push",
+      "x_px": 731.79,
+      "y_px": 1265.65,
+      "radius_px": 38.39
+    },
+    {
+      "id": "a",
+      "name": "A",
+      "bit": 64,
+      "keys": ["KeyZ", "z", "Z"],
+      "hint": "Z",
+      "ref": "SW2",
+      "kind": "push",
+      "x_px": 748.37,
+      "y_px": 1378.21,
+      "radius_px": 38.39
+    }
+  ],
+  "files": {
+    "layout": "layout.json",
+    "board": "board.png",
+    "core_js": "core.js",
+    "core_wasm": "core.wasm"
+  },
+  "default_mode": "stock",
+  "modes_available": [
+    "stock"
+  ],
+  "modes_coming_soon": [
+    "pug"
+  ],
+  "modes": {
+    "stock": {
+      "id": "stock",
+      "name": "Stock (Orion Trail)",
+      "status": "available",
+      "core_js": "core.js",
+      "core_wasm": "core.wasm",
+      "description": "Original SAINTCON 2026 Wayfarer / Orion Trail badge firmware"
+    }
+  },
+  "credits": {
+    "badge_by": "Professor-plum",
+    "author_url": "https://github.com/Professor-plum",
+    "repo_url": "https://github.com/Professor-plum/SAINTCON-BADGE-2026",
+    "source_url": "https://github.com/Professor-plum/SAINTCON-BADGE-2026/tree/2168f62/firmware",
+    "commit": "2168f62",
+    "copyright": "Copyright (c) 2026 Professor Plum",
+    "license": "MIT License",
+    "license_url": "badges/2026/LICENSE.txt",
+    "third_party_licenses_url": "badges/2026/THIRD_PARTY_LICENSES.txt",
+    "upstream_license_url": "https://github.com/Professor-plum/SAINTCON-BADGE-2026/blob/2168f62/LICENSE",
+    "other_credits": [],
+    "pug_pet_by": null
+  }
+}

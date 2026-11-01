@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SAINTCON Badge Museum</title>
+  <script>
+    (function () {
+      var LIVE_YEARS = ['2025', '2026'];
+      var PROD = 'sc.pug.technology';
+      var host = (window.location.hostname || '').toLowerCase();
+      var isProdDomain = host === PROD || host.endsWith('.' + PROD);
+      var params = new URLSearchParams(window.location.search);
+      if (params.has('year')) {
+        var yr = (params.get('year') || '').trim();
+        if (isProdDomain && LIVE_YEARS.indexOf(yr) !== -1) {
+          params.delete('year');
+          var qs = params.toString();
+          window.location.replace('https://' + yr.slice(2) + '.' + PROD + '/' + (qs ? '?' + qs : ''));
+          return;
+        }
+        window.location.replace('./' + window.location.search);
+        return;
+      }
+      if (isProdDomain) {
+        document.addEventListener('DOMContentLoaded', function () {
+          document.querySelectorAll('a[href^="?year="]').forEach(function (a) {
+            var p = new URLSearchParams(a.getAttribute('href').slice(1));
+            var y = (p.get('year') || '').trim();
+            if (LIVE_YEARS.indexOf(y) === -1) return;
+            p.delete('year');
+            var q = p.toString();
+            a.setAttribute('href', 'https://' + y.slice(2) + '.' + PROD + '/' + (q ? '?' + q : ''));
+          });
+        });
+      }
+    })();
+  </script>
+  <style>
+    :root {
+      --bg-dark: #0d1117;
+      --panel-bg: #161b22;
+      --panel-border: #30363d;
+      --text-main: #e6edf3;
+      --text-muted: #8b949e;
+      --accent-gold: #d4a72c;
+      --accent-green: #3fb950;
+      --accent-blue: #58a6ff;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background: radial-gradient(circle at 50% 15%, #1c2331 0%, #0b0e14 100%);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    a {
+      color: var(--accent-blue);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    header {
+      width: 100%;
+      max-width: 1120px;
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--panel-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 1.35rem;
+      letter-spacing: 0.04em;
+      color: var(--accent-gold);
+      text-transform: uppercase;
+    }
+
+    .brand p {
+      margin: 4px 0 0 0;
+      font-size: 0.88rem;
+      color: var(--text-muted);
+    }
+
+    .brand .disclaimer-line {
+      margin: 4px 0 0 0;
+      font-size: 0.78rem;
+      color: #f0c654;
+      font-weight: 500;
+    }
+
+    main {
+      width: 100%;
+      max-width: 1120px;
+      flex: 1;
+      padding: 28px 24px 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(340px, 100%), 1fr));
+      gap: 24px;
+    }
+
+    .year-card {
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 16px;
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+      transition: transform 0.14s ease, border-color 0.14s ease;
+    }
+
+    .year-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(212, 167, 44, 0.55);
+    }
+
+    .card-top {
+      display: flex;
+      gap: 18px;
+      align-items: center;
+    }
+
+    .card-thumb {
+      width: 96px;
+      height: 168px;
+      background: #0b0e14;
+      border: 1px solid #262c36;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      flex-shrink: 0;
+      padding: 6px;
+    }
+
+    .card-thumb img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.7));
+    }
+
+    .card-thumb-placeholder {
+      font-size: 0.75rem;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      color: var(--accent-gold);
+      text-align: center;
+      line-height: 1.4;
+      padding: 6px;
+    }
+
+    .card-head-info {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex: 1;
+    }
+
+    .status-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .year-badge {
+      font-size: 0.78rem;
+      font-weight: 700;
+      padding: 2px 9px;
+      border-radius: 999px;
+      background: rgba(212, 167, 44, 0.18);
+      border: 1px solid rgba(212, 167, 44, 0.5);
+      color: #f0c654;
+    }
+
+    .status-pill {
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 999px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .status-pill.live {
+      background: rgba(63, 185, 80, 0.18);
+      border: 1px solid rgba(63, 185, 80, 0.55);
+      color: #56d364;
+    }
+
+    .status-pill.soon {
+      background: rgba(139, 148, 158, 0.16);
+      border: 1px solid rgba(139, 148, 158, 0.45);
+      color: #c9d1d9;
+    }
+
+    .year-card h2 {
+      margin: 0;
+      font-size: 1.22rem;
+      color: var(--text-main);
+    }
+
+    .hw-summary {
+      margin: 0;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      line-height: 1.45;
+    }
+
+    .modes-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      font-size: 0.74rem;
+    }
+
+    .mode-chip {
+      padding: 3px 9px;
+      border-radius: 6px;
+      background: #0d1117;
+      border: 1px solid #292e36;
+      color: var(--text-main);
+    }
+
+    .mode-chip.muted {
+      color: var(--text-muted);
+    }
+
+    .credits-box {
+      background: #0d1117;
+      border: 1px solid #21262d;
+      border-radius: 10px;
+      padding: 11px 13px;
+      font-size: 0.8rem;
+      line-height: 1.45;
+    }
+
+    .credits-box .main-credit {
+      color: var(--text-main);
+    }
+
+    .credits-box .main-credit strong {
+      color: #f0c654;
+    }
+
+    .credits-box .sub-credit {
+      margin-top: 4px;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+
+    .card-actions {
+      margin-top: auto;
+      display: flex;
+    }
+
+    .card-cta {
+      width: 100%;
+      text-align: center;
+      padding: 10px 14px;
+      border-radius: 9px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      background: #1f6feb;
+      border: 1px solid #58a6ff;
+      color: #ffffff;
+      text-decoration: none;
+      transition: background 0.12s;
+    }
+
+    .card-cta:hover {
+      background: #388bfd;
+      text-decoration: none;
+    }
+
+    .card-cta.secondary {
+      background: #21262d;
+      border-color: #3b434d;
+      color: var(--text-main);
+    }
+
+    .card-cta.secondary:hover {
+      background: #292e36;
+      border-color: var(--accent-blue);
+    }
+
+    .about-panel {
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 14px;
+      padding: 18px 22px;
+      font-size: 0.84rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .about-panel h3 {
+      margin: 0 0 8px 0;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--accent-gold);
+    }
+
+    .about-panel p {
+      margin: 0 0 8px 0;
+    }
+
+    .about-panel p:last-child {
+      margin-bottom: 0;
+    }
+
+    .about-panel strong {
+      color: var(--text-main);
+    }
+
+    @media (max-width: 420px) {
+      header {
+        padding: 14px 12px;
+      }
+
+      .brand h1 {
+        font-size: 1.15rem;
+      }
+
+      main {
+        padding: 16px 12px 28px;
+        gap: 18px;
+      }
+
+      .cards-grid {
+        gap: 16px;
+      }
+
+      .year-card {
+        padding: 14px;
+        gap: 12px;
+      }
+
+      .card-top {
+        gap: 12px;
+      }
+
+      .card-thumb {
+        width: 78px;
+        height: 138px;
+      }
+
+      .about-panel {
+        padding: 14px;
+      }
+    }
+    .site-footer {
+      text-align: center;
+      font-size: 0.8rem;
+      color: #8b949e;
+      padding: 20px 16px 28px;
+      line-height: 1.6;
+    }
+    .site-footer a { color: #58a6ff; text-decoration: none; }
+    .site-footer a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <h1>🏛️ SAINTCON Badge Museum</h1>
+      <p>Interactive WebAssembly hardware emulators for SAINTCON electronic conference badges</p>
+      <p class="disclaimer-line">Unofficial fan project. Not affiliated with or endorsed by SAINTCON or UtahSAINT.</p>
+    </div>
+    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+      <a class="card-cta" style="padding: 8px 14px; width: auto;" href="?year=2026">Play 2026 Badge →</a>
+      <a class="card-cta secondary" style="padding: 8px 14px; width: auto;" href="?year=2025">Play 2025 Badge →</a>
+    </div>
+  </header>
+
+  <main>
+    <div class="cards-grid">
+      <!-- 2025 Badge Card (LIVE) -->
+      <article class="year-card" id="card-2025">
+        <div class="card-top">
+          <a class="card-thumb" href="?year=2025" title="Launch SAINTCON 2025 Badge Emulator">
+            <img src="badges/2025/board.png" alt="SAINTCON 2025 Wrench Badge PCB" />
+          </a>
+          <div class="card-head-info">
+            <div class="status-row">
+              <span class="year-badge">2025</span>
+              <span class="status-pill live">● Live</span>
+            </div>
+            <h2><a href="?year=2025" style="color: inherit;">"The Wrench"</a></h2>
+            <p class="hw-summary">
+              ESP32-S3-WROOM-1 • 2.0" 240×320 ST7789V LCD • 20 WS2812B-2020 LEDs • 5-way navigation switch (SW2) • ST25DV04K 512B NFC tag.
+            </p>
+          </div>
+        </div>
+
+        <div class="modes-row">
+          <a class="mode-chip" href="?year=2025&amp;mode=stock" style="color: inherit;">🚀 <strong>Original Firmware</strong></a>
+          <a class="mode-chip" href="?year=2025&amp;mode=pug" style="color: inherit;">🐾 <strong>Pug Pet</strong></a>
+        </div>
+
+        <div class="credits-box">
+          <div class="main-credit">
+            <strong>Badge by <a href="https://github.com/compukidmike" target="_blank" rel="noopener">compukidmike</a></strong>
+            • Repo: <a href="https://github.com/compukidmike/Saintcon2025" target="_blank" rel="noopener">github.com/compukidmike/Saintcon2025</a>
+            • All rights reserved (emulated with the badge author's permission)
+            • <a href="badges/2025/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">Third-party licenses</a>
+          </div>
+          <div class="sub-credit">
+            Stock firmware &amp; faction game from <a href="https://github.com/compukidmike/Saintcon2025" target="_blank" rel="noopener"><strong>compukidmike/Saintcon2025</strong></a> • Pug pet by <strong>PugTechnology</strong>
+          </div>
+        </div>
+
+        <div class="card-actions" style="gap: 8px;">
+          <a class="card-cta" href="?year=2025&amp;mode=stock">Play Original Firmware →</a>
+          <a class="card-cta secondary" href="?year=2025&amp;mode=pug">Play Pug Pet →</a>
+        </div>
+      </article>
+
+      <!-- 2026 Badge Card (LIVE) -->
+      <article class="year-card" id="card-2026">
+        <div class="card-top">
+          <a class="card-thumb" href="?year=2026" title="Launch SAINTCON 2026 Badge Emulator">
+            <img src="badges/2026/board.png" alt="SAINTCON 2026 Orion Trail Rocket Badge PCB" />
+          </a>
+          <div class="card-head-info">
+            <div class="status-row">
+              <span class="year-badge">2026</span>
+              <span class="status-pill live">● Live</span>
+            </div>
+            <h2><a href="?year=2026" style="color: inherit;">"Orion Trail"</a></h2>
+            <p class="hw-summary">
+              RP2350A • 1.85" 360×360 Round ST77916 QSPI LCD • 9 WS2812C LEDs • 5-way joystick (SW4 / C) + A &amp; B buttons (SW2, SW3) • 24CS08 1 KB EEPROM.
+            </p>
+          </div>
+        </div>
+
+        <div class="modes-row">
+          <span class="mode-chip">🚀 <strong>Original Firmware</strong></span>
+          <span class="mode-chip muted">🔒 <strong>Pug Pet</strong> (Coming Soon)</span>
+        </div>
+
+        <div class="credits-box">
+          <div class="main-credit">
+            <strong>Badge by <a href="https://github.com/Professor-plum" target="_blank" rel="noopener">Professor-plum</a></strong> •
+            Repo: <a href="https://github.com/Professor-plum/SAINTCON-BADGE-2026" target="_blank" rel="noopener">github.com/Professor-plum/SAINTCON-BADGE-2026</a>
+            (<a href="https://github.com/Professor-plum/SAINTCON-BADGE-2026/tree/2168f62/firmware" target="_blank" rel="noopener"><code>2168f62</code></a>) •
+            <a href="badges/2026/LICENSE.txt" target="_blank" rel="noopener"><strong>MIT License</strong></a>
+            (<a href="https://github.com/Professor-plum/SAINTCON-BADGE-2026/blob/2168f62/LICENSE" target="_blank" rel="noopener">upstream</a>) •
+            <a href="badges/2026/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">Third-party licenses</a>
+          </div>
+          <div class="sub-credit">
+            Copyright (c) 2026 Professor Plum • Stock "Orion Trail" firmware live (pug pet mode not on the 2026 page yet)
+          </div>
+        </div>
+
+        <div class="card-actions">
+          <a class="card-cta" href="?year=2026">Launch 2026 Emulator →</a>
+        </div>
+      </article>
+    </div>
+
+    <!-- About Section -->
+    <section class="about-panel" aria-label="About SAINTCON Badge Museum">
+      <h3>About This Museum</h3>
+      <p>
+        <strong>Unofficial fan project. Not affiliated with or endorsed by SAINTCON or UtahSAINT.</strong>
+      </p>
+      <p>
+        <strong><a href="https://saintcon.org" target="_blank" rel="noopener">SAINTCON</a></strong> is Utah's annual cybersecurity and hackers conference, organized by the UtahSAINT community and known for its custom electronic badges.
+      </p>
+      <p>
+        2025 is emulated with <a href="https://github.com/compukidmike" target="_blank" rel="noopener">compukidmike</a>'s permission (<a href="badges/2025/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2025 third-party licenses</a>); 2026 is built from <a href="https://github.com/Professor-plum" target="_blank" rel="noopener">Professor-plum</a>'s <a href="badges/2026/LICENSE.txt" target="_blank" rel="noopener">MIT-licensed</a> source (<a href="badges/2026/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2026 third-party licenses</a>).
+      </p>
+      <p>
+        <strong>Browser-Only Storage:</strong> Each badge's simulated EEPROM/flash is stored locally in your browser's <code>localStorage</code> (isolated per year and mode). No external CDNs, no analytics, and no cookies are used.
+      </p>
+    </section>
+  </main>
+  <footer class="site-footer">
+    <a href="https://saintcon.org/" target="_blank" rel="noopener">SAINTCON</a> is Utah's annual cybersecurity conference, run by
+    <a href="https://saintcon.org/about" target="_blank" rel="noopener">UtahSAINT</a>.
+    Unofficial fan project, not affiliated with or endorsed by SAINTCON or UtahSAINT.
+  </footer>
+</body>
+</html>

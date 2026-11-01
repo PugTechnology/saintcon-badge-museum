@@ -1,0 +1,6 @@
+build/
+core/emu-cli
+cores/2025-stock/emu-cli
+cores/2025-stock/upstream/
+cores/2026/emu-cli
+cores/2026/upstream/

@@ -1,0 +1,52 @@
+# SAINTCON 2026 ("Orion Trail" / Wayfarer) headless smoke test
+# Boots unmodified 2026 firmware in offline mode, captures title screen,
+# starts a new game through the incoming transmission & shipyard, and plays
+# multiple turns across the hex sector map.
+
+# 1. Boot and let initial "Manual Override" offline achievement toast clear (~3.6s)
+wait 3600
+shot-screen 01-title
+shot-badge  01-title-badge
+
+# 2. Press A on title screen -> Incoming Transmission (page 1 & page 2) -> Shipyard
+press a
+hold b 3400
+wait 200
+shot-screen 02-new-game-transmission
+
+press a
+hold b 3000
+wait 200
+press a
+wait 300
+shot-screen 03-shipyard-new-game
+
+# Buy a Fuel Tank upgrade ($150), then select START MISSION (down -> A)
+press a
+wait 200
+press down
+wait 200
+press a
+wait 400
+
+# 3. Turn 1 on the hex sector map: pan target reticle 2 hexes NE and fly 1 hex
+hold right 300
+hold up 160
+wait 200
+shot-screen 04-hex-map-aim
+press a
+wait 600
+shot-screen 05-turn1-event
+
+# Resolve Turn 1 random encounter ("Fight them off") -> outcome -> return to map
+press a
+wait 400
+shot-screen 06-turn1-outcome
+press a
+wait 400
+
+# 4. Turn 2: fly a second hex along the plotted course toward the nebula
+press a
+wait 600
+shot-screen 07-turn2-map
+shot-badge  07-turn2-badge

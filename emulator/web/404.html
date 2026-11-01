@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>404 Not Found — SAINTCON Badge Museum</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      padding: 24px 16px;
+      background: radial-gradient(circle at 50% 15%, #1c2331 0%, #0b0e14 100%);
+      color: #e6edf3;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+    .card {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 14px;
+      padding: 24px;
+      max-width: 480px;
+      width: 100%;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+    }
+    h1 {
+      margin: 0 0 10px 0;
+      font-size: 1.3rem;
+      color: #d4a72c;
+    }
+    p {
+      margin: 0 0 14px 0;
+      font-size: 0.9rem;
+      color: #8b949e;
+      line-height: 1.45;
+    }
+    .links {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+    a.btn {
+      padding: 8px 14px;
+      border-radius: 8px;
+      background: #1f6feb;
+      border: 1px solid #58a6ff;
+      color: #ffffff;
+      text-decoration: none;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+    a.btn.secondary {
+      background: #21262d;
+      border-color: #3b434d;
+      color: #e6edf3;
+    }
+    .disclaimer {
+      font-size: 0.74rem;
+      color: #f0c654;
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>404 — Page Not Found</h1>
+    <p>No emulator resource exists at this URL.</p>
+    <div class="links">
+      <a class="btn" id="link-museum" href="/museum.html">🏛️ Badge Museum</a>
+      <a class="btn secondary" id="link-2025" href="/?year=2025">2025 Badge</a>
+      <a class="btn secondary" id="link-2026" href="/?year=2026">2026 Badge</a>
+    </div>
+    <p class="disclaimer">Unofficial fan project. Not affiliated with or endorsed by SAINTCON or UtahSAINT.</p>
+    <p class="disclaimer"><a href="https://saintcon.org/" target="_blank" rel="noopener">SAINTCON</a> · <a href="https://saintcon.org/about" target="_blank" rel="noopener">UtahSAINT</a></p>
+  </div>
+  <script>
+    (function () {
+      var host = (window.location.hostname || '').toLowerCase();
+      if (host === 'sc.pug.technology' || host.endsWith('.sc.pug.technology')) {
+        var lMuseum = document.getElementById('link-museum');
+        var l2025 = document.getElementById('link-2025');
+        var l2026 = document.getElementById('link-2026');
+        if (lMuseum) lMuseum.href = 'https://sc.pug.technology/';
+        if (l2025) l2025.href = 'https://25.sc.pug.technology/';
+        if (l2026) l2026.href = 'https://26.sc.pug.technology/';
+      }
+    })();
+  </script>
+</body>
+</html>

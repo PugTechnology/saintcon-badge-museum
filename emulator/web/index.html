@@ -1,0 +1,3153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SAINTCON Badge Emulator</title>
+  <script>
+    (function () {
+      var LIVE_YEARS = ['2025', '2026'];
+      var PROD = 'sc.pug.technology';
+      var host = (window.location.hostname || '').toLowerCase();
+      var isProdDomain = host === PROD || host.endsWith('.' + PROD);
+      var params = new URLSearchParams(window.location.search);
+      if (isProdDomain && params.has('year')) {
+        var yr = (params.get('year') || '').trim();
+        var yearHost = yr.slice(2) + '.' + PROD;
+        if (LIVE_YEARS.indexOf(yr) !== -1 && host !== yearHost) {
+          params.delete('year');
+          var qs = params.toString();
+          window.location.replace('https://' + yearHost + '/' + (qs ? '?' + qs : '') + window.location.hash);
+          return;
+        }
+      }
+      if (host === PROD && !params.has('year')) {
+        window.location.replace('museum.html' + window.location.search + window.location.hash);
+      }
+    })();
+  </script>
+  <style>
+    :root {
+      --bg-dark: #0d1117;
+      --panel-bg: #161b22;
+      --panel-border: #30363d;
+      --text-main: #e6edf3;
+      --text-muted: #8b949e;
+      --accent-gold: #d4a72c;
+      --accent-cyan: #39d353;
+      --accent-blue: #58a6ff;
+      --danger: #f85149;
+    }
+
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background: radial-gradient(circle at 50% 18%, #1c2331 0%, #0b0e14 100%);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow-x: hidden;
+    }
+
+    a {
+      color: var(--accent-blue);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    header {
+      width: 100%;
+      max-width: 1480px;
+      padding: 8px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--panel-border);
+      background: rgba(13, 17, 23, 0.9);
+      backdrop-filter: blur(8px);
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .brand h1 {
+      font-size: 1rem;
+      margin: 0;
+      letter-spacing: 0.04em;
+      color: var(--accent-gold);
+      text-transform: uppercase;
+    }
+
+    .badge-pill {
+      font-size: 0.72rem;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-weight: 600;
+      background: rgba(212, 167, 44, 0.16);
+      border: 1px solid rgba(212, 167, 44, 0.45);
+      color: #f0c654;
+    }
+
+    .museum-nav-link {
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 6px;
+      background: #21262d;
+      border: 1px solid var(--panel-border);
+      color: var(--text-main);
+      text-decoration: none;
+      transition: border-color 0.12s, background 0.12s;
+    }
+
+    .museum-nav-link:hover {
+      border-color: var(--accent-blue);
+      background: #292e36;
+      text-decoration: none;
+    }
+
+    .status-strip {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-size: 0.8rem;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      color: var(--text-muted);
+      flex-wrap: wrap;
+    }
+
+    .status-strip strong {
+      color: var(--text-main);
+    }
+
+    /* Main Workspace: Desktop fits badge height, Big Screen next to badge, Controls on right */
+    main {
+      width: 100%;
+      max-width: 1560px;
+      flex: 1;
+      display: flex;
+      flex-direction: row;
+      align-items: flex-start;
+      justify-content: center;
+      gap: 14px;
+      padding: 10px 10px 16px;
+    }
+
+    /* Column 1: Physical Badge + Credits Strip Under Badge */
+    .badge-column {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+      transition: opacity 0.12s ease;
+    }
+
+    .badge-column.badge-loading {
+      visibility: hidden;
+      opacity: 0;
+    }
+
+    .board-stage-wrap {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* Tall badge PCB: fit viewport height on desktop while leaving room for credits strip below */
+    .board-stage {
+      position: relative;
+      height: clamp(460px, calc(100vh - 174px), 980px);
+      max-width: 88vw;
+      aspect-ratio: 784 / 1792;
+      filter: drop-shadow(0 14px 32px rgba(0, 0, 0, 0.78));
+      touch-action: none;
+    }
+
+    .board-stage img#board-img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      pointer-events: none;
+    }
+
+    /* Live LCD Screen Canvas on the PCB */
+    .screen-holder {
+      position: absolute;
+      overflow: hidden;
+      background: #05070a;
+      box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.9);
+      border-radius: 1px;
+    }
+
+    .screen-holder.round {
+      border-radius: 50%;
+    }
+
+    canvas#screen-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      image-rendering: -moz-crisp-edges;
+      image-rendering: crisp-edges;
+      image-rendering: pixelated;
+      transform-origin: top left;
+    }
+
+    /* 20 WS2812B-2020 LEDs */
+    .led-layer {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .led-dot {
+      position: absolute;
+      width: 2.3%;
+      aspect-ratio: 1 / 1;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      background: #1f242b;
+      border: 1px solid rgba(40, 46, 54, 0.85);
+      transition: box-shadow 0.03s linear;
+    }
+
+    .led-dot.off {
+      background: radial-gradient(circle, #2a3038 0%, #15191e 75%, #0d1014 100%);
+      box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.12);
+    }
+
+    /* On-board SW2 5-way joystick overlay */
+    .sw2-overlay {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      cursor: pointer;
+      touch-action: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .sw2-Overlay-ring {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      border: 1.5px solid rgba(255, 255, 255, 0.28);
+      background: radial-gradient(circle, rgba(30, 36, 46, 0.55) 0%, rgba(12, 16, 22, 0.75) 100%);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.65);
+      transition: border-color 0.12s, background 0.12s;
+    }
+
+    .sw2-overlay:hover .sw2-Overlay-ring,
+    .sw2-overlay.active .sw2-Overlay-ring {
+      border-color: rgba(88, 166, 255, 0.85);
+      background: radial-gradient(circle, rgba(45, 65, 95, 0.7) 0%, rgba(16, 24, 36, 0.85) 100%);
+    }
+
+    .sw2-cap {
+      position: relative;
+      width: 46%;
+      height: 46%;
+      border-radius: 35%;
+      background: radial-gradient(circle at 35% 35%, #f0f4f8 0%, #9aa4b0 60%, #525a65 100%);
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.8), inset 0 1px 1px rgba(255, 255, 255, 0.8);
+      transition: transform 0.05s ease-out, background 0.08s;
+      pointer-events: none;
+    }
+
+    .sw2-overlay.center-pressed .sw2-cap {
+      background: radial-gradient(circle at 35% 35%, #ffd875 0%, #d4a72c 70%, #8a6812 100%);
+    }
+
+    /* On-board physical push-button overlays (e.g. 2026 SW2=A, SW3=B) */
+    .board-buttons-layer {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .board-push-btn {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      border: 1.5px solid rgba(255, 255, 255, 0.32);
+      background: radial-gradient(circle, rgba(24, 30, 40, 0.35) 0%, rgba(12, 16, 22, 0.55) 100%);
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 0.72rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      pointer-events: auto;
+      touch-action: none;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+      transition: border-color 0.1s, background 0.1s, transform 0.05s;
+    }
+
+    .board-push-btn:hover {
+      border-color: rgba(88, 166, 255, 0.9);
+      background: radial-gradient(circle, rgba(45, 70, 105, 0.55) 0%, rgba(16, 24, 36, 0.75) 100%);
+    }
+
+    .board-push-btn.pressed {
+      transform: translate(-50%, -50%) scale(0.92);
+      border-color: #ffd33d;
+      background: radial-gradient(circle, rgba(212, 167, 44, 0.78) 0%, rgba(138, 104, 18, 0.85) 100%);
+      color: #ffffff;
+    }
+
+    /* Credits Strip Directly Under the Badge (Owner Rule) */
+    .badge-credits-strip {
+      background: rgba(22, 27, 34, 0.92);
+      border: 1px solid var(--panel-border);
+      border-radius: 10px;
+      padding: 7px 12px;
+      text-align: center;
+      max-width: 420px;
+      width: 100%;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+      user-select: text;
+      -webkit-user-select: text;
+    }
+
+    .badge-credits-strip .credits-primary {
+      font-size: 0.78rem;
+      color: var(--text-main);
+      line-height: 1.35;
+    }
+
+    .badge-credits-strip .credits-primary strong {
+      color: #f0c654;
+    }
+
+    .badge-credits-strip .credits-secondary {
+      margin-top: 3px;
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      line-height: 1.25;
+    }
+
+    .badge-credits-strip .credits-disclaimer {
+      margin-top: 3px;
+      font-size: 0.66rem;
+      color: #f0c654;
+      line-height: 1.25;
+    }
+
+    /* Column 2: Big Screen Panel (Integer-scaled crisp 240x320 LCD copy next to badge) */
+    .big-screen-column {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .big-screen-column.hidden {
+      display: none !important;
+    }
+
+    .big-screen-card {
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 14px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
+    }
+
+    .big-screen-header {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.74rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      gap: 8px;
+    }
+
+    .big-screen-scale-tag {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.7rem;
+      color: #f0c654;
+      background: rgba(212, 167, 44, 0.14);
+      border: 1px solid rgba(212, 167, 44, 0.4);
+      padding: 1px 6px;
+      border-radius: 4px;
+    }
+
+    .big-screen-bezel {
+      background: #05070a;
+      border: 2px solid #2d333b;
+      border-radius: 6px;
+      overflow: hidden;
+      box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.95);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .big-screen-bezel.round {
+      border-radius: 50%;
+    }
+
+    canvas#big-screen-canvas {
+      display: block;
+      width: 480px;
+      height: 640px;
+      image-rendering: -moz-crisp-edges;
+      image-rendering: crisp-edges;
+      image-rendering: pixelated;
+    }
+
+    /* Column 3: Joystick Pad + Controls + Telemetry + About */
+    .controls-column {
+      flex: 1;
+      min-width: 286px;
+      max-width: 420px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    /* Touch-Friendly 5-Way Joystick Pad + Key Hints */
+    .touch-dpad-card {
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 14px;
+      padding: 10px 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    }
+
+    .touch-dpad-title {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .key-hints-bar {
+      width: 100%;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 6px;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      background: #0d1117;
+      border: 1px solid #21262d;
+      border-radius: 8px;
+      padding: 5px 8px;
+    }
+
+    .key-hints-bar kbd {
+      background: #21262d;
+      border: 1px solid #3b434d;
+      border-bottom-width: 2px;
+      border-radius: 4px;
+      padding: 1px 5px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.68rem;
+      color: var(--text-main);
+    }
+
+    .pad-layout {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      flex-wrap: nowrap;
+    }
+
+    .dpad-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 72px);
+      grid-template-rows: repeat(3, 52px);
+      gap: 7px;
+      touch-action: none;
+    }
+
+    .pad-layout:has(.action-pad-col.visible) .dpad-grid {
+      grid-template-columns: repeat(3, 58px);
+      grid-template-rows: repeat(3, 48px);
+      gap: 6px;
+    }
+
+    .action-pad-col {
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+      touch-action: none;
+    }
+
+    .action-pad-col.visible {
+      display: flex;
+    }
+
+    .action-pad-btn {
+      width: 64px;
+      height: 73px;
+      border-radius: 14px;
+      background: #21262d;
+      border: 1px solid #3b434d;
+    }
+
+    .action-pad-btn.btn-a {
+      border-color: rgba(63, 185, 80, 0.55);
+    }
+
+    .action-pad-btn.btn-b {
+      border-color: rgba(212, 167, 44, 0.55);
+    }
+
+    .dpad-btn {
+      background: #21262d;
+      border: 1px solid #3b434d;
+      border-radius: 10px;
+      color: var(--text-main);
+      font-size: 0.82rem;
+      font-weight: 700;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      touch-action: none;
+      box-shadow: 0 3px 0 #0d1117;
+      transition: transform 0.05s, background 0.08s, border-color 0.08s;
+      padding: 2px;
+    }
+
+    .dpad-btn span.sub {
+      font-size: 0.58rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-top: 1px;
+      letter-spacing: 0.01em;
+    }
+
+    .dpad-btn:active,
+    .dpad-btn.pressed {
+      transform: translateY(2px);
+      box-shadow: 0 1px 0 #0d1117;
+      background: #1f6feb;
+      border-color: #79c0ff;
+      color: #ffffff;
+    }
+
+    .dpad-btn:active span.sub,
+    .dpad-btn.pressed span.sub {
+      color: #dbeafe;
+    }
+
+    .dpad-btn.center-btn.pressed {
+      background: #b8860b;
+      border-color: #ffd33d;
+    }
+
+    .panel-card {
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 12px;
+      padding: 13px 15px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .panel-card h2 {
+      margin: 0 0 10px 0;
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .control-group {
+      margin-bottom: 11px;
+    }
+
+    .control-group:last-child {
+      margin-bottom: 0;
+    }
+
+    .control-label {
+      font-size: 0.74rem;
+      color: var(--text-muted);
+      margin-bottom: 5px;
+      display: block;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 7px;
+      flex-wrap: wrap;
+    }
+
+    button.ctrl-btn {
+      flex: 1;
+      min-width: 56px;
+      padding: 7px 10px;
+      border-radius: 8px;
+      border: 1px solid #3b434d;
+      background: #21262d;
+      color: var(--text-main);
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.12s, border-color 0.12s, transform 0.05s;
+    }
+
+    button.ctrl-btn:hover:not(:disabled) {
+      background: #292e36;
+      border-color: #58a6ff;
+    }
+
+    button.ctrl-btn:active:not(:disabled) {
+      transform: translateY(1px);
+    }
+
+    button.ctrl-btn.active {
+      background: #1f6feb;
+      border-color: #58a6ff;
+      color: #ffffff;
+    }
+
+    button.ctrl-btn:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    button.ctrl-btn.warn {
+      border-color: rgba(248, 81, 73, 0.5);
+      color: #ff7b72;
+    }
+
+    button.ctrl-btn.warn:hover {
+      background: rgba(248, 81, 73, 0.18);
+      border-color: var(--danger);
+    }
+
+    button.ctrl-btn.gold {
+      background: rgba(212, 167, 44, 0.18);
+      border-color: rgba(212, 167, 44, 0.6);
+      color: #f8d26a;
+    }
+
+    button.ctrl-btn.gold:hover {
+      background: rgba(212, 167, 44, 0.28);
+      border-color: #f8d26a;
+    }
+
+    select.nut-select {
+      flex: 1;
+      min-width: 110px;
+      padding: 6px 8px;
+      border-radius: 8px;
+      border: 1px solid #3b434d;
+      background: #0d1117;
+      color: var(--text-main);
+      font-size: 0.77rem;
+      font-weight: 600;
+    }
+
+    select.nut-select:focus {
+      outline: none;
+      border-color: #58a6ff;
+    }
+
+    .nut-status-box {
+      margin-top: 7px;
+      padding: 6px 8px;
+      border-radius: 7px;
+      background: #0d1117;
+      border: 1px solid #2a313a;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    .nut-status-box strong {
+      color: #f8d26a;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    /* Phone Tap Notification Banner: Styled like a phone notification sliding in, dismisses on click */
+    .phone-notification {
+      position: fixed;
+      top: 54px;
+      right: 20px;
+      transform: translateY(-150%);
+      width: min(92vw, 400px);
+      background: rgba(20, 28, 42, 0.97);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(121, 192, 255, 0.5);
+      border-radius: 18px;
+      padding: 12px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      box-shadow: 0 18px 42px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.08) inset;
+      cursor: pointer;
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.24s ease;
+    }
+
+    .phone-notification.visible {
+      transform: translateY(0);
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .phone-notif-pill-handle {
+      width: 36px;
+      height: 4px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.24);
+      align-self: center;
+      margin-bottom: 2px;
+    }
+
+    .notif-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.72rem;
+      color: #93c5fd;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 600;
+    }
+
+    .notif-dismiss-hint {
+      font-size: 0.68rem;
+      color: #9ca3af;
+      text-transform: none;
+      font-weight: 500;
+    }
+
+    .notif-body {
+      font-size: 0.94rem;
+      font-weight: 600;
+      color: #f9fafb;
+      word-break: break-word;
+      line-height: 1.35;
+    }
+
+    .notif-meta {
+      font-size: 0.71rem;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      color: #9ca3af;
+    }
+
+    .telemetry-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 7px;
+      font-size: 0.76rem;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    .telemetry-item {
+      background: #0d1117;
+      border: 1px solid #21262d;
+      border-radius: 6px;
+      padding: 6px 9px;
+    }
+
+    .telemetry-item .k {
+      color: var(--text-muted);
+      font-size: 0.66rem;
+      display: block;
+    }
+
+    .telemetry-item .v {
+      color: var(--text-main);
+      font-weight: 600;
+    }
+
+    /* Short About Section */
+    .about-card p {
+      margin: 0 0 7px 0;
+      font-size: 0.77rem;
+      line-height: 1.42;
+      color: var(--text-muted);
+      user-select: text;
+      -webkit-user-select: text;
+    }
+
+    .about-card p:last-child {
+      margin-bottom: 0;
+    }
+
+    .about-card strong {
+      color: var(--text-main);
+    }
+
+    /* Coming Soon Overlay for Unbuilt Years */
+    .coming-soon-banner {
+      display: none;
+      background: rgba(212, 167, 44, 0.12);
+      border: 1px solid rgba(212, 167, 44, 0.5);
+      border-radius: 12px;
+      padding: 16px 20px;
+      max-width: 640px;
+      margin: 18px auto 0;
+      text-align: center;
+    }
+
+    .coming-soon-banner.visible {
+      display: block;
+    }
+
+    .coming-soon-banner.error {
+      background: rgba(248, 81, 73, 0.16);
+      border-color: rgba(248, 81, 73, 0.65);
+      color: #ffdcd7;
+    }
+
+    .storage-warning-note {
+      display: none;
+      margin-top: 6px;
+      padding: 5px 8px;
+      border-radius: 6px;
+      background: rgba(248, 81, 73, 0.15);
+      border: 1px solid rgba(248, 81, 73, 0.55);
+      color: #ff7b72;
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-align: center;
+    }
+
+    .storage-warning-note.visible {
+      display: block;
+    }
+
+    /* Phone / Narrow Viewport Layout: Badge on top, then Big Joystick Pad, Big Screen off by default */
+    @media (max-width: 820px) {
+      header {
+        padding: 6px 12px;
+        gap: 6px;
+      }
+
+      .brand h1 {
+        font-size: 0.9rem;
+      }
+
+      .status-strip {
+        gap: 8px;
+        font-size: 0.72rem;
+      }
+
+      main {
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 10px 20px;
+      }
+
+      .badge-column {
+        order: 1;
+        width: 100%;
+        gap: 6px;
+      }
+
+      .board-stage {
+        height: min(45vh, 390px);
+        min-height: 280px;
+        max-width: 82vw;
+      }
+
+      .badge-credits-strip {
+        padding: 5px 10px;
+      }
+
+      .badge-credits-strip .credits-primary {
+        font-size: 0.7rem;
+      }
+
+      .badge-credits-strip .credits-secondary {
+        font-size: 0.63rem;
+      }
+
+      .controls-column {
+        order: 2;
+        width: 100%;
+        max-width: 400px;
+        gap: 10px;
+      }
+
+      .big-screen-column {
+        order: 3;
+        width: 100%;
+      }
+
+      .phone-notification {
+        top: 12px;
+        left: 50%;
+        right: auto;
+        transform: translate(-50%, -150%);
+      }
+
+      .phone-notification.visible {
+        transform: translate(-50%, 0);
+      }
+    }
+    .site-footer {
+      text-align: center;
+      font-size: 0.8rem;
+      color: #8b949e;
+      padding: 20px 16px 28px;
+      line-height: 1.6;
+    }
+    .site-footer a { color: #58a6ff; text-decoration: none; }
+    .site-footer a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <!-- Sliding Phone NFC Tap Notification (Click anywhere on card to dismiss) -->
+  <div id="phone-notification" class="phone-notification" role="status" aria-live="polite" title="Click to dismiss">
+    <div class="phone-notif-pill-handle"></div>
+    <div class="notif-header">
+      <span>📲 NFC Tag Read • ST25DV04K</span>
+      <span class="notif-dismiss-hint">Tap to dismiss ✕</span>
+    </div>
+    <div id="notif-text" class="notif-body">—</div>
+    <div id="notif-meta" class="notif-meta">NDEF Text Record (Bytes 0–255)</div>
+  </div>
+
+  <header>
+    <div class="brand">
+      <h1 id="page-heading">SAINTCON Badge Emulator</h1>
+      <span id="core-mode-pill" class="badge-pill">LOADING...</span>
+      <a class="museum-nav-link" id="museum-nav-link" href="museum.html">🏛️ Badge Museum</a>
+    </div>
+    <div class="status-strip">
+      <span>Year: <strong id="year-readout">—</strong></span>
+      <span>Mode: <strong id="mode-readout">—</strong></span>
+      <span>FPS: <strong id="fps-readout">0</strong></span>
+      <span id="speed-strip-item">Speed: <strong id="speed-readout">1x</strong></span>
+      <span>Backlight: <strong id="backlight-readout">255</strong></span>
+      <span>EEPROM: <strong id="eeprom-status">Clean</strong></span>
+    </div>
+  </header>
+
+  <div id="coming-soon-banner" class="coming-soon-banner"></div>
+
+  <main>
+    <!-- Column 1: Physical Badge + Credits Strip Under Badge -->
+    <div id="badge-column" class="badge-column badge-loading">
+      <div class="board-stage-wrap">
+        <div id="board-stage" class="board-stage">
+          <img id="board-img" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="SAINTCON Badge PCB" draggable="false" />
+          <div id="screen-holder" class="screen-holder">
+            <canvas id="screen-canvas" width="240" height="320"></canvas>
+          </div>
+          <div id="led-layer" class="led-layer"></div>
+          <div id="sw2-overlay" class="sw2-overlay" title="5-Way Navigation Switch: Drag/Hold or Click">
+            <div class="sw2-Overlay-ring"></div>
+            <div id="sw2-cap" class="sw2-cap"></div>
+          </div>
+          <div id="board-buttons-layer" class="board-buttons-layer"></div>
+        </div>
+      </div>
+
+      <!-- Credits Strip Directly Under the Badge (Visible on Page) -->
+      <div id="badge-credits-strip" class="badge-credits-strip" aria-label="Badge Credits">
+        <div class="credits-primary" id="credits-primary-line">
+          Loading badge profile…
+        </div>
+        <div class="credits-secondary" id="credits-secondary-line"></div>
+        <div class="credits-disclaimer" id="credits-disclaimer-line">
+          Unofficial fan project. Not affiliated with or endorsed by SAINTCON or UtahSAINT.
+        </div>
+      </div>
+    </div>
+
+    <!-- Column 2: Big Screen Copy (integer scaled, nearest-neighbor; ON by default on desktop, OFF on phones) -->
+    <div id="big-screen-panel" class="big-screen-column">
+      <div class="big-screen-card">
+        <div class="big-screen-header">
+          <span id="big-screen-title">LCD Closeup (ST7789V 240×320)</span>
+          <span id="big-screen-scale-label" class="big-screen-scale-tag">2× (480×640)</span>
+        </div>
+        <div id="big-screen-bezel" class="big-screen-bezel">
+          <canvas id="big-screen-canvas" width="480" height="640"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Column 3: Big Joystick Pad (immediately under badge on phones) + Controls + Hardware State + About -->
+    <div class="controls-column">
+      <!-- Larger Touch-Friendly Joystick + Action Buttons Pad with Key Hints -->
+      <div class="touch-dpad-card" aria-label="Touch Controls Pad">
+        <div class="touch-dpad-title">
+          <span id="dpad-title-label">5-Way Joystick (SW2)</span>
+          <span>Hold or Tap</span>
+        </div>
+        <div id="key-hints-bar" class="key-hints-bar" aria-label="Keyboard Controls Hint">
+          <span>Move: <kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> or <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></span>
+          <span>•</span>
+          <span>Center: <kbd>Enter</kbd> / <kbd>Space</kbd> / <kbd>E</kbd></span>
+        </div>
+        <div class="pad-layout">
+          <div class="dpad-grid">
+            <div></div>
+            <button type="button" class="dpad-btn" data-btn-bit="1" id="pad-up">
+              ▲<span class="sub">UP • W / ↑</span>
+            </button>
+            <div></div>
+
+            <button type="button" class="dpad-btn" data-btn-bit="4" id="pad-left">
+              ◀<span class="sub">LEFT • A / ←</span>
+            </button>
+            <button type="button" class="dpad-btn center-btn" data-btn-bit="16" id="pad-center">
+              ●<span class="sub" id="pad-center-sub">OK • Ent/Spc/E</span>
+            </button>
+            <button type="button" class="dpad-btn" data-btn-bit="8" id="pad-right">
+              ▶<span class="sub">RIGHT • D / →</span>
+            </button>
+
+            <div></div>
+            <button type="button" class="dpad-btn" data-btn-bit="2" id="pad-down">
+              ▼<span class="sub">DOWN • S / ↓</span>
+            </button>
+            <div></div>
+          </div>
+          <div id="action-pad-col" class="action-pad-col"></div>
+        </div>
+      </div>
+
+      <!-- Emulator Controls Panel -->
+      <div class="panel-card">
+        <h2>Emulator Controls</h2>
+
+        <div class="control-group">
+          <span class="control-label">Display &amp; Firmware Mode</span>
+          <div class="btn-row" id="display-mode-row">
+            <button type="button" class="ctrl-btn active" id="btn-big-screen" aria-pressed="true">
+              🔍 Big Screen: ON
+            </button>
+            <span id="mode-buttons-slot" style="display: contents;">
+              <button type="button" class="ctrl-btn active" id="btn-mode-stock" data-mode="stock">
+                🚀 Original Firmware
+              </button>
+              <button type="button" class="ctrl-btn" id="btn-mode-pug" data-mode="pug">
+                🐾 Pug Pet
+              </button>
+            </span>
+          </div>
+        </div>
+
+        <div class="control-group" id="speed-control-group">
+          <span class="control-label">Pet Time Multiplier (`emu_set_speed`)</span>
+          <div class="btn-row" id="speed-btn-group">
+            <button type="button" class="ctrl-btn active" data-speed="1">1x</button>
+            <button type="button" class="ctrl-btn" data-speed="10">10x</button>
+            <button type="button" class="ctrl-btn" data-speed="60">60x</button>
+            <button type="button" class="ctrl-btn" data-speed="600">600x</button>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <span class="control-label">Execution &amp; Core Lifecycle</span>
+          <div class="btn-row">
+            <button type="button" class="ctrl-btn" id="btn-pause">Pause</button>
+            <button type="button" class="ctrl-btn" id="btn-reset">Reset Badge</button>
+            <button type="button" class="ctrl-btn warn" id="btn-wipe">Wipe Save</button>
+          </div>
+        </div>
+
+        <div class="control-group" id="stock-nut-group" style="display: none;">
+          <span class="control-label">Solo Game • Physical "Nut" NFC Dispenser</span>
+          <div class="btn-row" style="margin-bottom: 6px;">
+            <select id="nut-type-select" class="nut-select" aria-label="Nut Type">
+              <option value="SORTING_HAT">🎩 Sorting Hat Nut (Assign Faction)</option>
+              <option value="TELECOM">📡 Telecom Node Nut (+75 cr, Unlock Sector)</option>
+              <option value="CONTEST">🏆 Contest Nut (+120 cr)</option>
+              <option value="EVENT">🎟️ Event Nut (+50 cr)</option>
+              <option value="VENDOR">🤝 Vendor Nut (+40 cr)</option>
+              <option value="COMMUNITY">🌟 Community Level Nut (+100 cr)</option>
+            </select>
+            <select id="nut-faction-select" class="nut-select" aria-label="Sorting Hat Faction">
+              <option value="3">3 • Dawn Accord (Gold)</option>
+              <option value="1">1 • Aether Watch (Blue)</option>
+              <option value="2">2 • Verdant Pact (Green)</option>
+              <option value="4">4 • Iron Howl (Orange)</option>
+              <option value="5">5 • Ember Claw (Red)</option>
+              <option value="6">6 • Dream Coil (Purple)</option>
+              <option value="0">Auto Faction</option>
+            </select>
+          </div>
+          <div class="btn-row">
+            <button type="button" class="ctrl-btn gold" id="btn-tap-nut">🔩 Tap Nut (NFC)</button>
+            <button type="button" class="ctrl-btn" id="btn-dispense-code" title="Generate a one-time 5-character code to enter manually in Code Entry">🔢 Manual Code</button>
+          </div>
+          <div class="nut-status-box" id="nut-status-box">
+            Register a handle on the badge, then tap a <strong>Sorting Hat</strong> Nut to join a faction and <strong>Telecom</strong> Nuts to unlock the 31-node map.
+          </div>
+        </div>
+
+        <div class="control-group">
+          <span class="control-label" id="nfc-capture-label">NFC Tag &amp; Capture</span>
+          <div class="btn-row">
+            <button type="button" class="ctrl-btn gold" id="btn-phone-tap">📲 Phone Tap (NFC)</button>
+            <button type="button" class="ctrl-btn" id="btn-screenshot">📷 Screenshot PNG</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hardware & Persistence Telemetry -->
+      <div class="panel-card">
+        <h2>Hardware State</h2>
+        <div class="telemetry-grid">
+          <div class="telemetry-item">
+            <span class="k">BUTTON MASK</span>
+            <span class="v" id="tel-buttons">0x00 (IDLE)</span>
+          </div>
+          <div class="telemetry-item">
+            <span class="k">LCD BACKLIGHT</span>
+            <span class="v" id="tel-backlight">255 / 255 (100%)</span>
+          </div>
+          <div class="telemetry-item">
+            <span class="k" id="tel-leds-label">LED CHAIN (GPIO 3)</span>
+            <span class="v" id="tel-leds">20 WS2812B (D1→D20)</span>
+          </div>
+          <div class="telemetry-item">
+            <span class="k">STORAGE KEY (YEAR/MODE)</span>
+            <span class="v" id="tel-eeprom">localStorage Synced</span>
+          </div>
+        </div>
+        <div id="storage-warning-note" class="storage-warning-note" role="alert">
+          Not saved: browser storage unavailable
+        </div>
+      </div>
+
+      <!-- Short About Section (Owner Rule) -->
+      <div class="panel-card about-card" id="about-section">
+        <h2>About</h2>
+        <p id="about-disclaimer-para">
+          <strong>Unofficial fan project. Not affiliated with or endorsed by SAINTCON or UtahSAINT.</strong>
+        </p>
+        <p>
+          <strong><a href="https://saintcon.org" target="_blank" rel="noopener">SAINTCON</a></strong> is Utah's annual cybersecurity and hackers conference, celebrated for its custom hardware badges and conference-wide badge games.
+        </p>
+        <p id="about-author-para">
+          This is a <strong>fan-made hardware emulator</strong> built with the badge author's (<a href="https://github.com/compukidmike" target="_blank" rel="noopener">compukidmike</a>) permission.
+        </p>
+        <p id="about-privacy-para">
+          <strong>Privacy:</strong> All badge progress (simulated 512-byte EEPROM/NVS) is saved in <strong>your browser only</strong> (<code>localStorage</code>, isolated per year and mode) — no cookies, no analytics, and no external CDNs.
+        </p>
+      </div>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <a href="https://saintcon.org/" target="_blank" rel="noopener">SAINTCON</a> is Utah's annual cybersecurity conference, run by
+    <a href="https://saintcon.org/about" target="_blank" rel="noopener">UtahSAINT</a>.
+    Unofficial fan project, not affiliated with or endorsed by SAINTCON or UtahSAINT.
+  </footer>
+
+  <script src="mock-core.js"></script>
+  <script src="badges/2025/fake-server.js"></script>
+  <script>
+    (function () {
+      'use strict';
+
+      const VALID_SPEEDS = [1, 10, 60, 600];
+      const DESKTOP_BREAKPOINT_PX = 820;
+      const MAX_STEP_DT_MS = 100;
+      const MAX_HIDDEN_CATCHUP_MS = 300000; // Bound catch-up at 5 min of real time in 100 ms steps
+      const LIVE_YEARS = ['2025', '2026'];
+      const COMING_SOON_YEARS = []; // Only years explicitly listed as coming soon
+      const WASM_MISSING_MSG = 'This emulator needs WebAssembly; it may be turned off, e.g. iPhone Lockdown Mode';
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const isMockRequested = urlParams.get('mock') === '1';
+      const hostLower = (window.location.hostname || '').toLowerCase();
+      const PROD_DOMAIN = 'sc.pug.technology';
+      const isProdSubdomain = hostLower.endsWith('.' + PROD_DOMAIN);
+
+      // Default directional & center bits (overridden/extended by badge.json buttons[])
+      const BTN_UP = 1 << 0;
+      const BTN_DOWN = 1 << 1;
+      const BTN_LEFT = 1 << 2;
+      const BTN_RIGHT = 1 << 3;
+      const BTN_CENTER = 1 << 4;
+
+      // Resolve badge year from ?year=2025 or hostname <yy>.sc.pug.technology (default 2025)
+      function resolveYear() {
+        const params = new URLSearchParams(window.location.search);
+        const qYear = params.get('year');
+        if (qYear && /^\d{4}$/.test(qYear.trim())) {
+          return qYear.trim();
+        }
+        const hostMatch = /^(\d{2})\.sc\.pug\.technology$/i.exec(window.location.hostname || '');
+        if (hostMatch) {
+          return '20' + hostMatch[1];
+        }
+        return '2025';
+      }
+
+      function resolveInitialMode() {
+        const params = new URLSearchParams(window.location.search);
+        const qMode = params.get('mode');
+        if (qMode && /^[a-z0-9_-]+$/i.test(qMode.trim())) {
+          return qMode.trim().toLowerCase();
+        }
+        return null;
+      }
+
+      function yearHref(yr, mode) {
+        if ((isProdSubdomain || hostLower === PROD_DOMAIN) && LIVE_YEARS.includes(String(yr))) {
+          return `https://${String(yr).slice(2)}.${PROD_DOMAIN}/${mode ? '?mode=' + encodeURIComponent(mode) : ''}`;
+        }
+        return `?year=${yr}${mode ? '&mode=' + encodeURIComponent(mode) : ''}`;
+      }
+
+      function museumHref() {
+        if (isProdSubdomain) {
+          return `https://${PROD_DOMAIN}/`;
+        }
+        return 'museum.html';
+      }
+
+      let currentYear = resolveYear();
+      let currentMode = resolveInitialMode() || 'stock';
+      let explicitQueryMode = resolveInitialMode();
+      let badgeMeta = null;
+      let screenW = 240;
+      let screenH = 320;
+      let screenShape = 'rect';
+      let numLeds = 20;
+      let eepromBytes = 512;
+      let validButtonsMask = 0x1f;
+      let centerBtnBit = BTN_CENTER;
+      let buttonDefs = [
+        { id: 'up', name: 'UP', bit: BTN_UP },
+        { id: 'down', name: 'DOWN', bit: BTN_DOWN },
+        { id: 'left', name: 'LEFT', bit: BTN_LEFT },
+        { id: 'right', name: 'RIGHT', bit: BTN_RIGHT },
+        { id: 'center', name: 'CENTER', bit: BTN_CENTER },
+      ];
+      let keyToBit = {
+        ArrowUp: BTN_UP, KeyW: BTN_UP, w: BTN_UP, W: BTN_UP,
+        ArrowDown: BTN_DOWN, KeyS: BTN_DOWN, s: BTN_DOWN, S: BTN_DOWN,
+        ArrowLeft: BTN_LEFT, KeyA: BTN_LEFT, a: BTN_LEFT, A: BTN_LEFT,
+        ArrowRight: BTN_RIGHT, KeyD: BTN_RIGHT, d: BTN_RIGHT, D: BTN_RIGHT,
+        Enter: BTN_CENTER, Space: BTN_CENTER, ' ': BTN_CENTER, KeyE: BTN_CENTER, e: BTN_CENTER, E: BTN_CENTER,
+      };
+
+      // Per-year and per-mode localStorage keys (mock core runs under its own key and never writes the real key)
+      function getStorageKey(suffix) {
+        if (isMockRequested || (core && core.isMock)) {
+          if (currentMode === 'stock') {
+            return `saintcon_${currentYear}_mock_stock_${suffix}`;
+          }
+          return `saintcon_${currentYear}_${currentMode}_mock_${suffix}`;
+        }
+        return `saintcon_${currentYear}_${currentMode}_${suffix}`;
+      }
+
+      function safeHref(url, fallback) {
+        const s = String(url || '').trim();
+        if (/^https?:\/\//i.test(s) || /^[a-z0-9_./?=&-]+$/i.test(s)) {
+          return s;
+        }
+        return fallback || '#';
+      }
+
+      function createExtLink(href, text, strongText) {
+        const a = document.createElement('a');
+        a.href = safeHref(href, '#');
+        a.target = '_blank';
+        a.rel = 'noopener';
+        if (strongText) {
+          const st = document.createElement('strong');
+          st.textContent = String(text);
+          a.appendChild(st);
+        } else {
+          a.textContent = String(text);
+        }
+        return a;
+      }
+
+      let layout = null;
+      let core = null;
+      let paused = false;
+      let rafId = null;
+      let loopStopped = false;
+      let resumeLoopFn = null;
+      let currentSpeed = 1; // Default speed 1x (not 60x)
+      let bigScreenEnabled = window.innerWidth > DESKTOP_BREAKPOINT_PX;
+      let bigScreenUserOverridden = false;
+      let bigScreenScale = 2;
+
+      // Tab visibility state for pausing while hidden and bounded catch-up on return
+      let tabHidden = Boolean(document.hidden);
+      let hiddenSinceMs = tabHidden ? performance.now() : null;
+      let maxStepDtSeen = 0;
+      let lastCatchupSteps = 0;
+
+      // Separate input bitmasks so keyboard, on-board switches, and touch pad combine cleanly
+      let kbMask = 0;
+      let sw2Mask = 0;
+      let boardBtnMask = 0;
+      let padMask = 0;
+      let testMask = 0;
+
+      // EEPROM persistence state (throttled to at most 1 write per 1000 ms)
+      let eepromPendingSave = false;
+      let lastEepromSaveMs = 0;
+      let eepromWriteCount = 0;
+
+      // DOM elements
+      const pageHeading = document.getElementById('page-heading');
+      const museumNavLink = document.getElementById('museum-nav-link');
+      const yearReadout = document.getElementById('year-readout');
+      const modeReadout = document.getElementById('mode-readout');
+      const speedStripItem = document.getElementById('speed-strip-item');
+      const comingSoonBanner = document.getElementById('coming-soon-banner');
+      const badgeColumn = document.getElementById('badge-column');
+      const storageWarningNote = document.getElementById('storage-warning-note');
+
+      if (museumNavLink) {
+        museumNavLink.href = museumHref();
+      }
+
+      const boardStage = document.getElementById('board-stage');
+      const boardImg = document.getElementById('board-img');
+      const screenHolder = document.getElementById('screen-holder');
+      const screenCanvas = document.getElementById('screen-canvas');
+      const screenCtx = screenCanvas.getContext('2d', { alpha: false });
+      let screenImageData = screenCtx.createImageData(screenW, screenH);
+      let screenRgba32 = new Uint32Array(screenImageData.data.buffer);
+
+      const bigScreenPanel = document.getElementById('big-screen-panel');
+      const bigScreenTitle = document.getElementById('big-screen-title');
+      const bigScreenBezel = document.getElementById('big-screen-bezel');
+      const bigScreenCanvas = document.getElementById('big-screen-canvas');
+      const bigScreenCtx = bigScreenCanvas.getContext('2d', { alpha: false });
+      const bigScreenScaleLabel = document.getElementById('big-screen-scale-label');
+      const btnBigScreen = document.getElementById('btn-big-screen');
+
+      const ledLayer = document.getElementById('led-layer');
+      const sw2Overlay = document.getElementById('sw2-overlay');
+      const sw2Cap = document.getElementById('sw2-cap');
+      const boardButtonsLayer = document.getElementById('board-buttons-layer');
+
+      const dpadTitleLabel = document.getElementById('dpad-title-label');
+      const keyHintsBar = document.getElementById('key-hints-bar');
+      const padCenterBtn = document.getElementById('pad-center');
+      const padCenterSub = document.getElementById('pad-center-sub');
+      const actionPadCol = document.getElementById('action-pad-col');
+      const modeButtonsSlot = document.getElementById('mode-buttons-slot');
+      const speedControlGroup = document.getElementById('speed-control-group');
+      const stockNutGroup = document.getElementById('stock-nut-group');
+      const nutTypeSelect = document.getElementById('nut-type-select');
+      const nutFactionSelect = document.getElementById('nut-faction-select');
+      const btnTapNut = document.getElementById('btn-tap-nut');
+      const btnDispenseCode = document.getElementById('btn-dispense-code');
+      const nutStatusBox = document.getElementById('nut-status-box');
+      const nfcCaptureLabel = document.getElementById('nfc-capture-label');
+      const btnPhoneTap = document.getElementById('btn-phone-tap');
+
+      const coreModePill = document.getElementById('core-mode-pill');
+      const fpsReadout = document.getElementById('fps-readout');
+      const speedReadout = document.getElementById('speed-readout');
+      const backlightReadout = document.getElementById('backlight-readout');
+      const eepromStatus = document.getElementById('eeprom-status');
+
+      const telButtons = document.getElementById('tel-buttons');
+      const telBacklight = document.getElementById('tel-backlight');
+      const telLedsLabel = document.getElementById('tel-leds-label');
+      const telLeds = document.getElementById('tel-leds');
+      const telEeprom = document.getElementById('tel-eeprom');
+
+      const phoneNotif = document.getElementById('phone-notification');
+      const notifText = document.getElementById('notif-text');
+      const notifMeta = document.getElementById('notif-meta');
+
+      const creditsPrimaryLine = document.getElementById('credits-primary-line');
+      const creditsSecondaryLine = document.getElementById('credits-secondary-line');
+      const aboutAuthorPara = document.getElementById('about-author-para');
+      const aboutPrivacyPara = document.getElementById('about-privacy-para');
+
+      const ledElements = [];
+      const boardPushElements = [];
+      const activeBoardBtnPointers = new Map();
+
+      // Precompute RGB565 (0..65535) -> 0xAABBGGRR (little-endian RGBA) lookup table
+      const rgb565Lut = new Uint32Array(65536);
+      for (let v = 0; v < 65536; v++) {
+        const r5 = (v >> 11) & 0x1f;
+        const g6 = (v >> 5) & 0x3f;
+        const b5 = v & 0x1f;
+        const r8 = (r5 << 3) | (r5 >> 2);
+        const g8 = (g6 << 2) | (g6 >> 4);
+        const b8 = (b5 << 3) | (b5 >> 2);
+        rgb565Lut[v] = (255 << 24) | (b8 << 16) | (g8 << 8) | r8;
+      }
+
+      let storageUnavailable = false;
+      function showStorageUnavailableNote() {
+        storageUnavailable = true;
+        eepromStatus.textContent = 'Not saved: browser storage unavailable';
+        telEeprom.textContent = 'Not saved: browser storage unavailable';
+        if (storageWarningNote) {
+          storageWarningNote.textContent = 'Not saved: browser storage unavailable';
+          storageWarningNote.classList.add('visible');
+        }
+      }
+      window.__onBadgeStorageError = showStorageUnavailableNote;
+
+      // Load remembered speed per browser (stored per year & mode, defaulting to 1x)
+      function loadSavedSpeed() {
+        try {
+          const raw = localStorage.getItem(getStorageKey('speed'));
+          const parsed = Number(raw);
+          if (VALID_SPEEDS.includes(parsed)) {
+            return parsed;
+          }
+        } catch (err) {
+          console.warn('Failed to read speed from localStorage:', err);
+        }
+        return 1;
+      }
+
+      function saveSpeed(mult) {
+        try {
+          localStorage.setItem(getStorageKey('speed'), String(mult));
+        } catch (err) {
+          console.warn('Failed to save speed to localStorage:', err);
+          showStorageUnavailableNote();
+        }
+      }
+
+      function applySpeedUi(mult) {
+        currentSpeed = VALID_SPEEDS.includes(mult) ? mult : 1;
+        document.querySelectorAll('#speed-btn-group button').forEach((b) => {
+          b.classList.toggle('active', Number(b.dataset.speed) === currentSpeed);
+        });
+        speedReadout.textContent = `${currentSpeed}x`;
+      }
+
+      // Compute integer scale for Big Screen (240x320 nearest-neighbor)
+      function updateBigScreenLayout() {
+        if (!bigScreenUserOverridden) {
+          bigScreenEnabled = window.innerWidth > DESKTOP_BREAKPOINT_PX;
+        }
+        bigScreenPanel.classList.toggle('hidden', !bigScreenEnabled);
+        btnBigScreen.classList.toggle('active', bigScreenEnabled);
+        btnBigScreen.setAttribute('aria-pressed', String(bigScreenEnabled));
+        btnBigScreen.textContent = bigScreenEnabled ? '🔍 Big Screen: ON' : '🔍 Big Screen: OFF';
+
+        if (!bigScreenEnabled) return;
+
+        // Calculate largest crisp integer scale that fits viewport
+        const availH = Math.max(screenH, window.innerHeight - 150);
+        let scale = Math.floor(availH / screenH);
+        if (window.innerWidth <= DESKTOP_BREAKPOINT_PX) {
+          const availW = Math.max(screenW, window.innerWidth - 48);
+          scale = Math.min(scale, Math.floor(availW / screenW));
+        } else {
+          const availW = Math.max(screenW, window.innerWidth - 680);
+          scale = Math.min(scale, Math.floor(availW / screenW));
+          if (window.innerWidth >= 1024 && window.innerHeight >= 720 && screenW * 2 <= availW) {
+            scale = Math.max(2, scale);
+          }
+        }
+        scale = Math.max(1, Math.min(4, scale));
+        bigScreenScale = scale;
+
+        const targetW = screenW * scale;
+        const targetH = screenH * scale;
+        if (bigScreenCanvas.width !== targetW || bigScreenCanvas.height !== targetH) {
+          bigScreenCanvas.width = targetW;
+          bigScreenCanvas.height = targetH;
+          bigScreenCanvas.style.width = `${targetW}px`;
+          bigScreenCanvas.style.height = `${targetH}px`;
+        }
+        bigScreenScaleLabel.textContent = `${scale}× (${targetW}×${targetH})`;
+      }
+
+      window.addEventListener('resize', () => {
+        updateBigScreenLayout();
+        if (core) renderOutputs();
+      });
+
+      btnBigScreen.addEventListener('click', () => {
+        bigScreenUserOverridden = true;
+        bigScreenEnabled = !bigScreenEnabled;
+        btnBigScreen.blur();
+        updateBigScreenLayout();
+        if (core) renderOutputs();
+      });
+
+      function getButtonsMask() {
+        return (kbMask | sw2Mask | boardBtnMask | padMask | testMask) & validButtonsMask;
+      }
+
+      function maskToNames(mask) {
+        const names = [];
+        for (const b of buttonDefs) {
+          if (mask & b.bit) names.push(b.name);
+        }
+        return names.length ? names.join('+') : 'IDLE';
+      }
+
+      function updateInputVisuals() {
+        const mask = getButtonsMask();
+        telButtons.textContent =
+          '0x' + mask.toString(16).padStart(2, '0').toUpperCase() + ' (' + maskToNames(mask) + ')';
+
+        document.querySelectorAll('.dpad-btn').forEach((btn) => {
+          const bit = Number(btn.dataset.btnBit);
+          btn.classList.toggle('pressed', (mask & bit) !== 0);
+        });
+
+        for (const el of boardPushElements) {
+          const bit = Number(el.dataset.btnBit);
+          el.classList.toggle('pressed', (mask & bit) !== 0);
+        }
+
+        let dx = 0;
+        let dy = 0;
+        if (mask & BTN_LEFT) dx -= 26;
+        if (mask & BTN_RIGHT) dx += 26;
+        if (mask & BTN_UP) dy -= 26;
+        if (mask & BTN_DOWN) dy += 26;
+        const scale = (mask & centerBtnBit) ? 0.86 : 1.0;
+        const navMask = BTN_UP | BTN_DOWN | BTN_LEFT | BTN_RIGHT | centerBtnBit;
+        sw2Cap.style.transform = `translate(${dx}%, ${dy}%) scale(${scale})`;
+        sw2Overlay.classList.toggle('active', (mask & navMask) !== 0);
+        sw2Overlay.classList.toggle('center-pressed', (mask & centerBtnBit) !== 0);
+      }
+
+      function recomputeBoardBtnMask() {
+        let m = 0;
+        for (const bit of activeBoardBtnPointers.values()) m |= bit;
+        boardBtnMask = m;
+        updateInputVisuals();
+      }
+
+      // Apply KiCad layout.json coordinates to DOM elements
+      function applyLayout(data) {
+        layout = data;
+        const W = data.board_image.width_px;
+        const H = data.board_image.height_px;
+        boardStage.style.aspectRatio = `${W} / ${H}`;
+
+        const scr = data.screen;
+        const isRound = (scr.shape || screenShape) === 'round';
+        screenHolder.classList.toggle('round', isRound);
+        bigScreenBezel.classList.toggle('round', isRound);
+        screenHolder.style.left = `${(scr.x_px / W) * 100}%`;
+        screenHolder.style.top = `${(scr.y_px / H) * 100}%`;
+        screenHolder.style.width = `${(scr.w_px / W) * 100}%`;
+        screenHolder.style.height = `${(scr.h_px / H) * 100}%`;
+
+        ledLayer.replaceChildren();
+        ledElements.length = 0;
+        for (const led of data.leds) {
+          const el = document.createElement('div');
+          el.className = 'led-dot off';
+          el.style.left = `${(led.x_px / W) * 100}%`;
+          el.style.top = `${(led.y_px / H) * 100}%`;
+          el.dataset.index = led.index;
+          el.dataset.ref = led.ref;
+          el.title = `Chain #${led.index} (${led.ref}, DIN: ${led.din_net})`;
+          ledLayer.appendChild(el);
+          ledElements.push(el);
+        }
+
+        const navSw = data.nav_switch || data.sw4 || data.sw2;
+        if (navSw) {
+          const diamPx = navSw.radius_px * 2;
+          sw2Overlay.style.display = 'flex';
+          sw2Overlay.style.left = `${(navSw.x_px / W) * 100}%`;
+          sw2Overlay.style.top = `${(navSw.y_px / H) * 100}%`;
+          sw2Overlay.style.width = `${(diamPx / W) * 100}%`;
+          sw2Overlay.style.height = `${(diamPx / H) * 100}%`;
+          sw2Overlay.title = `5-Way Navigation Switch (${navSw.ref || 'SW'}): Drag/Hold or Click`;
+        } else {
+          sw2Overlay.style.display = 'none';
+        }
+
+        boardButtonsLayer.replaceChildren();
+        boardPushElements.length = 0;
+        activeBoardBtnPointers.clear();
+        boardBtnMask = 0;
+        const pushList = Array.isArray(data.action_buttons)
+          ? data.action_buttons
+          : buttonDefs.filter((b) => b.kind === 'push' && typeof b.x_px === 'number');
+        for (const pb of pushList) {
+          const el = document.createElement('button');
+          el.type = 'button';
+          el.className = 'board-push-btn';
+          const diamPx = (pb.radius_px || 36) * 2;
+          el.style.left = `${(pb.x_px / W) * 100}%`;
+          el.style.top = `${(pb.y_px / H) * 100}%`;
+          el.style.width = `${(diamPx / W) * 100}%`;
+          el.style.height = `${(diamPx / H) * 100}%`;
+          el.dataset.btnBit = String(pb.bit);
+          el.textContent = pb.name;
+          el.title = `Button ${pb.name} (${pb.ref || 'SW'})`;
+
+          el.addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            if (el.setPointerCapture) {
+              try { el.setPointerCapture(e.pointerId); } catch (_) {}
+            }
+            activeBoardBtnPointers.set(e.pointerId, Number(pb.bit));
+            recomputeBoardBtnMask();
+          });
+          const release = (e) => {
+            if (activeBoardBtnPointers.has(e.pointerId)) {
+              activeBoardBtnPointers.delete(e.pointerId);
+              recomputeBoardBtnMask();
+            }
+          };
+          el.addEventListener('pointerup', release);
+          el.addEventListener('pointercancel', release);
+          el.addEventListener('lostpointercapture', release);
+
+          boardButtonsLayer.appendChild(el);
+          boardPushElements.push(el);
+        }
+      }
+
+      // Persistence: load & save 512-byte EEPROM in localStorage (per year and per mode)
+      function loadEepromFromStorage(targetU8) {
+        const key = getStorageKey('eeprom');
+        try {
+          const b64 = localStorage.getItem(key);
+          if (!b64) {
+            targetU8.fill(0);
+            return false;
+          }
+          const bin = atob(b64);
+          const len = Math.min(targetU8.length, bin.length);
+          for (let i = 0; i < len; i++) {
+            targetU8[i] = bin.charCodeAt(i) & 0xff;
+          }
+          return true;
+        } catch (err) {
+          console.warn('Failed to load EEPROM from localStorage:', err);
+          return false;
+        }
+      }
+
+      function flushEepromToStorage(force) {
+        if (!core || !eepromPendingSave) return true;
+        const now = performance.now();
+        if (!force && now - lastEepromSaveMs < 1000) return true;
+
+        const key = getStorageKey('eeprom');
+        try {
+          const eeprom = core.getEepromView();
+          let bin = '';
+          for (let i = 0; i < eeprom.length; i++) {
+            bin += String.fromCharCode(eeprom[i]);
+          }
+          localStorage.setItem(key, btoa(bin));
+          eepromPendingSave = false;
+          lastEepromSaveMs = now;
+          eepromWriteCount++;
+          eepromStatus.textContent = 'Saved';
+          telEeprom.textContent = `${key} (#${eepromWriteCount})`;
+          return true;
+        } catch (err) {
+          console.warn('Failed to write EEPROM to localStorage:', err);
+          eepromPendingSave = false;
+          lastEepromSaveMs = now;
+          showStorageUnavailableNote();
+          return false;
+        }
+      }
+
+      // Decode NDEF Text/URI from EEPROM bytes 0..255
+      function decodeNdefFromEeprom(bytes256) {
+        const decoder = new TextDecoder('utf-8', { fatal: false });
+
+        function parseNdefRecord(buf, offset) {
+          if (offset + 3 > buf.length) return null;
+          const hdr = buf[offset];
+          const tnf = hdr & 0x07;
+          const sr = (hdr & 0x10) !== 0;
+          const il = (hdr & 0x08) !== 0;
+          const typeLen = buf[offset + 1];
+          let pos = offset + 2;
+          let payloadLen = 0;
+          if (sr) {
+            payloadLen = buf[pos++];
+          } else {
+            if (pos + 4 > buf.length) return null;
+            payloadLen =
+              ((buf[pos] << 24) |
+                (buf[pos + 1] << 16) |
+                (buf[pos + 2] << 8) |
+                buf[pos + 3]) >>> 0;
+            pos += 4;
+          }
+          let idLen = 0;
+          if (il) {
+            idLen = buf[pos++];
+          }
+          if (pos + typeLen + idLen + payloadLen > buf.length) return null;
+          const typeBytes = buf.subarray(pos, pos + typeLen);
+          pos += typeLen + idLen;
+          const payload = buf.subarray(pos, pos + payloadLen);
+
+          if (tnf === 0x01 && typeLen === 1 && typeBytes[0] === 0x54 && payload.length >= 1) {
+            const status = payload[0];
+            const langLen = status & 0x3f;
+            const lang = decoder.decode(payload.subarray(1, 1 + langLen));
+            const text = decoder.decode(payload.subarray(1 + langLen));
+            return {
+              kind: `NDEF Text (lang="${lang || 'en'}", ${payload.length}B payload)`,
+              text,
+              me: (hdr & 0x40) !== 0,
+              nextOffset: pos + payloadLen,
+            };
+          }
+          if (tnf === 0x01 && typeLen === 1 && typeBytes[0] === 0x55 && payload.length >= 1) {
+            const prefixes = [
+              '', 'http://www.', 'https://www.', 'http://', 'https://', 'tel:', 'mailto:'
+            ];
+            const prefix = prefixes[payload[0]] || '';
+            const uri = prefix + decoder.decode(payload.subarray(1));
+            return { kind: 'NDEF URI Record', text: uri, me: (hdr & 0x40) !== 0, nextOffset: pos + payloadLen };
+          }
+          if (tnf === 0x02 && decoder.decode(typeBytes) === 'application/vnd.wfa.wsc') {
+            let ssid = '';
+            let key = '';
+            let p = 0;
+            while (p + 4 <= payload.length) {
+              const attrType = (payload[p] << 8) | payload[p + 1];
+              const attrLen = (payload[p + 2] << 8) | payload[p + 3];
+              p += 4;
+              if (p + attrLen > payload.length) break;
+              const attrVal = payload.subarray(p, p + attrLen);
+              if (attrType === 0x100e) {
+                // Credential container TLV — step inside its nested TLVs
+                let q = 0;
+                while (q + 4 <= attrVal.length) {
+                  const subType = (attrVal[q] << 8) | attrVal[q + 1];
+                  const subLen = (attrVal[q + 2] << 8) | attrVal[q + 3];
+                  q += 4;
+                  if (q + subLen > attrVal.length) break;
+                  if (subType === 0x1045) ssid = decoder.decode(attrVal.subarray(q, q + subLen));
+                  if (subType === 0x1027) key = decoder.decode(attrVal.subarray(q, q + subLen));
+                  q += subLen;
+                }
+              } else if (attrType === 0x1045) {
+                ssid = decoder.decode(attrVal);
+              } else if (attrType === 0x1027) {
+                key = decoder.decode(attrVal);
+              }
+              p += attrLen;
+            }
+            if (ssid || key) {
+              return {
+                kind: 'NDEF Wi-Fi Simple Config (application/vnd.wfa.wsc)',
+                text: `Wi-Fi SSID: ${ssid || '(none)'}${key ? ' • Key: ' + key : ''}`,
+                me: (hdr & 0x40) !== 0,
+                nextOffset: pos + payloadLen,
+              };
+            }
+          }
+          if (payload.length > 0) {
+            return {
+              kind: `NDEF Record (TNF=${tnf})`,
+              text: decoder.decode(payload).replace(/\0+/g, '').trim(),
+              me: (hdr & 0x40) !== 0,
+              nextOffset: pos + payloadLen,
+            };
+          }
+          return null;
+        }
+
+        let startIdx = 0;
+        if (bytes256[0] === 0xe1 || bytes256[0] === 0xe2) {
+          startIdx = bytes256[2] === 0x00 ? 8 : 4;
+        }
+        let i = startIdx;
+        while (i < bytes256.length) {
+          const tag = bytes256[i];
+          if (tag === 0x00) {
+            i++;
+            continue;
+          }
+          if (tag === 0xfe) break;
+          if (i + 1 >= bytes256.length) break;
+          let tlvLen = bytes256[i + 1];
+          let valStart = i + 2;
+          if (tlvLen === 0xff) {
+            if (i + 3 >= bytes256.length) break;
+            tlvLen = (bytes256[i + 2] << 8) | bytes256[i + 3];
+            valStart = i + 4;
+          }
+          if (tag === 0x03 && valStart < bytes256.length) {
+            const msgEnd = Math.min(bytes256.length, valStart + tlvLen);
+            const recs = [];
+            let cur = valStart;
+            while (cur < msgEnd) {
+              const rec = parseNdefRecord(bytes256, cur);
+              if (!rec || !rec.text) break;
+              recs.push(rec);
+              if (rec.me || !rec.nextOffset || rec.nextOffset <= cur) break;
+              cur = rec.nextOffset;
+            }
+            if (recs.length === 1) {
+              return { kind: recs[0].kind, text: recs[0].text };
+            }
+            if (recs.length >= 2) {
+              return {
+                kind: `NDEF Multi-Record Message (${recs.length} records)`,
+                text: recs.map((r) => r.text).join(' • '),
+              };
+            }
+          }
+          i = valStart + tlvLen;
+        }
+
+        for (const off of [0, 4, 8]) {
+          if (bytes256[off] === 0xd1 || bytes256[off] === 0x91) {
+            const rec = parseNdefRecord(bytes256, off);
+            if (rec && rec.text) return rec;
+          }
+        }
+
+        let printable = '';
+        for (let j = 0; j < bytes256.length; j++) {
+          const c = bytes256[j];
+          if (c >= 0x20 && c < 0x7f) printable += String.fromCharCode(c);
+          else if (printable.length > 0 && printable[printable.length - 1] !== ' ') printable += ' ';
+        }
+        printable = printable.trim();
+        if (printable) {
+          return { kind: 'Raw EEPROM Text (Bytes 0–255)', text: printable };
+        }
+        return { kind: 'Empty EEPROM (Bytes 0–255)', text: '(No NDEF record or text present in bytes 0–255)' };
+      }
+
+      // Render Framebuffer (both on-badge and integer-scaled Big Screen), Backlight, and LEDs
+      function renderOutputs() {
+        if (!core) return;
+        const fb = core.getFramebufferView();
+        const totalPx = screenW * screenH;
+        for (let i = 0; i < totalPx; i++) {
+          screenRgba32[i] = rgb565Lut[fb[i]];
+        }
+        screenCtx.putImageData(screenImageData, 0, 0);
+
+        const bl = core.emu_backlight() & 0xff;
+        const brightnessFrac = (bl / 255).toFixed(3);
+        screenCanvas.style.opacity = brightnessFrac;
+        backlightReadout.textContent = String(bl);
+        telBacklight.textContent = `${bl} / 255 (${Math.round((bl / 255) * 100)}%)`;
+
+        // Update crisp nearest-neighbor integer-scaled Big Screen if enabled
+        if (bigScreenEnabled) {
+          bigScreenCtx.imageSmoothingEnabled = false;
+          bigScreenCtx.drawImage(
+            screenCanvas,
+            0,
+            0,
+            screenW,
+            screenH,
+            0,
+            0,
+            bigScreenCanvas.width,
+            bigScreenCanvas.height
+          );
+          bigScreenCanvas.style.opacity = brightnessFrac;
+        }
+
+        // Update 20 WS2812B LEDs in chain order
+        const leds = core.getLedsView();
+        for (let i = 0; i < numLeds && i < ledElements.length; i++) {
+          const r = leds[i * 3 + 0];
+          const g = leds[i * 3 + 1];
+          const b = leds[i * 3 + 2];
+          const el = ledElements[i];
+          if (r === 0 && g === 0 && b === 0) {
+            if (!el.classList.contains('off')) {
+              el.className = 'led-dot off';
+              el.style.background = '';
+              el.style.boxShadow = '';
+            }
+          } else {
+            el.className = 'led-dot';
+            el.style.background = `radial-gradient(circle, #ffffff 0%, rgb(${r},${g},${b}) 55%, rgba(${r},${g},${b},0.85) 100%)`;
+            el.style.boxShadow = `0 0 8px 3px rgba(${r},${g},${b},0.85), 0 0 18px 7px rgba(${r},${g},${b},0.55)`;
+          }
+        }
+      }
+
+      // Full-badge PNG screenshot generator
+      function renderBadgeToCanvas() {
+        const W = layout ? layout.board_image.width_px : 784;
+        const H = layout ? layout.board_image.height_px : 1792;
+        const outCanvas = document.createElement('canvas');
+        outCanvas.width = W;
+        outCanvas.height = H;
+        const ctx = outCanvas.getContext('2d');
+
+        ctx.drawImage(boardImg, 0, 0, W, H);
+
+        if (layout && core) {
+          const scr = layout.screen;
+          const isRound = (scr.shape || screenShape) === 'round';
+          ctx.save();
+          if (isRound && typeof scr.cx_px === 'number' && typeof scr.r_px === 'number') {
+            ctx.beginPath();
+            ctx.arc(scr.cx_px, scr.cy_px, scr.r_px, 0, Math.PI * 2);
+            ctx.clip();
+          }
+          ctx.fillStyle = '#05070a';
+          ctx.fillRect(scr.x_px, scr.y_px, scr.w_px, scr.h_px);
+          ctx.imageSmoothingEnabled = false;
+          ctx.globalAlpha = (core.emu_backlight() & 0xff) / 255;
+          ctx.drawImage(screenCanvas, scr.x_px, scr.y_px, scr.w_px, scr.h_px);
+          ctx.restore();
+
+          const leds = core.getLedsView();
+          for (let i = 0; i < layout.leds.length; i++) {
+            const l = layout.leds[i];
+            const r = leds[i * 3 + 0];
+            const g = leds[i * 3 + 1];
+            const b = leds[i * 3 + 2];
+            ctx.save();
+            if (r === 0 && g === 0 && b === 0) {
+              ctx.beginPath();
+              ctx.arc(l.x_px, l.y_px, 8, 0, Math.PI * 2);
+              ctx.fillStyle = '#1b2026';
+              ctx.fill();
+              ctx.strokeStyle = '#2d343e';
+              ctx.lineWidth = 1.5;
+              ctx.stroke();
+            } else {
+              const grad = ctx.createRadialGradient(l.x_px, l.y_px, 2, l.x_px, l.y_px, 28);
+              grad.addColorStop(0, '#ffffff');
+              grad.addColorStop(0.28, `rgb(${r},${g},${b})`);
+              grad.addColorStop(0.65, `rgba(${r},${g},${b},0.45)`);
+              grad.addColorStop(1, `rgba(${r},${g},${b},0)`);
+              ctx.fillStyle = grad;
+              ctx.beginPath();
+              ctx.arc(l.x_px, l.y_px, 28, 0, Math.PI * 2);
+              ctx.fill();
+
+              ctx.beginPath();
+              ctx.arc(l.x_px, l.y_px, 8.5, 0, Math.PI * 2);
+              ctx.fillStyle = `rgb(${Math.min(255, r + 60)},${Math.min(255, g + 60)},${Math.min(255, b + 60)})`;
+              ctx.fill();
+            }
+            ctx.restore();
+          }
+
+          const navSw = layout.nav_switch || layout.sw4 || layout.sw2;
+          const mask = getButtonsMask();
+          if (navSw) {
+            let jx = navSw.x_px;
+            let jy = navSw.y_px;
+            if (mask & BTN_LEFT) jx -= 10;
+            if (mask & BTN_RIGHT) jx += 10;
+            if (mask & BTN_UP) jy -= 10;
+            if (mask & BTN_DOWN) jy += 10;
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(navSw.x_px, navSw.y_px, navSw.radius_px, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(jx, jy, 18, 0, Math.PI * 2);
+            ctx.fillStyle = (mask & centerBtnBit) ? '#d4a72c' : '#b8c0c8';
+            ctx.fill();
+            ctx.strokeStyle = '#2d333b';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.restore();
+          }
+
+          if (Array.isArray(layout.action_buttons)) {
+            for (const pb of layout.action_buttons) {
+              if (mask & pb.bit) {
+                ctx.save();
+                ctx.beginPath();
+                ctx.arc(pb.x_px, pb.y_px, (pb.radius_px || 36) * 0.65, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(212, 167, 44, 0.78)';
+                ctx.fill();
+                ctx.restore();
+              }
+            }
+          }
+        }
+        return outCanvas;
+      }
+
+      // Keyboard Input: mapped dynamically from badge.json buttons[]
+      window.addEventListener('keydown', (e) => {
+        if (e.ctrlKey || e.altKey || e.metaKey) return;
+        const tag = e.target && e.target.tagName ? e.target.tagName.toUpperCase() : '';
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+        const bit = keyToBit[e.code] || keyToBit[e.key];
+        if (bit) {
+          e.preventDefault();
+          kbMask |= bit;
+          updateInputVisuals();
+        }
+      });
+
+      window.addEventListener('keyup', (e) => {
+        const bit = keyToBit[e.code] || keyToBit[e.key];
+        if (bit) {
+          e.preventDefault();
+          kbMask &= ~bit;
+          updateInputVisuals();
+        }
+      });
+
+      window.addEventListener('blur', () => {
+        kbMask = 0;
+        sw2Mask = 0;
+        boardBtnMask = 0;
+        activeBoardBtnPointers.clear();
+        padMask = 0;
+        activePadPointers.clear();
+        updateInputVisuals();
+      });
+
+      // Advance clock in bounded <= 100 ms steps (used when returning from hidden tab)
+      function advanceBoundedSteps(elapsedMs) {
+        if (!core || elapsedMs <= 0) return 0;
+        let remaining = Math.min(MAX_HIDDEN_CATCHUP_MS, Math.max(0, Math.round(elapsedMs)));
+        let steps = 0;
+        while (remaining > 0) {
+          const stepDt = Math.min(MAX_STEP_DT_MS, remaining);
+          if (stepDt > maxStepDtSeen) maxStepDtSeen = stepDt;
+          core.emu_step(stepDt, 0);
+          remaining -= stepDt;
+          steps++;
+        }
+        lastCatchupSteps = steps;
+        if (core.emu_eeprom_dirty()) {
+          eepromPendingSave = true;
+          eepromStatus.textContent = 'Dirty';
+          flushEepromToStorage(true);
+        }
+        renderOutputs();
+        return steps;
+      }
+
+      // Setup On-Board 5-Way Joystick (supports holding & dragging)
+      function computeSw2BitFromEvent(e) {
+        const rect = sw2Overlay.getBoundingClientRect();
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
+        const dx = e.clientX - cx;
+        const dy = e.clientY - cy;
+        const dist = Math.hypot(dx, dy);
+        const centerRadius = rect.width * 0.22;
+        if (dist <= centerRadius) {
+          return centerBtnBit;
+        }
+        const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+        let bits = 0;
+        if (angle >= -135 && angle <= -45) bits |= BTN_UP;
+        else if (angle >= 45 && angle <= 135) bits |= BTN_DOWN;
+        else if (angle > -45 && angle < 45) bits |= BTN_RIGHT;
+        else bits |= BTN_LEFT;
+        return bits;
+      }
+
+      let sw2PointerId = null;
+      sw2Overlay.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        sw2PointerId = e.pointerId;
+        if (sw2Overlay.setPointerCapture) {
+          try { sw2Overlay.setPointerCapture(e.pointerId); } catch (_) {}
+        }
+        sw2Mask = computeSw2BitFromEvent(e);
+        updateInputVisuals();
+      });
+
+      sw2Overlay.addEventListener('pointermove', (e) => {
+        if (sw2PointerId === e.pointerId) {
+          sw2Mask = computeSw2BitFromEvent(e);
+          updateInputVisuals();
+        }
+      });
+
+      function clearSw2Pointer(e) {
+        if (sw2PointerId === null || sw2PointerId === e.pointerId) {
+          sw2PointerId = null;
+          sw2Mask = 0;
+          updateInputVisuals();
+        }
+      }
+      sw2Overlay.addEventListener('pointerup', clearSw2Pointer);
+      sw2Overlay.addEventListener('pointercancel', clearSw2Pointer);
+
+      // Setup Touch D-Pad & Action Pad Buttons (supports holding)
+      const activePadPointers = new Map();
+      function recomputePadMask() {
+        let m = 0;
+        for (const bit of activePadPointers.values()) m |= bit;
+        padMask = m;
+        updateInputVisuals();
+      }
+
+      function bindPadButtonHold(btn) {
+        btn.addEventListener('pointerdown', (e) => {
+          e.preventDefault();
+          const bit = Number(btn.dataset.btnBit);
+          if (btn.setPointerCapture) {
+            try { btn.setPointerCapture(e.pointerId); } catch (_) {}
+          }
+          activePadPointers.set(e.pointerId, bit);
+          recomputePadMask();
+        });
+        const release = (e) => {
+          if (activePadPointers.has(e.pointerId)) {
+            activePadPointers.delete(e.pointerId);
+            recomputePadMask();
+          }
+        };
+        btn.addEventListener('pointerup', release);
+        btn.addEventListener('pointercancel', release);
+        btn.addEventListener('lostpointercapture', release);
+      }
+
+      document.querySelectorAll('.dpad-btn').forEach(bindPadButtonHold);
+
+      // Controls Panel Bindings
+      document.querySelectorAll('#speed-btn-group button').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const mult = Number(btn.dataset.speed) || 1;
+          btn.blur();
+          applySpeedUi(mult);
+          saveSpeed(currentSpeed);
+          if (core) {
+            core.emu_set_speed(currentSpeed);
+            if (core.emu_eeprom_dirty()) {
+              eepromPendingSave = true;
+              eepromStatus.textContent = 'Dirty';
+            }
+            renderOutputs();
+          }
+        });
+      });
+
+      const btnPause = document.getElementById('btn-pause');
+      function stopEmulationLoop() {
+        paused = true;
+        loopStopped = true;
+        eepromPendingSave = false;
+        if (rafId !== null) {
+          cancelAnimationFrame(rafId);
+          rafId = null;
+        }
+        if (btnPause) {
+          btnPause.textContent = 'Resume';
+          btnPause.classList.add('active');
+        }
+      }
+
+      btnPause.addEventListener('click', () => {
+        paused = !paused;
+        if (!paused) {
+          loopStopped = false;
+        }
+        btnPause.blur();
+        btnPause.textContent = paused ? 'Resume' : 'Pause';
+        btnPause.classList.toggle('active', paused);
+        if (!paused && resumeLoopFn) {
+          resumeLoopFn();
+        }
+      });
+
+      document.getElementById('btn-reset').addEventListener('click', (e) => {
+        e.currentTarget.blur();
+        if (!core) return;
+        flushEepromToStorage(true);
+        if (currentYear === '2025' && currentMode === 'stock' && !core.isMock && !isMockRequested) {
+          window.location.reload();
+          return;
+        }
+        loadEepromFromStorage(core.getEepromView());
+        core.emu_init((Date.now() & 0xffffffff) >>> 0);
+        core.emu_set_speed(currentSpeed);
+        if (core.emu_eeprom_dirty()) {
+          eepromPendingSave = true;
+          flushEepromToStorage(true);
+        }
+        renderOutputs();
+      });
+
+      document.getElementById('btn-wipe').addEventListener('click', (e) => {
+        e.currentTarget.blur();
+        if (!core) return;
+        const wasPaused = paused;
+        stopEmulationLoop();
+        const key = getStorageKey('eeprom');
+        let removeFailed = false;
+        try {
+          localStorage.removeItem(key);
+        } catch (err) {
+          console.warn('Failed to remove EEPROM from localStorage:', err);
+          removeFailed = true;
+          showStorageUnavailableNote();
+        }
+        if (removeFailed) {
+          return;
+        }
+        if (currentYear === '2025' && currentMode === 'stock' && !core.isMock && !isMockRequested) {
+          let fakeWipeOk = true;
+          if (window.__sc25FakeServer && typeof window.__sc25FakeServer.wipe === 'function') {
+            fakeWipeOk = window.__sc25FakeServer.wipe() !== false;
+          }
+          if (fakeWipeOk) {
+            window.location.reload();
+          } else {
+            showStorageUnavailableNote();
+          }
+          return;
+        }
+        core.getEepromView().fill(0);
+        eepromPendingSave = false;
+        core.emu_init((Date.now() & 0xffffffff) >>> 0);
+        core.emu_set_speed(currentSpeed);
+        let flushOk = true;
+        if (core.emu_eeprom_dirty()) {
+          eepromPendingSave = true;
+          flushOk = flushEepromToStorage(true);
+        }
+        if (flushOk) {
+          eepromStatus.textContent = 'Wiped';
+          telEeprom.textContent = `${key} (Wiped)`;
+        }
+        renderOutputs();
+        if (!wasPaused) {
+          paused = false;
+          loopStopped = false;
+          if (btnPause) {
+            btnPause.textContent = 'Pause';
+            btnPause.classList.remove('active');
+          }
+          if (resumeLoopFn) {
+            resumeLoopFn();
+          }
+        }
+      });
+
+      function updateStockNutStatus(extraInfo) {
+        if (!nutStatusBox || !window.__sc25FakeServer) return;
+        const st = window.__sc25FakeServer.getState();
+        nutStatusBox.replaceChildren();
+
+        if (extraInfo && typeof extraInfo === 'object') {
+          const topDiv = document.createElement('div');
+          topDiv.style.marginBottom = '3px';
+          topDiv.style.color = '#e6edf3';
+          if (extraInfo.kind === 'tap') {
+            topDiv.append('🔩 Tapped NFC Nut ');
+            const stCode = document.createElement('strong');
+            stCode.textContent = String(extraInfo.code || '');
+            topDiv.appendChild(stCode);
+            topDiv.append(' (');
+            const codeEl = document.createElement('code');
+            codeEl.textContent = `NT:${extraInfo.type || ''}`;
+            topDiv.appendChild(codeEl);
+            topDiv.append(') into ST25DV EEPROM!');
+          } else if (extraInfo.kind === 'manual') {
+            topDiv.append('🔢 Manual Code: ');
+            const stCode = document.createElement('strong');
+            stCode.textContent = String(extraInfo.code || '');
+            topDiv.appendChild(stCode);
+            topDiv.append(` (${extraInfo.type || ''}) — enter in `);
+            const emEl = document.createElement('em');
+            emEl.textContent = 'Code Entry';
+            topDiv.appendChild(emEl);
+            topDiv.append(' on badge.');
+          }
+          nutStatusBox.appendChild(topDiv);
+        } else if (st.last_nut) {
+          const lastDiv = document.createElement('div');
+          lastDiv.style.marginBottom = '3px';
+          lastDiv.append('Last Nut: ');
+          const stCode = document.createElement('strong');
+          stCode.textContent = String(st.last_nut.code || '');
+          lastDiv.appendChild(stCode);
+          lastDiv.append(` (${st.last_nut.type || ''})`);
+          nutStatusBox.appendChild(lastDiv);
+        }
+
+        const playerDiv = document.createElement('div');
+        if (st.registered) {
+          playerDiv.append('Player: ');
+          const stName = document.createElement('strong');
+          stName.textContent = String(st.player_name || '');
+          playerDiv.appendChild(stName);
+          const facText = st.sorting_hat ? String(st.team_name || '') : 'Faction Unassigned';
+          playerDiv.append(` • ${facText} • ${st.credits} cr • Lv.${st.level} • Telecom Unlocks: ${st.telecom_unlocks}`);
+        } else {
+          playerDiv.textContent = 'Unregistered badge — enter a player handle on screen first, then tap Nuts.';
+        }
+        nutStatusBox.appendChild(playerDiv);
+      }
+
+      if (nutTypeSelect && nutFactionSelect) {
+        const syncFactionSelectVis = () => {
+          nutFactionSelect.style.display = nutTypeSelect.value === 'SORTING_HAT' ? '' : 'none';
+        };
+        nutTypeSelect.addEventListener('change', syncFactionSelectVis);
+        syncFactionSelectVis();
+      }
+
+      if (btnTapNut) {
+        btnTapNut.addEventListener('click', (e) => {
+          e.currentTarget.blur();
+          if (!core || core.isMock || isMockRequested || !window.__sc25FakeServer) return;
+          const nutType = nutTypeSelect ? nutTypeSelect.value : 'TELECOM';
+          const factionId = nutFactionSelect ? Number(nutFactionSelect.value) || 0 : 0;
+          const nut = window.__sc25FakeServer.writeNutToEeprom(core.getEepromView(), nutType, factionId);
+          if (nut) {
+            eepromPendingSave = true;
+            updateStockNutStatus({ kind: 'tap', code: nut.code, type: nut.type });
+          }
+        });
+      }
+
+      if (btnDispenseCode) {
+        btnDispenseCode.addEventListener('click', (e) => {
+          e.currentTarget.blur();
+          if (!core || core.isMock || isMockRequested || !window.__sc25FakeServer) return;
+          const nutType = nutTypeSelect ? nutTypeSelect.value : 'TELECOM';
+          const factionId = nutFactionSelect ? Number(nutFactionSelect.value) || 0 : 0;
+          const nut = window.__sc25FakeServer.dispenseNut(nutType, factionId);
+          if (nut) {
+            updateStockNutStatus({ kind: 'manual', code: nut.code, type: nut.type });
+          }
+        });
+      }
+
+      if (window.__sc25FakeServer && typeof window.__sc25FakeServer.onStateChange === 'function') {
+        window.__sc25FakeServer.onStateChange(() => {
+          if (core && !core.isMock && !isMockRequested) {
+            updateStockNutStatus();
+          }
+        });
+      }
+
+      document.getElementById('btn-phone-tap').addEventListener('click', (e) => {
+        e.currentTarget.blur();
+        if (!core) return;
+        const eeprom256 = core.getEepromView().subarray(0, 256);
+        const decoded = decodeNdefFromEeprom(eeprom256);
+        notifText.textContent = decoded.text;
+        notifMeta.textContent = decoded.kind;
+        phoneNotif.classList.remove('visible');
+        void phoneNotif.offsetWidth; // Reflow so slide-in animation replays
+        phoneNotif.classList.add('visible');
+      });
+
+      // Dismiss Phone Tap notification on click anywhere on the notification card
+      phoneNotif.addEventListener('click', () => {
+        phoneNotif.classList.remove('visible');
+      });
+
+      document.getElementById('btn-screenshot').addEventListener('click', (e) => {
+        e.currentTarget.blur();
+        const shotCanvas = renderBadgeToCanvas();
+        shotCanvas.toBlob((blob) => {
+          if (!blob) return;
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `saintcon${currentYear}-badge.png`;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          setTimeout(() => URL.revokeObjectURL(url), 2000);
+        }, 'image/png');
+      });
+
+      window.addEventListener('beforeunload', () => {
+        if (!loopStopped) {
+          flushEepromToStorage(true);
+        }
+      });
+
+      // Wrap either Emscripten MODULARIZE instance (createCore) or mock-core.js
+      function wrapRawModule(raw, isMock) {
+        const fn = (name, optionalFallback) => {
+          if (typeof raw['_' + name] === 'function') return raw['_' + name].bind(raw);
+          if (typeof raw[name] === 'function') return raw[name].bind(raw);
+          if (raw.asm && typeof raw.asm[name] === 'function') return raw.asm[name].bind(raw.asm);
+          if (raw.asm && typeof raw.asm['_' + name] === 'function') return raw.asm['_' + name].bind(raw.asm);
+          if (typeof optionalFallback === 'function') return optionalFallback;
+          throw new Error('Missing ABI export: ' + name);
+        };
+
+        const getBuffer = () => {
+          if (raw.HEAPU8 && raw.HEAPU8.buffer) return raw.HEAPU8.buffer;
+          if (raw.wasmMemory && raw.wasmMemory.buffer) return raw.wasmMemory.buffer;
+          if (raw.memory && raw.memory.buffer) return raw.memory.buffer;
+          if (raw.asm && raw.asm.memory && raw.asm.memory.buffer) return raw.asm.memory.buffer;
+          throw new Error('Cannot locate WASM linear memory buffer');
+        };
+
+        const emu_init = fn('emu_init');
+        const emu_step = fn('emu_step');
+        const emu_framebuffer = fn('emu_framebuffer');
+        const emu_leds = fn('emu_leds');
+        const emu_backlight = fn('emu_backlight');
+        const emu_eeprom = fn('emu_eeprom');
+        const emu_eeprom_dirty = fn('emu_eeprom_dirty');
+        const emu_set_speed = fn('emu_set_speed');
+        const emu_fb_width = fn('emu_fb_width', () => screenW);
+        const emu_fb_height = fn('emu_fb_height', () => screenH);
+        const emu_led_count = fn('emu_led_count', () => numLeds);
+        const emu_eeprom_size = fn('emu_eeprom_size', () => eepromBytes);
+
+        return {
+          isMock: Boolean(isMock || raw.isMock),
+          raw,
+          emu_init,
+          emu_step,
+          emu_framebuffer,
+          emu_leds,
+          emu_backlight,
+          emu_eeprom,
+          emu_eeprom_dirty,
+          emu_set_speed,
+          emu_fb_width,
+          emu_fb_height,
+          emu_led_count,
+          emu_eeprom_size,
+          getFramebufferView() {
+            const ptr = emu_framebuffer() >>> 0;
+            const len = (emu_fb_width() | 0) * (emu_fb_height() | 0);
+            return new Uint16Array(getBuffer(), ptr, len);
+          },
+          getLedsView() {
+            const ptr = emu_leds() >>> 0;
+            const len = (emu_led_count() | 0) * 3;
+            return new Uint8Array(getBuffer(), ptr, len);
+          },
+          getEepromView() {
+            const ptr = emu_eeprom() >>> 0;
+            const len = emu_eeprom_size() | 0;
+            return new Uint8Array(getBuffer(), ptr, len);
+          },
+        };
+      }
+      window.wrapBadgeCore = wrapRawModule;
+
+      function loadScript(src) {
+        return new Promise((resolve, reject) => {
+          const s = document.createElement('script');
+          s.src = src;
+          s.async = true;
+          s.onload = () => resolve(src);
+          s.onerror = () => reject(new Error(`Failed to load script ${src}`));
+          document.head.appendChild(s);
+        });
+      }
+
+      async function loadCoreInstance(baseDir, meta) {
+        if (isMockRequested) {
+          console.info('[badge-emu] ?mock=1 requested; running mock-core.js under isolated mock storage key');
+          return wrapRawModule(window.createMockCore(), true);
+        }
+
+        if (typeof WebAssembly !== 'object' || typeof WebAssembly.instantiate !== 'function') {
+          throw new Error(WASM_MISSING_MSG);
+        }
+
+        const modeObj = meta && meta.modes && meta.modes[currentMode];
+        const coreJsRel = (modeObj && modeObj.core_js) || (meta && meta.files && meta.files.core_js) || 'core.js';
+        const coreWasmRel = (modeObj && modeObj.core_wasm) || (meta && meta.files && meta.files.core_wasm) || 'core.wasm';
+        const coreJsUrl = `${baseDir}/${coreJsRel}`;
+        const coreWasmUrl = `${baseDir}/${coreWasmRel}`;
+
+        window.createCore = undefined;
+        await loadScript(coreJsUrl);
+        if (typeof window.createCore !== 'function') {
+          throw new Error(`createCore factory missing from ${coreJsUrl}`);
+        }
+        const raw = await window.createCore({
+          locateFile(path) {
+            if (path.endsWith('.wasm')) return coreWasmUrl;
+            return `${baseDir}/${path}`;
+          },
+        });
+        console.info(`[badge-emu] Loaded WebAssembly core from ${coreJsUrl}`);
+        return wrapRawModule(raw, false);
+      }
+
+      function applyScreenGeometry(w, h, shape, controller) {
+        screenW = w;
+        screenH = h;
+        screenShape = shape || screenShape || 'rect';
+        screenCanvas.width = screenW;
+        screenCanvas.height = screenH;
+        screenImageData = screenCtx.createImageData(screenW, screenH);
+        screenRgba32 = new Uint32Array(screenImageData.data.buffer);
+
+        const isRound = screenShape === 'round';
+        screenHolder.classList.toggle('round', isRound);
+        bigScreenBezel.classList.toggle('round', isRound);
+        const ctrl = controller || (badgeMeta && badgeMeta.screen_size && badgeMeta.screen_size.controller) || 'LCD';
+        bigScreenTitle.textContent = `LCD Closeup (${ctrl} ${screenW}×${screenH}${isRound ? ' Round' : ''})`;
+        updateBigScreenLayout();
+      }
+
+      function applyBadgeMetadata(meta) {
+        badgeMeta = meta;
+        const yr = meta.year || currentYear;
+        const name = meta.name || 'Badge';
+        document.title = `SAINTCON ${yr} Badge Emulator ("${name}")`;
+        pageHeading.textContent = `SAINTCON ${yr} • "${name}"`;
+        boardImg.alt = `SAINTCON ${yr} "${name}" Badge PCB`;
+        yearReadout.textContent = String(yr);
+        modeReadout.textContent = currentMode;
+
+        if (meta.screen_size) {
+          applyScreenGeometry(
+            Number(meta.screen_size.width) || 240,
+            Number(meta.screen_size.height) || 320,
+            meta.screen_size.shape || 'rect',
+            meta.screen_size.controller || 'LCD'
+          );
+        }
+
+        if (meta.eeprom_bytes) {
+          eepromBytes = Number(meta.eeprom_bytes) || 512;
+        }
+
+        if (meta.led_count) {
+          numLeds = Number(meta.led_count) || 20;
+          const gpioStr = meta.led_gpio ? ` (GPIO ${meta.led_gpio})` : '';
+          telLedsLabel.textContent = `LED CHAIN${gpioStr}`;
+          telLeds.textContent = meta.led_summary || `${numLeds} WS2812 (0→${numLeds - 1})`;
+        }
+
+        // Dynamic button set & keyboard map from badge.json
+        if (Array.isArray(meta.buttons) && meta.buttons.length > 0) {
+          buttonDefs = meta.buttons.map((b) => ({
+            ...b,
+            bit: Number(b.bit) || 0,
+          }));
+          let maskAll = 0;
+          const nextKeyMap = {};
+          let centerDef = null;
+          const pushDefs = [];
+
+          for (const b of buttonDefs) {
+            maskAll |= b.bit;
+            if (Array.isArray(b.keys)) {
+              for (const k of b.keys) {
+                nextKeyMap[k] = b.bit;
+              }
+            }
+            if (b.kind === 'dpad_center' || b.bit === BTN_CENTER) {
+              centerDef = b;
+            } else if (b.kind === 'push') {
+              pushDefs.push(b);
+            }
+          }
+          validButtonsMask = maskAll || 0x1f;
+          keyToBit = nextKeyMap;
+          centerBtnBit = centerDef ? centerDef.bit : BTN_CENTER;
+          padCenterBtn.dataset.btnBit = String(centerBtnBit);
+
+          if (centerDef) {
+            padCenterSub.textContent = `${centerDef.name} • ${centerDef.hint || 'Center'}`;
+          }
+
+          // Build key hints bar & action buttons column using DOM nodes
+          const makeMoveSpan = () => {
+            const sp = document.createElement('span');
+            sp.append('Move: ');
+            for (const k of ['↑', '↓', '←', '→']) {
+              const kbd = document.createElement('kbd');
+              kbd.textContent = k;
+              sp.appendChild(kbd);
+            }
+            sp.append(' or ');
+            for (const k of ['W', 'A', 'S', 'D']) {
+              const kbd = document.createElement('kbd');
+              kbd.textContent = k;
+              sp.appendChild(kbd);
+            }
+            return sp;
+          };
+          const makeDotSpan = () => {
+            const sp = document.createElement('span');
+            sp.textContent = '•';
+            return sp;
+          };
+
+          if (pushDefs.length > 0) {
+            const navRef = (centerDef && centerDef.ref) || 'SW4';
+            const pushNames = pushDefs.map((p) => p.name).join(' / ');
+            dpadTitleLabel.textContent = `Controls (${navRef} + ${pushNames})`;
+
+            keyHintsBar.replaceChildren(makeMoveSpan());
+            for (const p of [...pushDefs].reverse()) {
+              keyHintsBar.appendChild(makeDotSpan());
+              const sp = document.createElement('span');
+              sp.append(`${p.name}: `);
+              const kbd = document.createElement('kbd');
+              kbd.textContent = String(p.hint || p.name);
+              sp.appendChild(kbd);
+              keyHintsBar.appendChild(sp);
+            }
+            if (centerDef) {
+              keyHintsBar.appendChild(makeDotSpan());
+              const sp = document.createElement('span');
+              sp.append(`${centerDef.name}: `);
+              const kbd = document.createElement('kbd');
+              kbd.textContent = String(centerDef.hint || centerDef.name);
+              sp.appendChild(kbd);
+              keyHintsBar.appendChild(sp);
+            }
+
+            actionPadCol.replaceChildren();
+            actionPadCol.classList.add('visible');
+            // Render B on top, A below (matching physical right-fin layout SW3=B above SW2=A)
+            const sortedPush = [...pushDefs].sort((p1, p2) => (p1.y_px || 0) - (p2.y_px || 0));
+            for (const p of sortedPush) {
+              const btn = document.createElement('button');
+              btn.type = 'button';
+              btn.className = `dpad-btn action-pad-btn btn-${String(p.id || p.name).toLowerCase().replace(/[^a-z0-9_-]/g, '')}`;
+              btn.dataset.btnBit = String(p.bit);
+              btn.textContent = String(p.name);
+              const sub = document.createElement('span');
+              sub.className = 'sub';
+              sub.textContent = `Key ${p.hint || p.name} (${p.ref || 'SW'})`;
+              btn.appendChild(sub);
+              bindPadButtonHold(btn);
+              actionPadCol.appendChild(btn);
+            }
+          } else {
+            const navRef = (centerDef && centerDef.ref) || 'SW2';
+            dpadTitleLabel.textContent = `5-Way Joystick (${navRef})`;
+            const centerSp = document.createElement('span');
+            centerSp.append('Center: ');
+            const kEnter = document.createElement('kbd');
+            kEnter.textContent = 'Enter';
+            const kSpace = document.createElement('kbd');
+            kSpace.textContent = 'Space';
+            const kE = document.createElement('kbd');
+            kE.textContent = 'E';
+            centerSp.append(kEnter, ' / ', kSpace, ' / ', kE);
+            keyHintsBar.replaceChildren(makeMoveSpan(), makeDotSpan(), centerSp);
+            actionPadCol.replaceChildren();
+            actionPadCol.classList.remove('visible');
+          }
+        }
+
+        // Dynamic mode buttons from badge.json
+        const availModes = Array.isArray(meta.modes_available) ? meta.modes_available : ['pug'];
+        const soonModes = Array.isArray(meta.modes_coming_soon) ? meta.modes_coming_soon : [];
+        modeButtonsSlot.replaceChildren();
+        for (const m of availModes) {
+          const isActive = m === currentMode;
+          const icon = m === 'pug' ? '🐾' : '🚀';
+          const label = m === 'pug' ? 'Pug Pet' : 'Original Firmware';
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.className = `ctrl-btn${isActive ? ' active' : ''}`;
+          b.dataset.mode = String(m);
+          b.textContent = `${icon} ${label}`;
+          b.addEventListener('click', () => {
+            const nextMode = b.dataset.mode;
+            if (nextMode && nextMode !== currentMode) {
+              const url = new URL(window.location.href);
+              if (!isProdSubdomain) {
+                url.searchParams.set('year', String(currentYear));
+              }
+              url.searchParams.set('mode', nextMode);
+              window.location.href = url.toString();
+            }
+          });
+          modeButtonsSlot.appendChild(b);
+        }
+        for (const m of soonModes) {
+          const label = m === 'pug' ? 'Pug (Soon)' : 'Stock (Soon)';
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'ctrl-btn';
+          b.disabled = true;
+          b.title = `${label} coming soon`;
+          b.textContent = `🔒 ${label}`;
+          modeButtonsSlot.appendChild(b);
+        }
+
+        // Show/hide mode-specific Pet Time Multiplier and NFC Phone Tap controls.
+        // Keep Solo Nut Dispenser hidden until the real WASM core has loaded.
+        const activeModeObj = meta && meta.modes && meta.modes[currentMode];
+        const hasSpeed = (activeModeObj && typeof activeModeObj.has_speed_control === 'boolean')
+          ? activeModeObj.has_speed_control
+          : (meta.has_speed_control !== false);
+        speedControlGroup.style.display = hasSpeed ? '' : 'none';
+        speedStripItem.style.display = hasSpeed ? '' : 'none';
+
+        if (stockNutGroup) {
+          stockNutGroup.style.display = 'none';
+        }
+
+        const hasNfc = meta.has_nfc !== false;
+        btnPhoneTap.style.display = hasNfc ? '' : 'none';
+        nfcCaptureLabel.textContent = hasNfc ? 'NFC Tag & Capture' : 'Badge Capture';
+
+        if (meta.credits) {
+          const c = meta.credits;
+          const authorHandle = String(c.badge_by || 'compukidmike');
+          const authorName = c.author_name ? ` (${c.author_name})` : '';
+          const authorUrl = c.author_url || `https://github.com/${authorHandle}`;
+          const repoUrl = c.repo_url || 'https://github.com/compukidmike/Saintcon2025';
+          const repoShort = String(repoUrl).replace(/^https?:\/\/github\.com\//i, '');
+          const licenseText = String(c.license || "Used with the badge author's permission");
+          const thirdPartyUrl = c.third_party_licenses_url || `badges/${yr}/THIRD_PARTY_LICENSES.txt`;
+
+          const buildLicenseNodes = () => {
+            const frag = document.createDocumentFragment();
+            if (c.license_url) {
+              frag.appendChild(createExtLink(c.license_url, licenseText, true));
+            } else {
+              frag.append(licenseText);
+            }
+            if (c.upstream_license_url) {
+              frag.append(' (', createExtLink(c.upstream_license_url, 'upstream', false), ')');
+            }
+            return frag;
+          };
+
+          creditsPrimaryLine.replaceChildren();
+          const stBadgeBy = document.createElement('strong');
+          stBadgeBy.append('Badge by ', createExtLink(authorUrl, authorHandle, false));
+          creditsPrimaryLine.appendChild(stBadgeBy);
+          if (authorName) {
+            creditsPrimaryLine.append(authorName);
+          }
+          creditsPrimaryLine.append(' • Repo: ', createExtLink(repoUrl, repoShort, false));
+          if (c.commit && c.source_url) {
+            const commitLink = createExtLink(c.source_url, '', false);
+            commitLink.textContent = '';
+            const codeEl = document.createElement('code');
+            codeEl.textContent = String(c.commit);
+            commitLink.appendChild(codeEl);
+            creditsPrimaryLine.append(' (', commitLink, ')');
+          }
+          if (Array.isArray(c.other_credits)) {
+            const others = c.other_credits.filter((o) => o.name && !String(o.name).includes(authorHandle));
+            for (const o of others) {
+              creditsPrimaryLine.append(' • ');
+              const stO = document.createElement('strong');
+              stO.textContent = String(o.name);
+              creditsPrimaryLine.append(stO, ` (${o.role || ''})`);
+            }
+          }
+
+          creditsSecondaryLine.replaceChildren();
+          if (c.copyright) {
+            creditsSecondaryLine.append(`${c.copyright} • `);
+          }
+          if (c.pug_pet_by) {
+            const stPugAuthor = document.createElement('strong');
+            stPugAuthor.textContent = String(c.pug_pet_by);
+            creditsSecondaryLine.append(
+              'Stock firmware & faction game from ',
+              createExtLink(repoUrl, repoShort, true),
+              ' • Pug pet by ',
+              stPugAuthor,
+              ' • ',
+              buildLicenseNodes(),
+              ' • ',
+              createExtLink(thirdPartyUrl, 'Third-party licenses', false)
+            );
+          } else {
+            creditsSecondaryLine.append(
+              buildLicenseNodes(),
+              ' • ',
+              createExtLink(thirdPartyUrl, 'Third-party licenses', false),
+              ` • Stock "${name}" firmware (pug pet mode not on the ${yr} page yet)`
+            );
+          }
+
+          const srcHref = c.source_url || repoUrl;
+          aboutAuthorPara.replaceChildren();
+          if (c.license_url) {
+            const stTitle = document.createElement('strong');
+            stTitle.textContent = `SAINTCON ${yr} "${name}"`;
+            const srcLink = createExtLink(srcHref, '', false);
+            srcLink.textContent = '';
+            if (c.commit) {
+              srcLink.append('source @ ');
+              const codeEl = document.createElement('code');
+              codeEl.textContent = String(c.commit);
+              srcLink.appendChild(codeEl);
+            } else {
+              srcLink.textContent = 'source';
+            }
+            aboutAuthorPara.append(
+              'Emulates the ',
+              stTitle,
+              ' badge by ',
+              createExtLink(authorUrl, authorHandle, false),
+              ' (',
+              srcLink,
+              ', ',
+              buildLicenseNodes()
+            );
+            if (c.copyright) {
+              aboutAuthorPara.append(` — ${c.copyright}`);
+            }
+            aboutAuthorPara.append(
+              ', ',
+              createExtLink(thirdPartyUrl, 'third-party licenses', false),
+              ').'
+            );
+          } else {
+            const stFan = document.createElement('strong');
+            stFan.textContent = 'fan-made hardware emulator';
+            aboutAuthorPara.append(
+              'This is a ',
+              stFan,
+              " built with the badge author's (",
+              createExtLink(authorUrl, authorHandle, false),
+              ') permission (',
+              createExtLink(thirdPartyUrl, 'third-party licenses', false),
+              ').'
+            );
+          }
+
+          aboutPrivacyPara.replaceChildren();
+          const stPriv = document.createElement('strong');
+          stPriv.textContent = 'Privacy:';
+          const stBrowser = document.createElement('strong');
+          stBrowser.textContent = 'your browser only';
+          const codeLs = document.createElement('code');
+          codeLs.textContent = 'localStorage';
+          aboutPrivacyPara.append(
+            stPriv,
+            ` All badge progress (simulated ${eepromBytes}-byte EEPROM) is saved in `,
+            stBrowser,
+            ' (',
+            codeLs,
+            ', isolated per year and mode) — no cookies, no analytics, and no external CDNs.'
+          );
+        }
+      }
+
+      // Boot sequence
+      async function boot() {
+        const baseDir = `badges/${currentYear}`;
+        yearReadout.textContent = currentYear;
+        modeReadout.textContent = currentMode;
+
+        updateBigScreenLayout();
+
+        let meta = null;
+        try {
+          try {
+            if (!LIVE_YEARS.includes(currentYear)) {
+              throw new Error(`Unsupported year ${currentYear}`);
+            }
+            const metaResp = await fetch(`${baseDir}/badge.json`);
+            if (!metaResp.ok) {
+              throw new Error(`HTTP ${metaResp.status}`);
+            }
+            meta = await metaResp.json();
+          } catch (primaryErr) {
+            const requestedYear = currentYear;
+            const isListedSoon = COMING_SOON_YEARS.includes(requestedYear);
+            comingSoonBanner.classList.add('visible');
+            comingSoonBanner.replaceChildren();
+            const makeNavLink = (href, text) => {
+              const a = document.createElement('a');
+              a.href = href;
+              a.textContent = text;
+              return a;
+            };
+            if (isListedSoon) {
+              const st = document.createElement('strong');
+              st.textContent = `SAINTCON ${requestedYear} Badge Emulator — Coming Soon`;
+              comingSoonBanner.append(
+                st,
+                document.createElement('br'),
+                `The profile for ${requestedYear} is not live yet. Visit the `,
+                makeNavLink(museumHref(), 'Badge Museum'),
+                ' or ',
+                makeNavLink(yearHref('2025'), 'launch the 2025 ("The Wrench") badge'),
+                '.'
+              );
+            } else {
+              const st = document.createElement('strong');
+              st.textContent = `No emulator for this year (${requestedYear})`;
+              comingSoonBanner.append(
+                st,
+                document.createElement('br'),
+                'Available badges: ',
+                makeNavLink(yearHref('2025'), '2025 ("The Wrench")'),
+                ' and ',
+                makeNavLink(yearHref('2026'), '2026 ("Orion Trail")'),
+                '. Visit the ',
+                makeNavLink(museumHref(), 'Badge Museum'),
+                '.'
+              );
+            }
+            if (currentYear !== '2025') {
+              currentYear = '2025';
+              const fallbackResp = await fetch('badges/2025/badge.json');
+              if (!fallbackResp.ok) {
+                throw new Error(`Fallback HTTP ${fallbackResp.status}`);
+              }
+              meta = await fallbackResp.json();
+            } else {
+              throw primaryErr;
+            }
+          }
+        } catch (err) {
+          comingSoonBanner.classList.add('visible', 'error');
+          comingSoonBanner.textContent = 'Could not load badge profile (badge.json).';
+          throw err;
+        }
+
+        const effectiveBaseDir = `badges/${currentYear}`;
+        if (Array.isArray(meta.modes_available) && meta.modes_available.length > 0) {
+          if (!explicitQueryMode || !meta.modes_available.includes(currentMode)) {
+            currentMode = meta.default_mode || meta.modes_available[0];
+          }
+        }
+        applyBadgeMetadata(meta);
+
+        // Set board image and load layout.json from badges/<year>/
+        const boardFile = (meta.files && meta.files.board) || 'board.png';
+        const layoutFile = (meta.files && meta.files.layout) || 'layout.json';
+        boardImg.src = `${effectiveBaseDir}/${boardFile}`;
+
+        const layoutResp = await fetch(`${effectiveBaseDir}/${layoutFile}`);
+        const layoutData = await layoutResp.json();
+        applyLayout(layoutData);
+        if (badgeColumn) {
+          badgeColumn.classList.remove('badge-loading');
+        }
+
+        try {
+          core = await loadCoreInstance(effectiveBaseDir, meta);
+        } catch (wasmErr) {
+          console.error('[badge-emu] WebAssembly core failed to load:', wasmErr);
+          coreModePill.textContent = 'WASM REQUIRED';
+          eepromStatus.textContent = 'Untouched';
+          telEeprom.textContent = WASM_MISSING_MSG;
+          comingSoonBanner.classList.add('visible', 'error');
+          const stMsg = document.createElement('strong');
+          stMsg.textContent = WASM_MISSING_MSG;
+          comingSoonBanner.replaceChildren(
+            stMsg,
+            document.createElement('br'),
+            'Your saved badge data was not modified.'
+          );
+          return;
+        }
+
+        // Restore per-browser speed setting and stock server state only after core loads
+        const savedSpeed = meta.has_speed_control === false ? 1 : loadSavedSpeed();
+        applySpeedUi(savedSpeed);
+        const activeModeObj = meta && meta.modes && meta.modes[currentMode];
+        const showNutControls = Boolean(activeModeObj && activeModeObj.has_nut_tap && !core.isMock && !isMockRequested);
+        if (stockNutGroup) {
+          stockNutGroup.style.display = showNutControls ? '' : 'none';
+        }
+        if (showNutControls) {
+          updateStockNutStatus();
+        }
+
+        // Sync framebuffer dimensions, LED count, and EEPROM size from the Generalized Core ABI
+        const coreW = core.emu_fb_width() | 0;
+        const coreH = core.emu_fb_height() | 0;
+        const coreLeds = core.emu_led_count() | 0;
+        const coreEeprom = core.emu_eeprom_size() | 0;
+        if (coreW > 0 && coreH > 0 && (coreW !== screenW || coreH !== screenH)) {
+          applyScreenGeometry(
+            coreW,
+            coreH,
+            screenShape,
+            meta.screen_size && meta.screen_size.controller
+          );
+        }
+        if (coreLeds > 0) numLeds = coreLeds;
+        if (coreEeprom > 0) eepromBytes = coreEeprom;
+
+        coreModePill.textContent = core.isMock ? 'MOCK CORE (JS)' : 'WASM CORE';
+
+        // Load persisted EEPROM from per-year/per-mode localStorage key before calling emu_init(seed)
+        const eepromKey = getStorageKey('eeprom');
+        const hadSaved = loadEepromFromStorage(core.getEepromView());
+        telEeprom.textContent = hadSaved ? `${eepromKey} (Loaded)` : `${eepromKey} (Fresh)`;
+
+        core.emu_init((Date.now() & 0xffffffff) >>> 0);
+        core.emu_set_speed(currentSpeed);
+        if (core.emu_eeprom_dirty()) {
+          eepromPendingSave = true;
+          flushEepromToStorage(true);
+        }
+        renderOutputs();
+
+        // Main animation loop (pauses when tab is hidden; caps dt per step at 100 ms)
+        let lastFrameTime = performance.now();
+        let fpsFrames = 0;
+        let fpsWindowStart = lastFrameTime;
+
+        document.addEventListener('visibilitychange', () => {
+          if (document.hidden) {
+            tabHidden = true;
+            hiddenSinceMs = performance.now();
+            kbMask = 0;
+            sw2Mask = 0;
+            boardBtnMask = 0;
+            activeBoardBtnPointers.clear();
+            padMask = 0;
+            activePadPointers.clear();
+            updateInputVisuals();
+            if (!loopStopped) {
+              flushEepromToStorage(true);
+            }
+          } else {
+            const now = performance.now();
+            const elapsedHidden = hiddenSinceMs !== null ? Math.max(0, Math.round(now - hiddenSinceMs)) : 0;
+            tabHidden = false;
+            hiddenSinceMs = null;
+            lastFrameTime = now;
+            if (!paused && !loopStopped && elapsedHidden > 0) {
+              advanceBoundedSteps(elapsedHidden);
+            }
+          }
+        });
+
+        function tick(now) {
+          if (loopStopped) {
+            rafId = null;
+            return;
+          }
+          if (tabHidden || document.hidden) {
+            lastFrameTime = now;
+            rafId = requestAnimationFrame(tick);
+            return;
+          }
+
+          const dt = Math.min(MAX_STEP_DT_MS, Math.max(1, Math.round(now - lastFrameTime)));
+          lastFrameTime = now;
+          if (dt > maxStepDtSeen) maxStepDtSeen = dt;
+
+          if (!paused) {
+            core.emu_step(dt, getButtonsMask());
+            if (core.emu_eeprom_dirty()) {
+              eepromPendingSave = true;
+              eepromStatus.textContent = 'Dirty';
+            }
+            flushEepromToStorage(false);
+            renderOutputs();
+          }
+
+          fpsFrames++;
+          if (now - fpsWindowStart >= 500) {
+            const fps = Math.round((fpsFrames * 1000) / (now - fpsWindowStart));
+            fpsReadout.textContent = String(fps);
+            fpsFrames = 0;
+            fpsWindowStart = now;
+          }
+
+          rafId = requestAnimationFrame(tick);
+        }
+
+        resumeLoopFn = () => {
+          if (!paused && !loopStopped && rafId === null) {
+            lastFrameTime = performance.now();
+            rafId = requestAnimationFrame(tick);
+          }
+        };
+
+        rafId = requestAnimationFrame(tick);
+
+        // Expose debug/test handle on window.__badgeEmu
+        window.__badgeEmu = {
+          get core() { return core; },
+          get layout() { return layout; },
+          get badgeMeta() { return badgeMeta; },
+          get year() { return currentYear; },
+          get mode() { return currentMode; },
+          get speed() { return currentSpeed; },
+          get bigScreenEnabled() { return bigScreenEnabled; },
+          get bigScreenScale() { return bigScreenScale; },
+          get maxStepDtSeen() { return maxStepDtSeen; },
+          get lastCatchupSteps() { return lastCatchupSteps; },
+          getStorageKey,
+          setTestButtons(mask) {
+            testMask = mask & validButtonsMask;
+            updateInputVisuals();
+          },
+          simulateHiddenReturn(elapsedMs) {
+            return advanceBoundedSteps(elapsedMs);
+          },
+          renderBadgeToCanvas,
+          decodeNdefFromEeprom,
+        };
+      }
+
+      boot().catch((err) => {
+        console.error('Failed to boot badge emulator:', err);
+        coreModePill.textContent = 'BOOT ERROR';
+      });
+    })();
+  </script>
+</body>
+</html>

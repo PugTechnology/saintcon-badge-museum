@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+WEB_DIR="${ROOT_DIR}/emulator/web"
+PORT="${PORT:-8765}"
+
+echo "Serving SAINTCON badge emulator & museum from ${WEB_DIR}"
+echo "  Local URL:   http://localhost:${PORT}/"
+echo "  Museum URL:  http://localhost:${PORT}/museum.html"
+echo "  From other machines: http://<this-host>:${PORT}/"
+
+exec python3 -m http.server "${PORT}" --bind 0.0.0.0 --directory "${WEB_DIR}"
