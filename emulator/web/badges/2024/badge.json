@@ -1,0 +1,61 @@
+{
+  "year": 2024,
+  "name": "Tower Battle",
+  "title": "SAINTCON 2024 Wrist Badge (\"Tower Battle\")",
+  "mcu": "ESP32-S3-WROOM-1",
+  "screen_size": {
+    "width": 320,
+    "height": 240,
+    "shape": "rect",
+    "diagonal_inches": 2.8,
+    "controller": "ST7789"
+  },
+  "has_touch": true,
+  "has_ir_towers": true,
+  "led_count": 0,
+  "led_summary": "None (LCD Backlight + IR TX)",
+  "eeprom_bytes": 512,
+  "has_nfc": false,
+  "has_speed_control": false,
+  "buttons": [],
+  "files": {
+    "layout": "layout.json",
+    "board": "board.png",
+    "core_js": "core.js",
+    "core_wasm": "core.wasm"
+  },
+  "default_mode": "stock",
+  "modes_available": [
+    "stock"
+  ],
+  "modes_coming_soon": [],
+  "modes": {
+    "stock": {
+      "id": "stock",
+      "name": "Original Firmware",
+      "label": "Original Firmware",
+      "status": "available",
+      "core_js": "core.js",
+      "core_wasm": "core.wasm",
+      "has_speed_control": false,
+      "has_nut_tap": false,
+      "has_ir_towers": true,
+      "description": "Original SAINTCON 2024 wrist badge firmware & tower battle game"
+    }
+  },
+  "credits": {
+    "badge_by": "compukidmike",
+    "author_url": "https://github.com/compukidmike",
+    "repo_url": "https://github.com/compukidmike/Saintcon2024",
+    "source_url": "https://github.com/compukidmike/Saintcon2024/tree/5e9412c837334379d7f6cadf68327fc0771f636d/Firmware",
+    "commit": "5e9412c",
+    "third_party_licenses_url": "badges/2024/THIRD_PARTY_LICENSES.txt",
+    "other_credits": [
+      {
+        "name": "compukidmike",
+        "role": "Badge repository (hardware design files and firmware)",
+        "url": "https://github.com/compukidmike/Saintcon2024"
+      }
+    ]
+  }
+}

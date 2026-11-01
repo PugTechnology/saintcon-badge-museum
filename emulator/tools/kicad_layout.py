@@ -8,9 +8,10 @@ emulator/web/badges/<year>/layout.json, and draw
 emulator/build/check-overlay-<year>.png.
 
 Supports:
+  --year 2024  (Saintcon2024MainBoard + Saintcon2024TopBoard — "Wrist Communicator" / Tower Battle)
   --year 2025  (Saintcon2025.kicad_pcb — "The Wrench")
   --year 2026  (Apollo.kicad_pcb       — "Orion Trail" / Wayfarer)
-  --year all   (both)
+  --year all   (all supported years)
 """
 
 import argparse
@@ -41,6 +42,22 @@ ZIP_PATH = (
 )
 KICAD_DIR = BUILD_DIR / "kicad"
 PCB_PATH = KICAD_DIR / "Saintcon2025.kicad_pcb"
+
+
+def find_2024_kicad_zips_default():
+  roots = [
+      ROOT / "upstream" / "Saintcon2024" / "Hardware",
+      Path.home() / "Projects" / "saintcon-museum-research" / "Saintcon2024" / "Hardware",
+  ]
+  for r in roots:
+    main_zip = r / "Saintcon2024MainBoard" / "Saintcon2024-KiCadProject.zip"
+    top_zip = r / "Saintcon2024TopBoard" / "Saintcon2024Top-KiCadProject.zip"
+    if main_zip.exists() and top_zip.exists():
+      return main_zip, top_zip
+  return (
+      roots[0] / "Saintcon2024MainBoard" / "Saintcon2024-KiCadProject.zip",
+      roots[0] / "Saintcon2024TopBoard" / "Saintcon2024Top-KiCadProject.zip",
+  )
 
 
 def find_2026_pcb_default() -> Path:
@@ -1401,16 +1418,533 @@ def build_2026(pcb_path: Path):
   )
 
 
+# ============================================================================
+# 2024 ("Wrist Communicator" / Tower Battle) extraction & rendering
+# ============================================================================
+
+def _sample_3pt_arc(p1, pm, p2, steps=12):
+  """Sample a KiCad 3-point gr_arc (start, mid, end) into polyline points."""
+  x1, y1 = p1
+  x2, y2 = pm
+  x3, y3 = p2
+  d = 2.0 * (x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2))
+  if abs(d) < 1e-9:
+    return [p1, p2]
+  ux = ((x1 * x1 + y1 * y1) * (y2 - y3) + (x2 * x2 + y2 * y2) * (y3 - y1) + (x3 * x3 + y3 * y3) * (y1 - y2)) / d
+  uy = ((x1 * x1 + y1 * y1) * (x3 - x2) + (x2 * x2 + y2 * y2) * (x1 - x3) + (x3 * x3 + y3 * y3) * (x2 - x1)) / d
+  r = math.hypot(x1 - ux, y1 - uy)
+  a1 = math.atan2(y1 - uy, x1 - ux)
+  am = math.atan2(y2 - uy, x2 - ux)
+  a3 = math.atan2(y3 - uy, x3 - ux)
+
+  def norm_pos(a):
+    while a < 0:
+      a += 2.0 * math.pi
+    while a >= 2.0 * math.pi:
+      a -= 2.0 * math.pi
+    return a
+
+  d_ccw_m = norm_pos(am - a1)
+  d_ccw_3 = norm_pos(a3 - a1)
+  sweep = d_ccw_3 if d_ccw_m <= d_ccw_3 else d_ccw_3 - 2.0 * math.pi
+  pts = []
+  for i in range(steps + 1):
+    ang = a1 + sweep * (i / steps)
+    pts.append((ux + r * math.cos(ang), uy + r * math.sin(ang)))
+  return pts
+
+
+def extract_geometry_2024(main_tree, top_tree):
+  footprints, _edge_segments, _top_polys, _top_circles = parse_footprints_and_graphics(main_tree)
+
+  # Parse Edge.Cuts gr_line + gr_arc segments from Saintcon2024.kicad_pcb (84x55 mm rounded rect)
+  segs = []
+  for node in main_tree:
+    if not isinstance(node, list) or not node:
+      continue
+    if node[0] in ("gr_line", "gr_arc"):
+      layer = None
+      s_pt = m_pt = e_pt = None
+      for sub in node[1:]:
+        if isinstance(sub, list) and sub:
+          if sub[0] == "layer":
+            layer = sub[1]
+          elif sub[0] == "start":
+            s_pt = (float(sub[1]), float(sub[2]))
+          elif sub[0] == "mid":
+            m_pt = (float(sub[1]), float(sub[2]))
+          elif sub[0] == "end":
+            e_pt = (float(sub[1]), float(sub[2]))
+      if layer == "Edge.Cuts" and s_pt and e_pt:
+        if node[0] == "gr_arc" and m_pt:
+          arc_pts = _sample_3pt_arc(s_pt, m_pt, e_pt, steps=10)
+          for i in range(len(arc_pts) - 1):
+            segs.append((arc_pts[i], arc_pts[i + 1]))
+        else:
+          segs.append((s_pt, e_pt))
+
+  if not segs:
+    raise RuntimeError("Could not find Edge.Cuts outline in Saintcon2024.kicad_pcb")
+
+  # Chain Edge.Cuts segments into ordered outer_loop
+  unused = list(segs)
+  outer_loop = [unused[0][0], unused[0][1]]
+  unused.pop(0)
+  while unused:
+    cur = outer_loop[-1]
+    best_i = None
+    best_rev = False
+    best_d = 1e9
+    for idx, (a, b) in enumerate(unused):
+      da = math.hypot(a[0] - cur[0], a[1] - cur[1])
+      db = math.hypot(b[0] - cur[0], b[1] - cur[1])
+      if da < best_d:
+        best_d = da
+        best_i = idx
+        best_rev = False
+      if db < best_d:
+        best_d = db
+        best_i = idx
+        best_rev = True
+    a, b = unused.pop(best_i)
+    nxt = a if best_rev else b
+    if math.hypot(nxt[0] - outer_loop[0][0], nxt[1] - outer_loop[0][1]) > 1e-3:
+      outer_loop.append(nxt)
+
+  # Parse TopBoard screen cutout gr_rect on Edge.Cuts (59.0 x 44.8 mm)
+  cutout_rect = None
+  for node in top_tree:
+    if isinstance(node, list) and node and node[0] == "gr_rect":
+      layer = None
+      s_pt = e_pt = None
+      for sub in node[1:]:
+        if isinstance(sub, list) and sub:
+          if sub[0] == "layer":
+            layer = sub[1]
+          elif sub[0] == "start":
+            s_pt = (float(sub[1]), float(sub[2]))
+          elif sub[0] == "end":
+            e_pt = (float(sub[1]), float(sub[2]))
+      if layer == "Edge.Cuts" and s_pt and e_pt:
+        cutout_rect = (
+            min(s_pt[0], e_pt[0]),
+            min(s_pt[1], e_pt[1]),
+            abs(e_pt[0] - s_pt[0]),
+            abs(e_pt[1] - s_pt[1]),
+        )
+        break
+  if not cutout_rect:
+    raise RuntimeError("Could not find Edge.Cuts screen cutout gr_rect in Saintcon2024Top.kicad_pcb")
+
+  # Extract LCD_2_8 module & active area from MainBoard footprint
+  lcd_fp = None
+  for fp in footprints.values():
+    if "LCD_2_8" in fp["lib"]:
+      lcd_fp = fp
+      break
+  if not lcd_fp:
+    raise RuntimeError("Could not find LCD_Displays:LCD_2_8 footprint in Saintcon2024.kicad_pcb")
+
+  dwg_rects = [r for r in lcd_fp["rects"] if r["layer"] == "Dwgs.User"]
+  if len(dwg_rects) < 2:
+    raise RuntimeError("Expected module + active Dwgs.User rects in LCD_2_8 footprint")
+  dwg_rects.sort(key=lambda r: (r["x2"] - r["x1"]) * (r["y2"] - r["y1"]), reverse=True)
+  mod_r = dwg_rects[0]
+  va_r = dwg_rects[1]
+  mod_mm = (mod_r["x1"], mod_r["y1"], mod_r["x2"] - mod_r["x1"], mod_r["y2"] - mod_r["y1"])
+  # 2.8" 320x240 ST7789 active area is 57.60 x 43.20 mm (0.18 mm dot pitch, exact 4:3),
+  # centered horizontally on the LCD viewing area (cx=139.75) and framed by TopBoard's 59.0x44.8 cutout (cy=127.50)
+  va_cx = (va_r["x1"] + va_r["x2"]) / 2.0
+  cut_cy = cutout_rect[1] + cutout_rect[3] / 2.0
+  act_w, act_h = 57.60, 43.20
+  act_mm = (va_cx - act_w / 2.0, cut_cy - act_h / 2.0, act_w, act_h)
+
+  # Mounting holes (4x 4-40 corner screws connecting MainBoard and TopBoard)
+  screws = []
+  for node in top_tree:
+    if isinstance(node, list) and node and node[0] == "footprint" and "MountingHole" in node[1]:
+      for sub in node[2:]:
+        if isinstance(sub, list) and sub and sub[0] == "at":
+          screws.append((float(sub[1]), float(sub[2])))
+          break
+
+  sw1 = footprints["SW1"]
+  sw1_info = {
+      "ref": "SW1",
+      "x_mm": round(sw1["x"], 4),
+      "y_mm": round(sw1["y"], 4),
+      "rot_deg": round(sw1["rot"], 2),
+      "w_mm": 8.6,
+      "h_mm": 3.6,
+  }
+
+  usb_j1 = footprints["J1"]
+  usb_info = {
+      "ref": "J1",
+      "x_mm": round(usb_j1["x"], 4),
+      "y_mm": round(usb_j1["y"], 4),
+      "rot_deg": round(usb_j1["rot"], 2),
+  }
+
+  ir_tx = footprints["D1"]
+  ir_rx = footprints["U2"]
+
+  return {
+      "outer_loop": outer_loop,
+      "cutout_mm": cutout_rect,
+      "screen_module_mm": mod_mm,
+      "screen_active_mm": act_mm,
+      "screws_mm": screws,
+      "sw1": sw1_info,
+      "usb_j1": usb_info,
+      "ir_tx": {"ref": "D1", "x_mm": round(ir_tx["x"], 4), "y_mm": round(ir_tx["y"], 4)},
+      "ir_rx": {"ref": "U2", "x_mm": round(ir_rx["x"], 4), "y_mm": round(ir_rx["y"], 4)},
+  }
+
+
+def ensure_kicad_renders_2024(main_pcb: Path, top_pcb: Path, geom, out_board_png: Path):
+  work_dir = BUILD_DIR / "kicad-2024"
+  work_dir.mkdir(parents=True, exist_ok=True)
+  top_mod_pcb = work_dir / "Saintcon2024Top_render.kicad_pcb"
+  render_3d_png = work_dir / "top-render-3d.png"
+  fmask_svg = work_dir / "top-layer-fmask.svg"
+  fsilks_sub_svg = work_dir / "top-layer-fsilks-sub.svg"
+  fcu_svg = work_dir / "top-layer-fcu.svg"
+
+  if not (
+      render_3d_png.exists()
+      and fmask_svg.exists()
+      and fsilks_sub_svg.exists()
+      and fcu_svg.exists()
+  ):
+    raw_txt = top_pcb.read_text(encoding="utf-8", errors="replace")
+    mod_txt = raw_txt.replace("(subtractmaskfromsilk no)", "(subtractmaskfromsilk yes)")
+    top_mod_pcb.write_text(mod_txt, encoding="utf-8")
+
+    uid_gid = f"{os.getuid()}:{os.getgid()}"
+    rel_work = work_dir.relative_to(ROOT)
+    cmd = (
+        f"kicad-cli pcb render --side top --background transparent --quality basic"
+        f" -w 2400 -h 1650 -o {rel_work}/top-render-3d.png {rel_work}/Saintcon2024Top_render.kicad_pcb && "
+        f"kicad-cli pcb export svg --layers F.Mask --black-and-white --page-size-mode 0"
+        f" --exclude-drawing-sheet -o {rel_work}/top-layer-fmask.svg {rel_work}/Saintcon2024Top_render.kicad_pcb && "
+        f"kicad-cli pcb export svg --layers F.SilkS --subtract-soldermask --black-and-white"
+        f" --page-size-mode 0 --exclude-drawing-sheet -o {rel_work}/top-layer-fsilks-sub.svg {rel_work}/Saintcon2024Top_render.kicad_pcb && "
+        f"kicad-cli pcb export svg --layers F.Cu --black-and-white --page-size-mode 0"
+        f" --exclude-drawing-sheet -o {rel_work}/top-layer-fcu.svg {rel_work}/Saintcon2024Top_render.kicad_pcb"
+    )
+    subprocess.run(
+        [
+            "docker",
+            "run",
+            "--rm",
+            "-u",
+            uid_gid,
+            "-v",
+            f"{ROOT}:/w",
+            "-w",
+            "/w",
+            "kicad/kicad:9.0",
+            "sh",
+            "-c",
+            cmd,
+        ],
+        check=True,
+    )
+
+  im3d = Image.open(render_3d_png).convert("RGBA")
+  W_full, H_full = im3d.size
+  arr3d = np.array(im3d, dtype=np.float32)
+  ys, xs = np.where(arr3d[:, :, 3] > 0)
+  xmin_px_full, xmax_px_full = int(xs.min()), int(xs.max())
+  ymin_px_full, ymax_px_full = int(ys.min()), int(ys.max())
+
+  oxs = [p[0] for p in geom["outer_loop"]]
+  oys = [p[1] for p in geom["outer_loop"]]
+  xmin_mm, xmax_mm = min(oxs), max(oxs)
+  ymin_mm, ymax_mm = min(oys), max(oys)
+
+  scale_full = (
+      (xmax_px_full - xmin_px_full) / (xmax_mm - xmin_mm)
+      + (ymax_px_full - ymin_px_full) / (ymax_mm - ymin_mm)
+  ) / 2.0
+  x0_mm = xmin_mm - xmin_px_full / scale_full
+  y0_mm = ymin_mm - ymin_px_full / scale_full
+  w_mm = W_full / scale_full
+  h_mm = H_full / scale_full
+
+  align_svg_layers(
+      work_dir,
+      ("top-layer-fmask", "top-layer-fsilks-sub", "top-layer-fcu"),
+      W_full,
+      H_full,
+      x0_mm,
+      y0_mm,
+      w_mm,
+      h_mm,
+  )
+
+  board_alpha = arr3d[:, :, 3] / 255.0
+  fmask = np.array(Image.open(work_dir / "top-layer-fmask-aligned.png").convert("RGBA"), dtype=np.float32)[:, :, 3] / 255.0
+  fsilks = np.array(Image.open(work_dir / "top-layer-fsilks-sub-aligned.png").convert("RGBA"), dtype=np.float32)[:, :, 3] / 255.0
+  fcu = np.array(Image.open(work_dir / "top-layer-fcu-aligned.png").convert("RGBA"), dtype=np.float32)[:, :, 3] / 255.0
+
+  lum3d = (0.299 * arr3d[:, :, 0] + 0.587 * arr3d[:, :, 1] + 0.114 * arr3d[:, :, 2]) / 255.0
+  top_rgba = np.zeros((H_full, W_full, 4), dtype=np.float32)
+
+  # Saintcon2024Top stackup specifies Green solder mask + Black silkscreen.
+  # Isometric cube art uses 3 surfaces: green masked PCB, exposed FR4 dielectric, and exposed HASL/ENIG copper.
+  mask_over_cu = fcu * (1.0 - fmask)
+  base_r = 26.0 + mask_over_cu * 10.0 + (lum3d - 0.35) * 16.0
+  base_g = 70.0 + mask_over_cu * 20.0 + (lum3d - 0.35) * 18.0
+  base_b = 47.0 + mask_over_cu * 11.0 + (lum3d - 0.35) * 14.0
+
+  yy, xx = np.mgrid[0:H_full, 0:W_full]
+  tex = np.sin(xx * 0.06 + yy * 0.05) * 2.5 + np.cos(xx * 0.03 - yy * 0.08) * 2.5
+  fr4_r = 128.0 + tex
+  fr4_g = 120.0 + tex * 0.8
+  fr4_b = 76.0 + tex * 0.5
+
+  metal_r = 204.0 + tex * 0.6 + (lum3d - 0.5) * 24.0
+  metal_g = 208.0 + tex * 0.6 + (lum3d - 0.5) * 24.0
+  metal_b = 212.0 + tex * 0.6 + (lum3d - 0.5) * 24.0
+
+  exposed_r = fr4_r * (1.0 - fcu) + metal_r * fcu
+  exposed_g = fr4_g * (1.0 - fcu) + metal_g * fcu
+  exposed_b = fr4_b * (1.0 - fcu) + metal_b * fcu
+
+  top_rgba[:, :, 0] = base_r * (1.0 - fmask) + exposed_r * fmask
+  top_rgba[:, :, 1] = base_g * (1.0 - fmask) + exposed_g * fmask
+  top_rgba[:, :, 2] = base_b * (1.0 - fmask) + exposed_b * fmask
+
+  silk_r, silk_g, silk_b = 34.0, 38.0, 42.0
+  top_rgba[:, :, 0] = top_rgba[:, :, 0] * (1.0 - fsilks) + silk_r * fsilks
+  top_rgba[:, :, 1] = top_rgba[:, :, 1] * (1.0 - fsilks) + silk_g * fsilks
+  top_rgba[:, :, 2] = top_rgba[:, :, 2] * (1.0 - fsilks) + silk_b * fsilks
+  top_rgba[:, :, 3] = board_alpha * 255.0
+
+  top_full = Image.fromarray(np.clip(top_rgba, 0, 255).astype(np.uint8), mode="RGBA")
+
+  # Tightly crop around the 84x55 mm assembly with a 2.5 mm margin for protruding USB-C & SW1
+  margin_mm = 2.6
+  crop_x0 = max(0, int(round((xmin_mm - margin_mm - x0_mm) * scale_full)))
+  crop_y0 = max(0, int(round((ymin_mm - margin_mm - y0_mm) * scale_full)))
+  crop_x1 = min(W_full, int(round((xmax_mm + margin_mm - x0_mm) * scale_full)))
+  crop_y1 = min(H_full, int(round((ymax_mm + margin_mm - y0_mm) * scale_full)))
+  if (crop_x1 - crop_x0) % 2 == 1:
+    crop_x1 -= 1
+  if (crop_y1 - crop_y0) % 2 == 1:
+    crop_y1 -= 1
+
+  top_cropped = top_full.crop((crop_x0, crop_y0, crop_x1, crop_y1))
+  x0_crop_mm = x0_mm + crop_x0 / scale_full
+  y0_crop_mm = y0_mm + crop_y0 / scale_full
+
+  W_out = top_cropped.width // 2
+  H_out = top_cropped.height // 2
+  scale_out = scale_full / 2.0
+  top_small = top_cropped.resize((W_out, H_out), Image.Resampling.LANCZOS)
+
+  # Composite MainBoard protruding edge parts + LCD_2_8 glass underneath TopBoard faceplate
+  canvas = Image.new("RGBA", (W_out, H_out), (0, 0, 0, 0))
+  under = ImageDraw.Draw(canvas)
+
+  def mm_to_px(xmm, ymm):
+    return (xmm - x0_crop_mm) * scale_out, (ymm - y0_crop_mm) * scale_out
+
+  # Protruding USB-C receptacle tongue on left edge (J1 at y=113.0 mm, ~8.94 mm wide shell)
+  ux0, uy0 = mm_to_px(xmin_mm - 1.35, geom["usb_j1"]["y_mm"] - 4.47)
+  ux1, uy1 = mm_to_px(xmin_mm + 2.0, geom["usb_j1"]["y_mm"] + 4.47)
+  under.rounded_rectangle([ux0, uy0, ux1, uy1], radius=3, fill=(168, 174, 182, 255), outline=(88, 94, 102, 255), width=2)
+
+  # Protruding SW1 SPDT power slide switch actuator on bottom edge (SW1 at x=155.5 mm)
+  sx0, sy0 = mm_to_px(geom["sw1"]["x_mm"] - 1.5, ymax_mm - 1.0)
+  sx1, sy1 = mm_to_px(geom["sw1"]["x_mm"] + 1.5, ymax_mm + 1.45)
+  under.rounded_rectangle([sx0, sy0, sx1, sy1], radius=2, fill=(36, 40, 46, 255), outline=(82, 88, 96, 255), width=1)
+
+  # Subtle IR emitter (D1) & receiver (U2) domes peeking on right edge ("Don't Block")
+  for ir_part, col in ((geom["ir_rx"], (32, 28, 38, 240)), (geom["ir_tx"], (56, 72, 96, 235))):
+    ix0, iy0 = mm_to_px(xmax_mm - 1.0, ir_part["y_mm"] - 2.1)
+    ix1, iy1 = mm_to_px(xmax_mm + 0.65, ir_part["y_mm"] + 2.1)
+    under.ellipse([ix0, iy0, ix1, iy1], fill=col, outline=(24, 26, 30, 255), width=1)
+
+  # MainBoard LCD_2_8 capacitive touch glass bezel visible inside the 59.0 x 44.8 mm TopBoard cutout
+  cx_mm, cy_mm, cw_mm, ch_mm = geom["cutout_mm"]
+  cx0, cy0 = mm_to_px(cx_mm - 0.4, cy_mm - 0.4)
+  cx1, cy1 = mm_to_px(cx_mm + cw_mm + 0.4, cy_mm + ch_mm + 0.4)
+  under.rectangle([cx0, cy0, cx1, cy1], fill=(18, 21, 26, 255))
+
+  ax_mm, ay_mm, aw_mm, ah_mm = geom["screen_active_mm"]
+  ax0, ay0 = mm_to_px(ax_mm, ay_mm)
+  ax1, ay1 = mm_to_px(ax_mm + aw_mm, ay_mm + ah_mm)
+  under.rectangle([ax0, ay0, ax1, ay1], fill=(7, 9, 13, 255), outline=(34, 39, 46, 255), width=1)
+
+  # Alpha-composite TopBoard faceplate over MainBoard + LCD
+  res_out = Image.alpha_composite(canvas, top_small)
+  over = ImageDraw.Draw(res_out)
+
+  # Inner cutout bevel shadow around the 59.0 x 44.8 mm faceplate opening
+  w_cx0, w_cy0 = mm_to_px(cx_mm, cy_mm)
+  w_cx1, w_cy1 = mm_to_px(cx_mm + cw_mm, cy_mm + ch_mm)
+  over.rectangle([w_cx0, w_cy0, w_cx1, w_cy1], outline=(12, 16, 14, 235), width=2)
+
+  # Four 4-40 pan-head corner screws fastening TopBoard to MainBoard standoffs
+  for sx_mm, sy_mm in geom["screws_mm"]:
+    px, py = mm_to_px(sx_mm, sy_mm)
+    head_r = 2.65 * scale_out
+    slot_r = 1.35 * scale_out
+    over.ellipse(
+        [px - head_r, py - head_r, px + head_r, py + head_r],
+        fill=(182, 188, 194, 255),
+        outline=(92, 98, 106, 255),
+        width=2,
+    )
+    over.line([px - slot_r, py, px + slot_r, py], fill=(84, 90, 98, 255), width=2)
+    over.line([px, py - slot_r, px, py + slot_r], fill=(84, 90, 98, 255), width=2)
+
+  out_board_png.parent.mkdir(parents=True, exist_ok=True)
+  res_out.save(out_board_png, optimize=True)
+
+  return {
+      "width_px": W_out,
+      "height_px": H_out,
+      "scale_px_per_mm": round(scale_out, 6),
+      "origin_x_mm": round(x0_crop_mm, 6),
+      "origin_y_mm": round(y0_crop_mm, 6),
+  }, res_out
+
+
+def build_2024(main_pcb_override: Path = None):
+  work_dir = BUILD_DIR / "kicad-2024"
+  work_dir.mkdir(parents=True, exist_ok=True)
+  main_pcb = main_pcb_override if main_pcb_override else (work_dir / "Saintcon2024.kicad_pcb")
+  top_pcb = work_dir / "Saintcon2024Top.kicad_pcb"
+
+  if not main_pcb.exists() or not top_pcb.exists():
+    main_zip, top_zip = find_2024_kicad_zips_default()
+    if not main_zip.exists() or not top_zip.exists():
+      raise FileNotFoundError(f"2024 KiCad project zips not found: {main_zip}, {top_zip}")
+    if not main_pcb.exists():
+      with zipfile.ZipFile(main_zip, "r") as zf:
+        zf.extract("Saintcon2024.kicad_pcb", work_dir)
+    if not top_pcb.exists():
+      with zipfile.ZipFile(top_zip, "r") as zf:
+        zf.extract("Saintcon2024Top.kicad_pcb", work_dir)
+
+  out_dir = BADGES_DIR / "2024"
+  layout_path = out_dir / "layout.json"
+  board_png_path = out_dir / "board.png"
+  overlay_path = BUILD_DIR / "check-overlay-2024.png"
+
+  main_tree = parse_sexp(main_pcb.read_text(encoding="utf-8", errors="replace"))
+  top_tree = parse_sexp(top_pcb.read_text(encoding="utf-8", errors="replace"))
+  geom = extract_geometry_2024(main_tree, top_tree)
+  img_meta, board_img = ensure_kicad_renders_2024(main_pcb, top_pcb, geom, board_png_path)
+
+  scale = img_meta["scale_px_per_mm"]
+  x0 = img_meta["origin_x_mm"]
+  y0 = img_meta["origin_y_mm"]
+
+  def to_px(xmm, ymm):
+    return round((xmm - x0) * scale, 2), round((ymm - y0) * scale, 2)
+
+  outer_mm = [[round(x, 4), round(y, 4)] for x, y in geom["outer_loop"]]
+  outer_px = [list(to_px(x, y)) for x, y in geom["outer_loop"]]
+  oxs = [p[0] for p in outer_mm]
+  oys = [p[1] for p in outer_mm]
+  pxs = [p[0] for p in outer_px]
+  pys = [p[1] for p in outer_px]
+
+  act_x, act_y, act_w, act_h = geom["screen_active_mm"]
+  mod_x, mod_y, mod_w, mod_h = geom["screen_module_mm"]
+  cut_x, cut_y, cut_w, cut_h = geom["cutout_mm"]
+
+  act_px_x, act_px_y = to_px(act_x, act_y)
+  act_px_w = round(act_w * scale, 2)
+  act_px_h = round(act_h * scale, 2)
+  mod_px_x, mod_px_y = to_px(mod_x, mod_y)
+  mod_px_w = round(mod_w * scale, 2)
+  mod_px_h = round(mod_h * scale, 2)
+  cut_px_x, cut_px_y = to_px(cut_x, cut_y)
+  cut_px_w = round(cut_w * scale, 2)
+  cut_px_h = round(cut_h * scale, 2)
+
+  screen_obj = {
+      "ref": "J5",
+      "part": "LCD-2.8-ST7789-GT911",
+      "shape": "rect",
+      "touch": True,
+      "width_dots": 320,
+      "height_dots": 240,
+      "x_mm": round(act_x, 4),
+      "y_mm": round(act_y, 4),
+      "w_mm": round(act_w, 4),
+      "h_mm": round(act_h, 4),
+      "x_px": act_px_x,
+      "y_px": act_px_y,
+      "w_px": act_px_w,
+      "h_px": act_px_h,
+      "cutout_mm": {"x": round(cut_x, 4), "y": round(cut_y, 4), "w": round(cut_w, 4), "h": round(cut_h, 4)},
+      "cutout_px": {"x": cut_px_x, "y": cut_px_y, "w": cut_px_w, "h": cut_px_h},
+      "module_mm": {"x": round(mod_x, 4), "y": round(mod_y, 4), "w": round(mod_w, 4), "h": round(mod_h, 4)},
+      "module_px": {"x": mod_px_x, "y": mod_px_y, "w": mod_px_w, "h": mod_px_h},
+  }
+
+  sw1 = dict(geom["sw1"])
+  sw1["x_px"], sw1["y_px"] = to_px(sw1["x_mm"], sw1["y_mm"])
+  sw1["w_px"] = round(sw1["w_mm"] * scale, 2)
+  sw1["h_px"] = round(sw1["h_mm"] * scale, 2)
+
+  ir_tx = dict(geom["ir_tx"])
+  ir_tx["x_px"], ir_tx["y_px"] = to_px(ir_tx["x_mm"], ir_tx["y_mm"])
+  ir_rx = dict(geom["ir_rx"])
+  ir_rx["x_px"], ir_rx["y_px"] = to_px(ir_rx["x_mm"], ir_rx["y_mm"])
+
+  layout = {
+      "board_image": {"file": "board.png", **img_meta},
+      "outline": {
+          "bbox_mm": {"x": round(min(oxs), 4), "y": round(min(oys), 4), "w": round(max(oxs) - min(oxs), 4), "h": round(max(oys) - min(oys), 4)},
+          "bbox_px": {"x": round(min(pxs), 2), "y": round(min(pys), 2), "w": round(max(pxs) - min(pxs), 2), "h": round(max(pys) - min(pys), 2)},
+          "polygon_mm": outer_mm,
+          "polygon_px": outer_px,
+      },
+      "screen": screen_obj,
+      "sw1": sw1,
+      "ir": {"tx": ir_tx, "rx": ir_rx},
+      "minibadges": [],
+      "leds": [],
+  }
+
+  out_dir.mkdir(parents=True, exist_ok=True)
+  layout_path.write_text(json.dumps(layout, indent=2) + "\n", encoding="utf-8")
+
+  overlay = board_img.copy()
+  draw = ImageDraw.Draw(overlay)
+  poly_pts = [tuple(p) for p in outer_px] + [tuple(outer_px[0])]
+  draw.line(poly_pts, fill=(0, 220, 255, 220), width=2)
+  draw.rectangle([mod_px_x, mod_px_y, mod_px_x + mod_px_w, mod_px_y + mod_px_h], outline=(255, 140, 0, 180), width=2)
+  draw.rectangle([cut_px_x, cut_px_y, cut_px_x + cut_px_w, cut_px_y + cut_px_h], outline=(255, 215, 0, 230), width=2)
+  draw.rectangle([act_px_x, act_px_y, act_px_x + act_px_w, act_px_y + act_px_h], outline=(0, 255, 100, 255), width=3)
+  draw.text((act_px_x + 10, act_px_y + 10), "J5 ST7789 + GT911 Touch (320x240)", fill=(0, 255, 100, 255))
+  draw.text((ir_rx["x_px"] - 56, ir_rx["y_px"] - 6), "U2 IR RX", fill=(255, 180, 60, 255))
+  draw.text((ir_tx["x_px"] - 56, ir_tx["y_px"] - 6), "D1 IR TX", fill=(255, 180, 60, 255))
+  overlay_path.parent.mkdir(parents=True, exist_ok=True)
+  overlay.save(overlay_path)
+  print(f"[2024] Wrote {layout_path}, {board_png_path} ({img_meta['width_px']}x{img_meta['height_px']}), {overlay_path}")
+
+
 def build_layout_and_overlay():
   parser = argparse.ArgumentParser(description="Extract KiCad badge geometry and render board.png + layout.json")
-  parser.add_argument("--year", choices=["2025", "2026", "all"], default="2026", help="Badge year to process")
-  parser.add_argument("--pcb", type=Path, default=None, help="Path to .kicad_pcb (optional override for 2026)")
+  parser.add_argument("--year", choices=["2024", "2025", "2026", "all"], default="2026", help="Badge year to process")
+  parser.add_argument("--pcb", type=Path, default=None, help="Path to .kicad_pcb (optional override)")
   args = parser.parse_args()
 
+  if args.year in ("2024", "all"):
+    build_2024(args.pcb if args.year == "2024" else None)
   if args.year in ("2025", "all"):
     build_2025()
   if args.year in ("2026", "all"):
-    pcb26 = args.pcb if args.pcb else find_2026_pcb_default()
+    pcb26 = args.pcb if (args.pcb and args.year == "2026") else find_2026_pcb_default()
     build_2026(pcb26)
 
 

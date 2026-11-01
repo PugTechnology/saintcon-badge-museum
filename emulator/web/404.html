@@ -76,6 +76,7 @@
     <p>No emulator resource exists at this URL.</p>
     <div class="links">
       <a class="btn" id="link-museum" href="/museum.html">🏛️ Badge Museum</a>
+      <a class="btn secondary" id="link-2024" href="/?year=2024">2024 Badge</a>
       <a class="btn secondary" id="link-2025" href="/?year=2025">2025 Badge</a>
       <a class="btn secondary" id="link-2026" href="/?year=2026">2026 Badge</a>
     </div>
@@ -87,9 +88,11 @@
       var host = (window.location.hostname || '').toLowerCase();
       if (host === 'sc.pug.technology' || host.endsWith('.sc.pug.technology')) {
         var lMuseum = document.getElementById('link-museum');
+        var l2024 = document.getElementById('link-2024');
         var l2025 = document.getElementById('link-2025');
         var l2026 = document.getElementById('link-2026');
         if (lMuseum) lMuseum.href = 'https://sc.pug.technology/';
+        if (l2024) l2024.href = 'https://24.sc.pug.technology/';
         if (l2025) l2025.href = 'https://25.sc.pug.technology/';
         if (l2026) l2026.href = 'https://26.sc.pug.technology/';
       }

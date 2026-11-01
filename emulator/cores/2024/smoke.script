@@ -1,0 +1,57 @@
+# SAINTCON 2024 Wrist Badge ("Tower Battle") headless smoke script
+# Drives boot -> onboarding registration -> main screen -> IR tower discovery -> stratagem battle
+
+# 1. Boot splash screen (0..5.0s)
+wait 1500
+shot-screen 01-boot-splash
+
+# 2. Finish splash transition -> onboarding screen on unregistered badge
+wait 4200
+shot-screen 02-onboarding
+
+# Tap "Enter your handle" textarea, type handle on LVGL touch keyboard, and register
+touch 180 115
+wait 200
+type-kb Player24
+wait 200
+tap-label Register
+wait 300
+tap-label OK
+wait 400
+
+# 3. Registered Main / Home screen (+ full wrist badge PCB composite)
+shot-screen 03-main-home
+shot-badge 03b-main-badge
+
+# 4. Walk up to Tower 1 ("Communities") and Tower 4 ("Ballroom B") via NEC IR beacons
+ir 1
+wait 200
+ir 4
+wait 300
+
+# Tap the flashing Tower alert icon in the bottom-left status bar (or open Tower Battle)
+touch 20 220
+wait 400
+shot-screen 04a-tower-list
+
+# Tap "Communities" tower to inspect its status & join modal
+tap-label Communities
+wait 400
+shot-screen 04-tower-found
+
+# 5. Join battle and launch Stratagem Attack UI
+tap-label Join
+wait 400
+tap-label Attack
+wait 400
+
+# Enter first 2 stratagem arrows so mid-combo green progress is visible
+solve-attack 2
+wait 150
+shot-screen 05-attack-battle
+shot-badge 05b-attack-badge
+
+# Complete remaining stratagem combos to verify POST /battle/stratagem + POST /battle/attack
+solve-attack 32
+wait 400
+shot-screen 06-attack-result

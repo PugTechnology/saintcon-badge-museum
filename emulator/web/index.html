@@ -6,7 +6,7 @@
   <title>SAINTCON Badge Emulator</title>
   <script>
     (function () {
-      var LIVE_YEARS = ['2025', '2026'];
+      var LIVE_YEARS = ['2024', '2025', '2026'];
       var PROD = 'sc.pug.technology';
       var host = (window.location.hostname || '').toLowerCase();
       var isProdDomain = host === PROD || host.endsWith('.' + PROD);
@@ -183,6 +183,12 @@
       touch-action: none;
     }
 
+    /* Landscape wrist badge PCB (e.g. 2024 844x570): size by width so 3-column desktop fits 1280px */
+    .board-stage.landscape {
+      width: clamp(300px, 28vw, 460px);
+      height: auto;
+    }
+
     .board-stage img#board-img {
       width: 100%;
       height: 100%;
@@ -211,6 +217,12 @@
       image-rendering: crisp-edges;
       image-rendering: pixelated;
       transform-origin: top left;
+    }
+
+    canvas#screen-canvas.touch-enabled,
+    canvas#big-screen-canvas.touch-enabled {
+      cursor: pointer;
+      touch-action: none;
     }
 
     /* 20 WS2812B-2020 LEDs */
@@ -711,6 +723,97 @@
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     }
 
+    /* 2024 Virtual IR Towers Panel */
+    .towers-hint {
+      font-size: 0.73rem;
+      color: var(--text-muted);
+      line-height: 1.38;
+      margin: 0 0 7px 0;
+    }
+
+    .towers-hint strong {
+      color: #f0c654;
+    }
+
+    .towers-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 5px;
+      margin-bottom: 7px;
+    }
+
+    button.tower-station-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 2px;
+      padding: 5px 7px;
+      border-radius: 8px;
+      border: 1px solid #30363d;
+      background: #0d1117;
+      color: var(--text-main);
+      cursor: pointer;
+      text-align: left;
+      transition: border-color 0.1s, background 0.1s;
+    }
+
+    button.tower-station-btn:hover {
+      border-color: #f0883e;
+      background: rgba(240, 136, 62, 0.12);
+    }
+
+    button.tower-station-btn.active-beacon {
+      border-color: #f0883e;
+      background: rgba(240, 136, 62, 0.18);
+      box-shadow: 0 0 0 1px rgba(240, 136, 62, 0.35) inset;
+    }
+
+    button.tower-station-btn.defeated {
+      border-color: rgba(63, 185, 80, 0.55);
+      background: rgba(46, 160, 67, 0.11);
+    }
+
+    .tower-btn-top {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 4px;
+      font-size: 0.73rem;
+      font-weight: 700;
+    }
+
+    .tower-name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .tower-lvl {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.65rem;
+      color: #f0c654;
+      background: rgba(212, 167, 44, 0.14);
+      border: 1px solid rgba(212, 167, 44, 0.38);
+      border-radius: 4px;
+      padding: 0 4px;
+      flex-shrink: 0;
+    }
+
+    .tower-meta {
+      font-size: 0.65rem;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      color: var(--text-muted);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      width: 100%;
+    }
+
+    button.tower-station-btn.defeated .tower-meta {
+      color: #56d364;
+    }
+
     /* Phone Tap Notification Banner: Styled like a phone notification sliding in, dismisses on click */
     .phone-notification {
       position: fixed;
@@ -900,6 +1003,13 @@
         max-width: 82vw;
       }
 
+      .board-stage.landscape {
+        width: min(94vw, 420px);
+        max-width: 94vw;
+        height: auto;
+        min-height: 0;
+      }
+
       .badge-credits-strip {
         padding: 5px 10px;
       }
@@ -1019,10 +1129,37 @@
       </div>
     </div>
 
-    <!-- Column 3: Big Joystick Pad (immediately under badge on phones) + Controls + Hardware State + About -->
+    <!-- Column 3: Big Joystick Pad / Virtual Towers (immediately under badge on phones) + Controls + Hardware State + About -->
     <div class="controls-column">
+      <!-- 2024 Wrist Badge Virtual IR Towers Panel -->
+      <div class="panel-card" id="towers-panel-card" style="display: none;" aria-label="Virtual IR Tower Stations">
+        <h2>Towers (11 IR Stations)</h2>
+        <p class="towers-hint">
+          <strong>Touchscreen badge:</strong> tap or drag directly on the badge LCD. Click a tower below to walk up to its IR beacon:
+        </p>
+        <div id="towers-grid" class="towers-grid" aria-label="11 Virtual IR Tower Stations"></div>
+        <div class="btn-row" style="margin-bottom: 6px;">
+          <button type="button" class="ctrl-btn gold" id="btn-ir-levelup" title="Send a Community Level-Up IR beacon">⬆️ Level-Up IR</button>
+          <button type="button" class="ctrl-btn" id="btn-ir-savior" title="Send a Savior revive IR beacon when disconnected">🚑 Savior IR</button>
+          <button type="button" class="ctrl-btn" id="btn-towers-respawn" title="Restore all 11 towers to full health">🔄 Respawn</button>
+        </div>
+        <div class="btn-row">
+          <select id="wrist-tilt-select" class="nut-select" aria-label="Wrist Accelerometer Tilt (MC3419)">
+            <option value="0,0,16384">⌚ Wrist Tilt: Flat (0, 0, +1g)</option>
+            <option value="-16384,0,0">⌚ Wrist Tilt: Left (-1g, 0, 0)</option>
+            <option value="16384,0,0">⌚ Wrist Tilt: Right (+1g, 0, 0)</option>
+            <option value="0,16384,0">⌚ Wrist Tilt: Forward (0, +1g, 0)</option>
+            <option value="0,-16384,0">⌚ Wrist Tilt: Back (0, -1g, 0)</option>
+            <option value="0,0,-16384">⌚ Wrist Tilt: Flipped (0, 0, -1g)</option>
+          </select>
+        </div>
+        <div class="nut-status-box" id="towers-status-box">
+          Tap the badge screen to register a handle, then click any tower above to receive its IR beacon.
+        </div>
+      </div>
+
       <!-- Larger Touch-Friendly Joystick + Action Buttons Pad with Key Hints -->
-      <div class="touch-dpad-card" aria-label="Touch Controls Pad">
+      <div class="touch-dpad-card" id="touch-dpad-card" aria-label="Touch Controls Pad">
         <div class="touch-dpad-title">
           <span id="dpad-title-label">5-Way Joystick (SW2)</span>
           <span>Hold or Tap</span>
@@ -1144,7 +1281,7 @@
         <h2>Hardware State</h2>
         <div class="telemetry-grid">
           <div class="telemetry-item">
-            <span class="k">BUTTON MASK</span>
+            <span class="k" id="tel-buttons-label">BUTTON MASK</span>
             <span class="v" id="tel-buttons">0x00 (IDLE)</span>
           </div>
           <div class="telemetry-item">
@@ -1190,6 +1327,7 @@
   </footer>
 
   <script src="mock-core.js"></script>
+  <script src="badges/2024/fake-server.js"></script>
   <script src="badges/2025/fake-server.js"></script>
   <script>
     (function () {
@@ -1199,7 +1337,7 @@
       const DESKTOP_BREAKPOINT_PX = 820;
       const MAX_STEP_DT_MS = 100;
       const MAX_HIDDEN_CATCHUP_MS = 300000; // Bound catch-up at 5 min of real time in 100 ms steps
-      const LIVE_YEARS = ['2025', '2026'];
+      const LIVE_YEARS = ['2024', '2025', '2026'];
       const COMING_SOON_YEARS = []; // Only years explicitly listed as coming soon
       const WASM_MISSING_MSG = 'This emulator needs WebAssembly; it may be turned off, e.g. iPhone Lockdown Mode';
 
@@ -1377,6 +1515,7 @@
       const sw2Cap = document.getElementById('sw2-cap');
       const boardButtonsLayer = document.getElementById('board-buttons-layer');
 
+      const touchDpadCard = document.getElementById('touch-dpad-card');
       const dpadTitleLabel = document.getElementById('dpad-title-label');
       const keyHintsBar = document.getElementById('key-hints-bar');
       const padCenterBtn = document.getElementById('pad-center');
@@ -1390,6 +1529,13 @@
       const btnTapNut = document.getElementById('btn-tap-nut');
       const btnDispenseCode = document.getElementById('btn-dispense-code');
       const nutStatusBox = document.getElementById('nut-status-box');
+      const towersPanelCard = document.getElementById('towers-panel-card');
+      const towersGrid = document.getElementById('towers-grid');
+      const btnIrLevelup = document.getElementById('btn-ir-levelup');
+      const btnIrSavior = document.getElementById('btn-ir-savior');
+      const btnTowersRespawn = document.getElementById('btn-towers-respawn');
+      const wristTiltSelect = document.getElementById('wrist-tilt-select');
+      const towersStatusBox = document.getElementById('towers-status-box');
       const nfcCaptureLabel = document.getElementById('nfc-capture-label');
       const btnPhoneTap = document.getElementById('btn-phone-tap');
 
@@ -1399,6 +1545,7 @@
       const backlightReadout = document.getElementById('backlight-readout');
       const eepromStatus = document.getElementById('eeprom-status');
 
+      const telButtonsLabel = document.getElementById('tel-buttons-label');
       const telButtons = document.getElementById('tel-buttons');
       const telBacklight = document.getElementById('tel-backlight');
       const telLedsLabel = document.getElementById('tel-leds-label');
@@ -1417,6 +1564,14 @@
       const ledElements = [];
       const boardPushElements = [];
       const activeBoardBtnPointers = new Map();
+
+      // Capacitive touch input state (active only when badge.json has_touch or layout.screen.touch is true)
+      let hasTouchInput = false;
+      let touchPressed = false;
+      let lastTouchX = 0;
+      let lastTouchY = 0;
+      let activeTouchPointerId = null;
+      let activeTouchCanvas = null;
 
       // Precompute RGB565 (0..65535) -> 0xAABBGGRR (little-endian RGBA) lookup table
       const rgb565Lut = new Uint32Array(65536);
@@ -1539,8 +1694,20 @@
 
       function updateInputVisuals() {
         const mask = getButtonsMask();
-        telButtons.textContent =
-          '0x' + mask.toString(16).padStart(2, '0').toUpperCase() + ' (' + maskToNames(mask) + ')';
+        if (hasTouchInput && validButtonsMask === 0) {
+          if (telButtonsLabel) {
+            telButtonsLabel.textContent = 'TOUCH INPUT (GT911)';
+          }
+          telButtons.textContent = touchPressed
+            ? `DOWN (${lastTouchX}, ${lastTouchY})`
+            : `IDLE (${lastTouchX}, ${lastTouchY})`;
+        } else {
+          if (telButtonsLabel) {
+            telButtonsLabel.textContent = 'BUTTON MASK';
+          }
+          telButtons.textContent =
+            '0x' + mask.toString(16).padStart(2, '0').toUpperCase() + ' (' + maskToNames(mask) + ')';
+        }
 
         document.querySelectorAll('.dpad-btn').forEach((btn) => {
           const bit = Number(btn.dataset.btnBit);
@@ -1565,6 +1732,16 @@
         sw2Overlay.classList.toggle('center-pressed', (mask & centerBtnBit) !== 0);
       }
 
+      function syncTouchUiState() {
+        hasTouchInput = Boolean(
+          (badgeMeta && badgeMeta.has_touch) ||
+          (layout && layout.screen && layout.screen.touch)
+        );
+        screenCanvas.classList.toggle('touch-enabled', hasTouchInput);
+        bigScreenCanvas.classList.toggle('touch-enabled', hasTouchInput);
+        updateInputVisuals();
+      }
+
       function recomputeBoardBtnMask() {
         let m = 0;
         for (const bit of activeBoardBtnPointers.values()) m |= bit;
@@ -1578,6 +1755,8 @@
         const W = data.board_image.width_px;
         const H = data.board_image.height_px;
         boardStage.style.aspectRatio = `${W} / ${H}`;
+        boardStage.classList.toggle('landscape', W > H);
+        syncTouchUiState();
 
         const scr = data.screen;
         const isRound = (scr.shape || screenShape) === 'round';
@@ -2051,6 +2230,87 @@
         }
       });
 
+      function releaseActiveTouch() {
+        if (touchPressed || activeTouchPointerId !== null) {
+          touchPressed = false;
+          activeTouchPointerId = null;
+          activeTouchCanvas = null;
+          if (core && typeof core.emu_set_touch === 'function') {
+            core.emu_set_touch(0, lastTouchX, lastTouchY);
+          }
+          updateInputVisuals();
+        }
+      }
+
+      function computeTouchCoords(canvasEl, e) {
+        const rect = canvasEl.getBoundingClientRect();
+        if (!rect.width || !rect.height) {
+          return { x: lastTouchX, y: lastTouchY };
+        }
+        const normX = (e.clientX - rect.left) / rect.width;
+        const normY = (e.clientY - rect.top) / rect.height;
+        const x = Math.max(0, Math.min(screenW - 1, Math.floor(normX * screenW)));
+        const y = Math.max(0, Math.min(screenH - 1, Math.floor(normY * screenH)));
+        return { x, y };
+      }
+
+      function bindTouchScreenCanvas(canvasEl) {
+        if (!canvasEl) return;
+        canvasEl.addEventListener('pointerdown', (e) => {
+          if (!hasTouchInput) return;
+          if (e.pointerType === 'mouse' && e.button !== 0) return;
+          e.preventDefault();
+          activeTouchPointerId = e.pointerId;
+          activeTouchCanvas = canvasEl;
+          if (canvasEl.setPointerCapture) {
+            try { canvasEl.setPointerCapture(e.pointerId); } catch (_) {}
+          }
+          const pt = computeTouchCoords(canvasEl, e);
+          lastTouchX = pt.x;
+          lastTouchY = pt.y;
+          touchPressed = true;
+          if (core && typeof core.emu_set_touch === 'function') {
+            core.emu_set_touch(1, pt.x, pt.y);
+          }
+          updateInputVisuals();
+        });
+
+        canvasEl.addEventListener('pointermove', (e) => {
+          if (!hasTouchInput || activeTouchPointerId !== e.pointerId || activeTouchCanvas !== canvasEl) return;
+          e.preventDefault();
+          const pt = computeTouchCoords(canvasEl, e);
+          lastTouchX = pt.x;
+          lastTouchY = pt.y;
+          touchPressed = true;
+          if (core && typeof core.emu_set_touch === 'function') {
+            core.emu_set_touch(1, pt.x, pt.y);
+          }
+          updateInputVisuals();
+        });
+
+        const onEnd = (e) => {
+          if (activeTouchPointerId !== e.pointerId || activeTouchCanvas !== canvasEl) return;
+          if (e.type === 'pointerup') {
+            const pt = computeTouchCoords(canvasEl, e);
+            lastTouchX = pt.x;
+            lastTouchY = pt.y;
+          }
+          activeTouchPointerId = null;
+          activeTouchCanvas = null;
+          touchPressed = false;
+          if (core && typeof core.emu_set_touch === 'function') {
+            core.emu_set_touch(0, lastTouchX, lastTouchY);
+          }
+          updateInputVisuals();
+        };
+        canvasEl.addEventListener('pointerup', onEnd);
+        canvasEl.addEventListener('pointercancel', onEnd);
+        canvasEl.addEventListener('lostpointercapture', onEnd);
+      }
+
+      bindTouchScreenCanvas(screenCanvas);
+      bindTouchScreenCanvas(bigScreenCanvas);
+
       window.addEventListener('blur', () => {
         kbMask = 0;
         sw2Mask = 0;
@@ -2058,6 +2318,7 @@
         activeBoardBtnPointers.clear();
         padMask = 0;
         activePadPointers.clear();
+        releaseActiveTouch();
         updateInputVisuals();
       });
 
@@ -2214,7 +2475,7 @@
         e.currentTarget.blur();
         if (!core) return;
         flushEepromToStorage(true);
-        if (currentYear === '2025' && currentMode === 'stock' && !core.isMock && !isMockRequested) {
+        if ((currentYear === '2025' || currentYear === '2024') && currentMode === 'stock' && !core.isMock && !isMockRequested) {
           window.location.reload();
           return;
         }
@@ -2243,6 +2504,25 @@
           showStorageUnavailableNote();
         }
         if (removeFailed) {
+          return;
+        }
+        if (currentYear === '2024' && currentMode === 'stock' && !core.isMock && !isMockRequested) {
+          let wipe24Ok = true;
+          try {
+            localStorage.removeItem('saintcon_2024_stock_nvs');
+            localStorage.removeItem('saintcon_2024_stock_server');
+            if (window.__sc24FakeServer && typeof window.__sc24FakeServer.resetServer === 'function') {
+              window.__sc24FakeServer.resetServer();
+            }
+          } catch (err) {
+            console.warn('Failed to wipe 2024 NVS/server from localStorage:', err);
+            wipe24Ok = false;
+          }
+          if (wipe24Ok) {
+            window.location.reload();
+          } else {
+            showStorageUnavailableNote();
+          }
           return;
         }
         if (currentYear === '2025' && currentMode === 'stock' && !core.isMock && !isMockRequested) {
@@ -2383,6 +2663,169 @@
         });
       }
 
+      // 2024 Wrist Badge Virtual IR Towers Panel
+      let lastTowerBannerInfo = null;
+
+      function shortFloorLabel(loc) {
+        const s = String(loc || '');
+        if (/ground/i.test(s)) return 'Ground';
+        if (/ballroom/i.test(s)) return 'Ballroom';
+        if (/level\s*3/i.test(s)) return 'Lv.3';
+        return s || 'Con';
+      }
+
+      function updateTowersPanel(extraInfo) {
+        if (!towersGrid || !towersStatusBox || !window.__sc24FakeServer) return;
+        if (extraInfo !== undefined) {
+          lastTowerBannerInfo = extraInfo;
+        }
+        const summary = window.__sc24FakeServer.getStateSummary();
+        const towers = summary.towers || [];
+        towersGrid.replaceChildren();
+
+        for (const t of towers) {
+          const isDefeated = t.health <= 0 || t.status === 'DEFEATED';
+          const isActive = summary.activeTowerId === t.id || summary.joinedTowerId === t.id;
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = `tower-station-btn${isDefeated ? ' defeated' : ''}${isActive ? ' active-beacon' : ''}`;
+          btn.dataset.towerId = String(t.id);
+          btn.title = `${t.name} (${t.location}, Level ${t.level}) — click to send IR beacon`;
+
+          const topRow = document.createElement('div');
+          topRow.className = 'tower-btn-top';
+          const nameSpan = document.createElement('span');
+          nameSpan.className = 'tower-name';
+          nameSpan.textContent = String(t.name);
+          const lvlSpan = document.createElement('span');
+          lvlSpan.className = 'tower-lvl';
+          lvlSpan.textContent = `Lv.${t.level}`;
+          topRow.append(nameSpan, lvlSpan);
+
+          const metaSpan = document.createElement('span');
+          metaSpan.className = 'tower-meta';
+          metaSpan.textContent = isDefeated
+            ? 'DEFEATED • Click to respawn'
+            : `${shortFloorLabel(t.location)} • ${t.health}/${t.max_health} HP`;
+
+          btn.append(topRow, metaSpan);
+          btn.addEventListener('click', (e) => {
+            e.currentTarget.blur();
+            if (!core || core.isMock || isMockRequested || !window.__sc24FakeServer) return;
+            const irCode = window.__sc24FakeServer.walkUpToTower(t.id) >>> 0;
+            if (irCode && typeof core.emu_send_ir === 'function') {
+              core.emu_send_ir(irCode);
+            }
+            updateTowersPanel({
+              kind: 'tower',
+              name: t.name,
+              level: t.level,
+              codeHex: '0x' + irCode.toString(16).toUpperCase().padStart(8, '0'),
+            });
+          });
+          towersGrid.appendChild(btn);
+        }
+
+        towersStatusBox.replaceChildren();
+        if (lastTowerBannerInfo && typeof lastTowerBannerInfo === 'object') {
+          const evDiv = document.createElement('div');
+          evDiv.style.marginBottom = '3px';
+          evDiv.style.color = '#e6edf3';
+          if (lastTowerBannerInfo.kind === 'tower') {
+            evDiv.append('📡 IR Beacon sent: ');
+            const st = document.createElement('strong');
+            st.textContent = `${lastTowerBannerInfo.name} (Lv.${lastTowerBannerInfo.level})`;
+            evDiv.appendChild(st);
+            evDiv.append(` • ${lastTowerBannerInfo.codeHex}`);
+          } else if (lastTowerBannerInfo.kind === 'levelup') {
+            evDiv.append('⬆️ Community Level-Up IR sent (');
+            const st = document.createElement('strong');
+            st.textContent = lastTowerBannerInfo.codeHex;
+            evDiv.appendChild(st);
+            evDiv.append(')');
+          } else if (lastTowerBannerInfo.kind === 'savior') {
+            evDiv.append('🚑 Savior Revive IR sent (');
+            const st = document.createElement('strong');
+            st.textContent = lastTowerBannerInfo.codeHex;
+            evDiv.appendChild(st);
+            evDiv.append(')');
+          } else if (lastTowerBannerInfo.kind === 'respawn') {
+            evDiv.textContent = '🔄 All 11 towers restored to full health.';
+          }
+          towersStatusBox.appendChild(evDiv);
+        }
+
+        const p = summary.player || {};
+        const pDiv = document.createElement('div');
+        if (p.handle) {
+          pDiv.append('Player: ');
+          const stH = document.createElement('strong');
+          stH.textContent = String(p.handle);
+          pDiv.appendChild(stH);
+          const buffs = (summary.equipped || []).filter(Boolean);
+          const buffSuffix = buffs.length ? ` • Buffs: ${buffs.join(', ')}` : '';
+          pDiv.append(` • Lv.${p.level} • ${p.xp} XP • ${p.coins} coins${buffSuffix}`);
+        } else {
+          pDiv.textContent = 'First boot: tap "Enter your handle" on the badge screen to register, then click a tower.';
+        }
+        towersStatusBox.appendChild(pDiv);
+      }
+
+      if (btnIrLevelup) {
+        btnIrLevelup.addEventListener('click', (e) => {
+          e.currentTarget.blur();
+          if (!core || core.isMock || isMockRequested || !window.__sc24FakeServer) return;
+          const irCode = window.__sc24FakeServer.getLevelUpBeaconCode() >>> 0;
+          if (typeof core.emu_send_ir === 'function') {
+            core.emu_send_ir(irCode);
+          }
+          updateTowersPanel({
+            kind: 'levelup',
+            codeHex: '0x' + irCode.toString(16).toUpperCase().padStart(8, '0'),
+          });
+        });
+      }
+
+      if (btnIrSavior) {
+        btnIrSavior.addEventListener('click', (e) => {
+          e.currentTarget.blur();
+          if (!core || core.isMock || isMockRequested || !window.__sc24FakeServer) return;
+          const irCode = window.__sc24FakeServer.getSaviorBeaconCode() >>> 0;
+          if (typeof core.emu_send_ir === 'function') {
+            core.emu_send_ir(irCode);
+          }
+          updateTowersPanel({
+            kind: 'savior',
+            codeHex: '0x' + irCode.toString(16).toUpperCase().padStart(8, '0'),
+          });
+        });
+      }
+
+      if (btnTowersRespawn) {
+        btnTowersRespawn.addEventListener('click', (e) => {
+          e.currentTarget.blur();
+          if (!core || core.isMock || isMockRequested || !window.__sc24FakeServer) return;
+          window.__sc24FakeServer.respawnAllTowers();
+          updateTowersPanel({ kind: 'respawn' });
+        });
+      }
+
+      if (wristTiltSelect) {
+        wristTiltSelect.addEventListener('change', () => {
+          if (!core || typeof core.emu_set_accel !== 'function') return;
+          const parts = String(wristTiltSelect.value || '0,0,16384').split(',').map((n) => Number(n) || 0);
+          core.emu_set_accel(parts[0] | 0, parts[1] | 0, parts[2] | 0);
+        });
+      }
+
+      if (window.__sc24FakeServer && typeof window.__sc24FakeServer.onChange === 'function') {
+        window.__sc24FakeServer.onChange(() => {
+          if (core && !core.isMock && !isMockRequested && currentYear === '2024') {
+            updateTowersPanel();
+          }
+        });
+      }
+
       document.getElementById('btn-phone-tap').addEventListener('click', (e) => {
         e.currentTarget.blur();
         if (!core) return;
@@ -2453,6 +2896,9 @@
         const emu_fb_height = fn('emu_fb_height', () => screenH);
         const emu_led_count = fn('emu_led_count', () => numLeds);
         const emu_eeprom_size = fn('emu_eeprom_size', () => eepromBytes);
+        const emu_set_touch = fn('emu_set_touch', () => {});
+        const emu_send_ir = fn('emu_send_ir', () => {});
+        const emu_set_accel = fn('emu_set_accel', () => {});
 
         return {
           isMock: Boolean(isMock || raw.isMock),
@@ -2469,6 +2915,9 @@
           emu_fb_height,
           emu_led_count,
           emu_eeprom_size,
+          emu_set_touch,
+          emu_send_ir,
+          emu_set_accel,
           getFramebufferView() {
             const ptr = emu_framebuffer() >>> 0;
             const len = (emu_fb_width() | 0) * (emu_fb_height() | 0);
@@ -2566,19 +3015,29 @@
           );
         }
 
-        if (meta.eeprom_bytes) {
+        if (typeof meta.eeprom_bytes === 'number') {
           eepromBytes = Number(meta.eeprom_bytes) || 512;
         }
 
-        if (meta.led_count) {
-          numLeds = Number(meta.led_count) || 20;
+        if (typeof meta.led_count === 'number') {
+          numLeds = Math.max(0, Number(meta.led_count) || 0);
           const gpioStr = meta.led_gpio ? ` (GPIO ${meta.led_gpio})` : '';
-          telLedsLabel.textContent = `LED CHAIN${gpioStr}`;
-          telLeds.textContent = meta.led_summary || `${numLeds} WS2812 (0→${numLeds - 1})`;
+          telLedsLabel.textContent = numLeds > 0 ? `LED CHAIN${gpioStr}` : 'ADDRESSABLE LEDS';
+          telLeds.textContent = meta.led_summary || (numLeds > 0 ? `${numLeds} WS2812 (0→${numLeds - 1})` : 'None');
         }
 
         // Dynamic button set & keyboard map from badge.json
-        if (Array.isArray(meta.buttons) && meta.buttons.length > 0) {
+        if (Array.isArray(meta.buttons) && meta.buttons.length === 0) {
+          buttonDefs = [];
+          validButtonsMask = 0;
+          keyToBit = {};
+          if (touchDpadCard) {
+            touchDpadCard.style.display = 'none';
+          }
+        } else if (Array.isArray(meta.buttons) && meta.buttons.length > 0) {
+          if (touchDpadCard) {
+            touchDpadCard.style.display = '';
+          }
           buttonDefs = meta.buttons.map((b) => ({
             ...b,
             bit: Number(b.bit) || 0,
@@ -2742,6 +3201,10 @@
         if (stockNutGroup) {
           stockNutGroup.style.display = 'none';
         }
+        if (towersPanelCard) {
+          towersPanelCard.style.display = 'none';
+        }
+        syncTouchUiState();
 
         const hasNfc = meta.has_nfc !== false;
         btnPhoneTap.style.display = hasNfc ? '' : 'none';
@@ -2818,9 +3281,12 @@
             if (licenseText) {
               creditsSecondaryLine.append(buildLicenseNodes(), ' • ');
             }
+            const modeSuffix = soonModes.includes('pug')
+              ? ` • Stock "${name}" firmware (pug pet mode not on the ${yr} page yet)`
+              : ` • Original SAINTCON ${yr} "${name}" firmware`;
             creditsSecondaryLine.append(
               createExtLink(thirdPartyUrl, 'Third-party licenses', false),
-              ` • Stock "${name}" firmware (pug pet mode not on the ${yr} page yet)`
+              modeSuffix
             );
           }
 
@@ -2938,8 +3404,10 @@
                 st,
                 document.createElement('br'),
                 'Available badges: ',
+                makeNavLink(yearHref('2024'), '2024 ("Tower Battle")'),
+                ', ',
                 makeNavLink(yearHref('2025'), '2025 ("The Wrench")'),
-                ' and ',
+                ', and ',
                 makeNavLink(yearHref('2026'), '2026 ("Orion Trail")'),
                 '. Visit the ',
                 makeNavLink(museumHref(), 'Badge Museum'),
@@ -3013,6 +3481,14 @@
           updateStockNutStatus();
         }
 
+        const showTowerControls = Boolean(activeModeObj && activeModeObj.has_ir_towers && !core.isMock && !isMockRequested);
+        if (towersPanelCard) {
+          towersPanelCard.style.display = showTowerControls ? '' : 'none';
+        }
+        if (showTowerControls) {
+          updateTowersPanel();
+        }
+
         // Sync framebuffer dimensions, LED count, and EEPROM size from the Generalized Core ABI
         const coreW = core.emu_fb_width() | 0;
         const coreH = core.emu_fb_height() | 0;
@@ -3034,7 +3510,15 @@
         // Load persisted EEPROM from per-year/per-mode localStorage key before calling emu_init(seed)
         const eepromKey = getStorageKey('eeprom');
         const hadSaved = loadEepromFromStorage(core.getEepromView());
-        telEeprom.textContent = hadSaved ? `${eepromKey} (Loaded)` : `${eepromKey} (Fresh)`;
+        if (currentYear === '2024' && currentMode === 'stock' && !core.isMock && !isMockRequested) {
+          let hadNvs = false;
+          try {
+            hadNvs = Boolean(localStorage.getItem('saintcon_2024_stock_nvs'));
+          } catch (_) {}
+          telEeprom.textContent = hadNvs ? 'saintcon_2024_stock_nvs (Loaded)' : 'saintcon_2024_stock_nvs (Fresh)';
+        } else {
+          telEeprom.textContent = hadSaved ? `${eepromKey} (Loaded)` : `${eepromKey} (Fresh)`;
+        }
 
         core.emu_init((Date.now() & 0xffffffff) >>> 0);
         core.emu_set_speed(currentSpeed);
@@ -3059,6 +3543,7 @@
             activeBoardBtnPointers.clear();
             padMask = 0;
             activePadPointers.clear();
+            releaseActiveTouch();
             updateInputVisuals();
             if (!loopStopped) {
               flushEepromToStorage(true);
@@ -3136,6 +3621,26 @@
           setTestButtons(mask) {
             testMask = mask & validButtonsMask;
             updateInputVisuals();
+          },
+          setTouch(pressed, x, y) {
+            const p = pressed ? 1 : 0;
+            lastTouchX = Math.max(0, Math.min(screenW - 1, x | 0));
+            lastTouchY = Math.max(0, Math.min(screenH - 1, y | 0));
+            touchPressed = Boolean(p);
+            if (core && typeof core.emu_set_touch === 'function') {
+              core.emu_set_touch(p, lastTouchX, lastTouchY);
+            }
+            updateInputVisuals();
+          },
+          sendIr(code) {
+            if (core && typeof core.emu_send_ir === 'function') {
+              core.emu_send_ir(code >>> 0);
+            }
+          },
+          setAccel(x, y, z) {
+            if (core && typeof core.emu_set_accel === 'function') {
+              core.emu_set_accel(x | 0, y | 0, z | 0);
+            }
           },
           simulateHiddenReturn(elapsedMs) {
             return advanceBoundedSteps(elapsedMs);
