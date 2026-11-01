@@ -2,6 +2,7 @@
 
 Browser-based hardware shell (`emulator/web/index.html`), multi-year badge museum (`emulator/web/museum.html`), and native headless script runners for SAINTCON electronic conference badges:
 
+- **2023 — "Incidents"** (`?year=2023`): ESP32-S3 landscape dungeon-crawler badge (`Saintcon2023.kicad_pcb`), rectangular `320×240` ST7789 8-bit 8080 parallel LCD, 20 SK6812MINI LEDs (`D1..D20`), 4-way + center navigation switch (`SW5`) + `A` & `B` action buttons (`SW2`, `SW3`), NEC IR TX/RX, fixed MC3419 accelerometer, silent TFA9879 audio shim, and 4 virtual I2C minibadge slots (`U9, U10, U13, U14`), running `compukidmike`'s original SAINTCON 2023 firmware (`mode=stock`, "Original Firmware") backed by a per-visitor in-browser fake `sc23-api` game server (`badges/2023/fake-server.js`) and `"Incidents Companion"` panel.
 - **2024 — "Tower Battle"** (`?year=2024`): ESP32-S3 landscape wrist badge (`Saintcon2024.kicad_pcb` + `Saintcon2024Top.kicad_pcb`), rectangular `320×240` ST7789 8080 parallel LCD with GT911 capacitive touchscreen, NEC IR TX/RX, MC3419 accelerometer, and TCA9544A Klip-on I2C mux, running `compukidmike`'s original SAINTCON 2024 firmware (`mode=stock`, "Original Firmware") backed by a per-visitor in-browser fake tower server (`badges/2024/fake-server.js`) and an 11-station virtual IR `"Towers"` panel.
 - **2025 — "The Wrench"** (`?year=2025`): ESP32-S3 wrench PCB (`Saintcon2025.kicad_pcb`), rectangular `240×320` ST7789V LCD, 20 WS2812B-2020 LEDs (`D1..D20`), 5-way navigation switch (`SW2`), 512-byte ST25DV04K NFC EEPROM, with **two selectable modes**:
   - `mode=stock` (default): original SAINTCON 2025 conference firmware & 31-node faction game by `compukidmike` (`core-stock.js` / `core-stock.wasm`), backed by a per-visitor in-browser fake game server (`badges/2025/fake-server.js`) and solo virtual NFC "Nut" dispenser.
@@ -18,10 +19,18 @@ All year-specific assets, metadata, and compiled WebAssembly cores live under `e
 
 ```text
 emulator/web/
-├── index.html               # Multi-year emulator shell (?year=2024|2025|2026 or <yy>.sc.pug.technology)
-├── museum.html              # Badge museum index (2024, 2025, and 2026 live)
+├── index.html               # Multi-year emulator shell (?year=2023|2024|2025|2026 or <yy>.sc.pug.technology)
+├── museum.html              # Badge museum index (2023, 2024, 2025, and 2026 live)
 ├── mock-core.js             # Fallback JS implementation of the 12-function Core ABI
 └── badges/
+    ├── 2023/
+    │   ├── badge.json       # Year profile: "Incidents", 320×240 screen, 20 LEDs, 7 buttons, 128B EEPROM, mode: stock
+    │   ├── layout.json      # Board geometry (1182×983), screen rect, SW5/SW2/SW3, 20 LEDs, 4 minibadge slots
+    │   ├── board.png        # 1182×983 KiCad PCB render of Saintcon2023.kicad_pcb
+    │   ├── core.js          # Emscripten MODULARIZE + ASYNCIFY loader (createCore)
+    │   ├── core.wasm        # Compiled 2023 original firmware + ArduinoJson 6.21.3 WebAssembly binary
+    │   ├── fake-server.js   # Per-visitor in-browser SAINTCON 2023 sc23-api game server & solo helpers
+    │   └── THIRD_PARTY_LICENSES.txt # Generated license notices for Saintcon2023, ArduinoJson, BitBank GIF, Emscripten/musl/libc++
     ├── 2024/
     │   ├── badge.json       # Year profile: "Tower Battle", 320×240 touch screen, 0 addressable LEDs, mode: stock
     │   ├── layout.json      # Board geometry (844×570), screen rect, SW1 power switch, IR TX/RX coords
@@ -54,6 +63,14 @@ emulator/
 ├── core/                    # 2025 ("The Wrench") platform layer, ABI glue (emu.c/emu.h), and headless CLI
 ├── build-core.sh            # Builds 2025 WASM core (-> web/badges/2025/) and emulator/core/emu-cli
 ├── cores/
+│   ├── 2023/                # 2023 ("Incidents" — original conference firmware & dungeon crawler) core
+│   │   ├── UPSTREAM.md      # Provenance & secret-scrubbing record (commit 6f5f340, compukidmike/Saintcon2023)
+│   │   ├── fetch-upstream.sh# Pins Saintcon2023 + ArduinoJson v6.21.3 into git-ignored upstream/ and scrubs Wi-Fi secrets
+│   │   ├── gen-licenses.sh  # Generates web/badges/2023/THIRD_PARTY_LICENSES.txt from upstream license files
+│   │   ├── platform/        # Arduino/ESP32-S3 replacement layer (Arduino_GFX canvas, FastLED, PCA9548A I2C minibadges, fixed MC3419, silent TFA9879, NEC IR, EEPROM, WiFi, AsyncHTTPSRequest)
+│   │   ├── cli_2023.c       # Headless script runner (supports type-entry, minibadge, ir, ir-levelup, bot-allies) & PNG renderer
+│   │   ├── smoke.script     # End-to-end headless smoke script (boot -> register -> main screen -> dungeon -> battle)
+│   │   └── build.sh         # Builds 2023 WASM (-> web/badges/2023/core.{js,wasm}), emu-cli, and THIRD_PARTY_LICENSES.txt
 │   ├── 2024/                # 2024 ("Tower Battle" wrist badge — original conference firmware & game) core
 │   │   ├── UPSTREAM.md      # Provenance, secret-scrubbing, and LVGL 9.2 empty-layer fix record (commit 5e9412c, compukidmike/Saintcon2024)
 │   │   ├── fetch-upstream.sh# Pins Saintcon2024 + LVGL 9.2.0 + nlohmann/json 3.11.3 into git-ignored upstream/ and scrubs secrets
@@ -81,7 +98,8 @@ emulator/
 
 - **Year & Mode Resolution**: `emulator/web/index.html` resolves the badge year from `?year=<year>` (default `2025`) or from the host `<yy>.sc.pug.technology` (e.g. `24.sc.pug.technology` = 2024, `25.sc.pug.technology` = 2025), fetches `badges/<year>/badge.json`, configures screen dimensions, shape (`rect` vs `round` circular mask), capacitive touch or button bitmask/keybindings, LED count, EEPROM size, modes, and credits, and loads `badges/<year>/core.js` + `core.wasm`.
 - **Per-Year & Per-Mode Browser Storage**: `localStorage` keys are scoped by year and mode:
-  - `saintcon_<year>_<mode>_eeprom` (e.g. `saintcon_2025_pug_eeprom`, `saintcon_2025_stock_eeprom`, `saintcon_2026_stock_eeprom`)
+  - `saintcon_<year>_<mode>_eeprom` (e.g. `saintcon_2023_stock_eeprom`, `saintcon_2025_pug_eeprom`, `saintcon_2025_stock_eeprom`, `saintcon_2026_stock_eeprom`)
+  - `saintcon_2023_stock_server`, `saintcon_2023_stock_minibadges` (isolated `sc23-api` server state and 4 virtual minibadge slot selections for 2023 stock mode)
   - `saintcon_2024_stock_nvs`, `saintcon_2024_stock_server` (isolated NVS and fake tower server state for 2024 stock mode)
   - `saintcon_2025_stock_nvs`, `saintcon_2025_stock_se`, `saintcon_2025_stock_server` (isolated NVS, fake ATECC608B slots, and fake game server state for 2025 stock mode)
   - `saintcon_<year>_<mode>_speed` (for cores supporting time scaling)
@@ -97,20 +115,21 @@ Every badge core (`emulator/core/emu.h`) compiles to WebAssembly (`badges/<year>
 void      emu_init(uint32_t seed);                   // boot; reads persisted EEPROM from emu_eeprom()
 void      emu_step(uint32_t dt_ms, uint8_t buttons); // advance simulation; button bit meanings come from badge.json
 uint16_t* emu_framebuffer(void);                     // emu_fb_width() * emu_fb_height() RGB565, little-endian, row-major
-int       emu_fb_width(void);                        // LCD width in pixels (320 for 2024, 240 for 2025, 360 for 2026)
-int       emu_fb_height(void);                       // LCD height in pixels (240 for 2024, 320 for 2025, 360 for 2026)
+int       emu_fb_width(void);                        // LCD width in pixels (320 for 2023/2024, 240 for 2025, 360 for 2026)
+int       emu_fb_height(void);                       // LCD height in pixels (240 for 2023/2024, 320 for 2025, 360 for 2026)
 uint8_t*  emu_leds(void);                            // emu_led_count() * 3 bytes RGB in hardware data-chain order
-int       emu_led_count(void);                       // RGB LED count (0 for 2024, 20 for 2025, 9 for 2026)
+int       emu_led_count(void);                       // RGB LED count (20 for 2023, 0 for 2024, 20 for 2025, 9 for 2026)
 uint8_t   emu_backlight(void);                       // 0-255 LCD backlight level
 uint8_t*  emu_eeprom(void);                          // emu_eeprom_size() bytes persisted by the browser shell
-int       emu_eeprom_size(void);                     // EEPROM byte length (512 for 2024/2025, 1024 for 2026)
+int       emu_eeprom_size(void);                     // EEPROM byte length (128 for 2023, 512 for 2024/2025, 1024 for 2026)
 int       emu_eeprom_dirty(void);                    // returns 1 once after each EEPROM write, then 0
 void      emu_set_speed(uint32_t mult);              // time multiplier (used by 2025 pet mode; no-op on stock cores)
 
-// Optional extensions exported by touchscreen / IR / accelerometer badges (e.g. 2024):
+// Optional extensions exported by touchscreen / IR / accelerometer / minibadge cores (e.g. 2023, 2024):
 void      emu_set_touch(int pressed, int x, int y);  // capacitive touch state in [0..fb_width-1] x [0..fb_height-1]
-void      emu_send_ir(uint32_t code);                // inject 32-bit NEC IR beacon frame into RMT receiver
+void      emu_send_ir(uint32_t code);                // inject 32-bit NEC IR frame into virtual receiver
 void      emu_set_accel(int16_t x, int16_t y, int16_t z); // set raw accelerometer XYZ sample (16384 = +1g at +-2g)
+void      emu_set_minibadge(int slot, int catalog_index); // insert virtual I2C minibadge (0..29, or -1 empty) into 2023 slot 0..3
 ```
 
 For firmwares whose `main()` or FreeRTOS tasks block inside polling, queues, or `vTaskDelay()` / `sleep_ms()` loops (such as the 2024/2025 ESP-IDF + LVGL firmwares and 2026 Pico SDK firmware), the platform layer yields cleanly using Emscripten fibers (`ASYNCIFY` + `emscripten_fiber_*`) in WASM and POSIX `ucontext` in the native `emu-cli` binary.
@@ -118,6 +137,35 @@ For firmwares whose `main()` or FreeRTOS tasks block inside polling, queues, or 
 ---
 
 ## Building Cores & Running Headless Smoke Tests
+
+### 2023 Core ("Incidents" Dungeon Badge — `mode=stock`)
+
+```bash
+./emulator/cores/2023/build.sh
+./emulator/cores/2023/emu-cli \
+    --script emulator/cores/2023/smoke.script \
+    --out emulator/build/2023-smoke
+```
+
+`emulator/cores/2023/build.sh` runs `fetch-upstream.sh` (staging `Firmware/Source/` at commit `6f5f3407bb57` + real `ArduinoJson` `v6.21.3` at `4b0078334548` into git-ignored `emulator/cores/2023/upstream/`, scrubbing the conference Wi-Fi SSID and password in `src/badge.cpp` and verifying zero occurrences remain), compiles the normal (non-attract) badge firmware against `emulator/cores/2023/platform/` with zero upstream source patches (`-DATTRACT_IDLE_MS=0UL`, `AttractScreen.cpp` excluded) to produce `emulator/web/badges/2023/core.{js,wasm}` and `emulator/cores/2023/emu-cli`, and generates `emulator/web/badges/2023/THIRD_PARTY_LICENSES.txt`.
+
+Hardware shims in `emulator/cores/2023/platform/`:
+- **Display & LEDs**: `Arduino_GFX_Library` (`Arduino_ESP32LCD8` + `Arduino_ST7789`, rotation `3` = landscape `320×240`, `Arduino_Canvas` RGB565 framebuffer) and `FastLED` (`20` SK6812MINI LEDs on `GPIO 7`).
+- **Buttons & IR**: 7 active-low GPIO inputs with interrupt wake (`SW5` 4-way + center on `GPIO 15/18/17/8/16`, `SW3` `B` on `GPIO 39`, `SW2` `A` on `GPIO 40`) and a virtual NEC IR receiver (`GPIO 43`) and transmitter.
+- **I2C Bus (`PCA9548A` at `0x70`, `SDA=4`, `SCL=5`)**: channels `0..3` emulate 4 hot-pluggable I2C minibadge slots (`0x50` 8-byte label EEPROM, `0x58` 16-byte serial, `0x13` special `redactd ` serial); channel `5` emulates a fixed upright MC3419 accelerometer (`0x4C`, `{0, 0, 16384}` = `+1g` Z); channel `6` emulates the TFA9879 I2S audio amplifier (`0x6C`) as a **silent** no-op ACK (I2S audio playback is silent).
+- **Storage & Network**: `EEPROM` (`128` bytes in `localStorage['saintcon_2023_stock_eeprom']`), virtual `WiFi` (`"MUSEUM"` connected), and `AsyncHTTPSRequest` bridged to `window.__sc23FakeServer` (or `cli_fake_server.cpp` in `emu-cli`).
+
+#### 2023 Fake Game Server (`emulator/web/badges/2023/fake-server.js`) — Faithful vs. Invented
+
+The conference backend (`https://sc23-api.redactd.net:8443`) is offline after SAINTCON 2023. `fake-server.js` (and `platform/cli_fake_server.cpp` for `emu-cli`) implements every endpoint used by `src/request.cpp` per visitor under `localStorage['saintcon_2023_stock_*']`:
+
+- **Faithful to upstream firmware**:
+  - All HTTP endpoints, `x-auth-id` MAC header handling, `GET` vs `POST` dispatch, and JSON envelopes (`{"status": true, "response": ...}` / `{"status": false, "error": "..."}`): `GET /badge/firmware_version` (`1.4`), `GET /badge/whois`, `POST /badge/register`, `POST /badge/equip` (returning `helmet`, `armor`, `weapon`, and `item` with both `"usable"` for `Battle.cpp:80` and `"useable"` for `Battle.cpp:128`), `POST /badge/levelup`, `POST /badge/generate_levelup`, `GET /dungeon`, `POST /dungeon/enter/<id>`, `GET|POST /dungeon/update` (`{"action": "confirm_dialogue"}`), `POST /dungeon/battle` (`attack`, `cower`, `use_item`), `GET /dungeon/battle/update` (top-level `battle_result: true` + `response.{type: "round", latest_update: true, data}`), `POST /dungeon/exit/<id>`, `GET /party` (including upstream `"party_onwer"` spelling at `PartyManager.cpp:31`), `POST /party/create`, `POST /party/join`, `POST /party/leave`, `POST /party/destroy`, `GET /bank/statement`, `GET /vend`, and `POST /vend/unlock`.
+  - All 30 virtual minibadges recognized by `src/badge.cpp` and `src/i2cmanager.cpp` (`4` `simpleMinibadges` + `25` `minibadgeList` 8-character labels + `1` special `redactd ` minibadge), all 4 player classes (`Blue Team`, `Red Team`, `Social Engineer`, `Physical Security`), levels `1..4`, battle backgrounds `1..7` (`Battle.cpp:41-53`), and animated GIF sprite identifiers from `src/AnimatedSprite.cpp`.
+- **Invented for standalone museum play**:
+  - Seven Incident campaigns (`1. Bot Training` through `7. SOC Meltdown`), dialogue lines, enemy stats (`40..320` HP, `7..38` ATK), rewards (`25..160` coins and `1..2` loot drops per Incident, starting with `15` coins and `1` loot drop, plus `+25` bonus coins per vending unlock), class base stats + level scaling (`95..120` base Max HP at Lv.1 up to `170..195` at Lv.4 via `+25` HP / `+7` ATK / `+2` DEF per level), and minibadge gear bonuses (`+8..+25` HP helmets, `+10..+40` HP armor, `+6..+20` ATK and `0..+20` HP weapons, `25..75` HP usable item heals) reconstructed from the boss/NPC GIF assets compiled into `include/assets/bosses/`.
+  - Although the firmware binary embeds committee portrait GIFs (`include/assets/ui/committee.h`), the stand-in server uses only fictional mascot, NPC, and boss portraits (`Player`, `Klippy`, `Receptionist`, `Employee`, `SentinelBot`, `Lockbot`, `Reppilk`, and boss sprites) and never uses real people's handles.
+  - On-page `"Incidents Companion"` panel with 4 virtual I2C minibadge slot selectors (`U9, U10, U13, U14`), one-click `🎒 Starter Gear`, `⬆️ Level-Up IR` beacon generator (`Level-up → Level Up`, levels `1..4`), `🤝 Party IR` (`232323` for `Party → Find Party`) + `🤖 Bot Allies` toggle (`BotAlpha` & `BotBravo`, `85..155` HP, only after `1. Bot Training` is cleared), and `🎁 +1 Loot Drop`.
 
 ### 2024 Core ("Tower Battle" Wrist Badge — `mode=stock`)
 
@@ -203,13 +251,14 @@ Start the static HTTP server from the repository root:
 `tools/emu-serve` serves `emulator/web/` on port `8765`:
 
 - Museum index: `http://localhost:8765/museum.html`
+- 2023 badge: `http://localhost:8765/?year=2023`
 - 2024 badge: `http://localhost:8765/?year=2024`
 - 2025 badge: `http://localhost:8765/?year=2025`
 - 2026 badge: `http://localhost:8765/?year=2026`
 
 ## Public site (live since 2026-11-01)
 
-- Museum `https://sc.pug.technology/`, 2024 `https://24.sc.pug.technology/` (live since 2026-11-01), 2025 `https://25.sc.pug.technology/`, 2026 `https://26.sc.pug.technology/`.
+- Museum `https://sc.pug.technology/`, 2023 `https://23.sc.pug.technology/` (configured in `wrangler.jsonc`), 2023 `https://23.sc.pug.technology/` and 2024 `https://24.sc.pug.technology/` (both live since 2026-11-01), 2025 `https://25.sc.pug.technology/`, 2026 `https://26.sc.pug.technology/`.
 - Served by the Cloudflare Worker `sc-badge-museum` (static assets only).
   Config: `emulator/deploy/wrangler.jsonc` (no request logs, no workers.dev or preview URLs, 404 page, custom domains).
 - Deploy: `cd emulator/deploy && npx -y wrangler@4 deploy`. It uploads only `emulator/web/`; never put build files,
@@ -220,6 +269,18 @@ Start the static HTTP server from the repository root:
 ---
 
 ## Controls by Year
+
+### 2023 ("Incidents" — 4-Way Switch `SW5` + Action Buttons `SW2`/`SW3`)
+
+| Button | Bit | Keyboard | On-Screen |
+|---|---|---|---|
+| **UP** | `bit 0` (`0x01`) | `ArrowUp` or `W` | Drag/hold up on `SW5` (left) or `▲ UP` on pad |
+| **DOWN** | `bit 1` (`0x02`) | `ArrowDown` or `S` | Drag/hold down on `SW5` or `▼ DOWN` on pad |
+| **LEFT** | `bit 2` (`0x04`) | `ArrowLeft` or `A` | Drag/hold left on `SW5` or `◀ LEFT` on pad |
+| **RIGHT** | `bit 3` (`0x08`) | `ArrowRight` or `D` | Drag/hold right on `SW5` or `▶ RIGHT` on pad |
+| **CENTER** | `bit 4` (`0x10`) | `C` or `E` | Click/hold center of `SW5` or `● CENTER` on pad |
+| **B** (Back) | `bit 5` (`0x20`) | `X`, `Escape`, or `Backspace` | Tap/hold `B` (`SW3`) on right of PCB or `B` button on pad |
+| **A** (Confirm) | `bit 6` (`0x40`) | `Z`, `Enter`, or `Space` | Tap/hold `A` (`SW2`) on right of PCB or `A` button on pad |
 
 ### 2024 ("Tower Battle" — GT911 Capacitive Touch + Virtual IR Towers)
 
@@ -260,6 +321,7 @@ Start the static HTTP server from the repository root:
 `emulator/tools/kicad_layout.py` parses `Saintcon2024.kicad_pcb` + `Saintcon2024Top.kicad_pcb`, `Saintcon2025.kicad_pcb`, and `Apollo.kicad_pcb` (automatically converting KiCad 10 syntax in a temporary build copy when rendering with `kicad/kicad:9.0`), traces WS2812 `DIN`→`DOUT` net chains from the MCU GPIO pin where present, extracts screen/button/IR/outline geometry, renders the 3D raytraced PCB, and writes `emulator/web/badges/<year>/{layout.json,board.png}`:
 
 ```bash
+python3 emulator/tools/kicad_layout.py --year 2023
 python3 emulator/tools/kicad_layout.py --year 2024
 python3 emulator/tools/kicad_layout.py --year 2025
 python3 emulator/tools/kicad_layout.py --year 2026

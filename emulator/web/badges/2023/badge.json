@@ -1,0 +1,185 @@
+{
+  "year": 2023,
+  "name": "Incidents",
+  "title": "SAINTCON 2023 Badge (\"Incidents\")",
+  "mcu": "ESP32-S3-WROOM-1",
+  "screen_size": {
+    "width": 320,
+    "height": 240,
+    "shape": "rect",
+    "diagonal_inches": 2.8,
+    "controller": "ST7789"
+  },
+  "has_touch": false,
+  "has_incidents_companion": true,
+  "led_count": 20,
+  "led_gpio": 7,
+  "led_summary": "20 SK6812MINI (D1→D20)",
+  "eeprom_bytes": 128,
+  "has_nfc": false,
+  "has_speed_control": false,
+  "buttons": [
+    {
+      "id": "up",
+      "name": "UP",
+      "bit": 1,
+      "keys": [
+        "ArrowUp",
+        "KeyW",
+        "w",
+        "W"
+      ],
+      "hint": "W / ↑",
+      "ref": "SW5",
+      "kind": "dpad_up"
+    },
+    {
+      "id": "down",
+      "name": "DOWN",
+      "bit": 2,
+      "keys": [
+        "ArrowDown",
+        "KeyS",
+        "s",
+        "S"
+      ],
+      "hint": "S / ↓",
+      "ref": "SW5",
+      "kind": "dpad_down"
+    },
+    {
+      "id": "left",
+      "name": "LEFT",
+      "bit": 4,
+      "keys": [
+        "ArrowLeft",
+        "KeyA",
+        "a",
+        "A"
+      ],
+      "hint": "A / ←",
+      "ref": "SW5",
+      "kind": "dpad_left"
+    },
+    {
+      "id": "right",
+      "name": "RIGHT",
+      "bit": 8,
+      "keys": [
+        "ArrowRight",
+        "KeyD",
+        "d",
+        "D"
+      ],
+      "hint": "D / →",
+      "ref": "SW5",
+      "kind": "dpad_right"
+    },
+    {
+      "id": "center",
+      "name": "CENTER",
+      "bit": 16,
+      "keys": [
+        "KeyC",
+        "c",
+        "C",
+        "KeyE",
+        "e",
+        "E"
+      ],
+      "hint": "C / E",
+      "ref": "SW5",
+      "kind": "dpad_center",
+      "x_px": 143.49,
+      "y_px": 457.36,
+      "radius_px": 71.46
+    },
+    {
+      "id": "b",
+      "name": "B",
+      "bit": 32,
+      "keys": [
+        "KeyX",
+        "x",
+        "X",
+        "Escape",
+        "Backspace"
+      ],
+      "hint": "X / Esc",
+      "ref": "SW3",
+      "kind": "push",
+      "x_px": 1039.14,
+      "y_px": 414.48,
+      "radius_px": 42.88
+    },
+    {
+      "id": "a",
+      "name": "A",
+      "bit": 64,
+      "keys": [
+        "KeyZ",
+        "z",
+        "Z",
+        "Enter",
+        "Space",
+        " "
+      ],
+      "hint": "Z / Ent",
+      "ref": "SW2",
+      "kind": "push",
+      "x_px": 943.1,
+      "y_px": 529.01,
+      "radius_px": 42.88
+    }
+  ],
+  "files": {
+    "layout": "layout.json",
+    "board": "board.png",
+    "core_js": "core.js",
+    "core_wasm": "core.wasm"
+  },
+  "default_mode": "stock",
+  "modes_available": [
+    "stock"
+  ],
+  "modes_coming_soon": [],
+  "modes": {
+    "stock": {
+      "id": "stock",
+      "name": "Original Firmware",
+      "label": "Original Firmware",
+      "status": "available",
+      "core_js": "core.js",
+      "core_wasm": "core.wasm",
+      "has_speed_control": false,
+      "has_nut_tap": false,
+      "has_incidents_companion": true,
+      "description": "Original SAINTCON 2023 badge firmware & Incidents dungeon crawler"
+    }
+  },
+  "credits": {
+    "badge_by": "compukidmike",
+    "author_url": "https://github.com/compukidmike",
+    "repo_url": "https://github.com/compukidmike/Saintcon2023",
+    "source_url": "https://github.com/compukidmike/Saintcon2023/tree/6f5f3407bb57000e0131fc317ad907f27bda7234/Firmware/Source",
+    "commit": "6f5f340",
+    "third_party_licenses_url": "badges/2023/THIRD_PARTY_LICENSES.txt",
+    "other_credits": [
+      {
+        "name": "compukidmike",
+        "role": "Badge repository (hardware design files and firmware)",
+        "url": "https://github.com/compukidmike/Saintcon2023"
+      },
+      {
+        "name": "jarmknecht",
+        "role": "Firmware contributor (entry screen keyboard)",
+        "url": "https://github.com/compukidmike/Saintcon2023/commits?author=jarmknecht"
+      },
+      {
+        "name": "klipperx",
+        "role": "Firmware contributor (pull request #6: attract mode, offline Wi-Fi fallback, drawing helpers)",
+        "url": "https://github.com/compukidmike/Saintcon2023/pull/6"
+      }
+    ]
+  }
+}

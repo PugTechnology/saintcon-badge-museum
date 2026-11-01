@@ -9,6 +9,7 @@ Play SAINTCON conference badges in your browser, running their real firmware com
 | 2026 | "Orion Trail" by [Professor-plum](https://github.com/Professor-plum) ([source](https://github.com/Professor-plum/SAINTCON-BADGE-2026), MIT) | https://26.sc.pug.technology/ |
 | 2025 | "The Wrench" by [compukidmike](https://github.com/compukidmike) ([source](https://github.com/compukidmike/Saintcon2025)): original firmware, plus the [pug pet](https://github.com/PugTechnology/saintcon25-pug-pet) as a second mode | https://25.sc.pug.technology/ |
 | 2024 | "Tower Battle" wrist badge by [compukidmike](https://github.com/compukidmike) ([source](https://github.com/compukidmike/Saintcon2024)): original firmware with a stand-in tower server | https://24.sc.pug.technology/ |
+| 2023 | "Incidents" by [compukidmike](https://github.com/compukidmike) ([source](https://github.com/compukidmike/Saintcon2023)), with contributions from jarmknecht and klipperx: original firmware with a stand-in game server | https://23.sc.pug.technology/ |
 
 Unofficial fan project. Not affiliated with or endorsed by [SAINTCON](https://saintcon.org/) or UtahSAINT.
 
@@ -42,6 +43,6 @@ firmware. See `emulator/README.md`.
 
 The code made for this project (the emulator shell, platform layers, build scripts) is MIT licensed, see `LICENSE`.
 The pug pet is MIT licensed in its own repo. The badge firmware belongs to its authors: the compiled cores in
-`emulator/web/badges/<year>/` contain their code under their terms (the 2026 firmware is MIT; the 2024 and 2025 firmware
-belongs to compukidmike), plus the third-party libraries listed in each
+`emulator/web/badges/<year>/` contain their code under their terms (the 2026 firmware is MIT; the 2023, 2024 and 2025 firmware
+belongs to compukidmike and its contributors), plus the third-party libraries listed in each
 year's `THIRD_PARTY_LICENSES.txt`.

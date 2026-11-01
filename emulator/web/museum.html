@@ -6,7 +6,7 @@
   <title>SAINTCON Badge Museum</title>
   <script>
     (function () {
-      var LIVE_YEARS = ['2024', '2025', '2026'];
+      var LIVE_YEARS = ['2023', '2024', '2025', '2026'];
       var PROD = 'sc.pug.technology';
       var host = (window.location.hostname || '').toLowerCase();
       var isProdDomain = host === PROD || host.endsWith('.' + PROD);
@@ -408,11 +408,51 @@
       <a class="card-cta" style="padding: 8px 14px; width: auto;" href="?year=2026">Play 2026 Badge →</a>
       <a class="card-cta secondary" style="padding: 8px 14px; width: auto;" href="?year=2025">Play 2025 Badge →</a>
       <a class="card-cta secondary" style="padding: 8px 14px; width: auto;" href="?year=2024">Play 2024 Badge →</a>
+      <a class="card-cta secondary" style="padding: 8px 14px; width: auto;" href="?year=2023">Play 2023 Badge →</a>
     </div>
   </header>
 
   <main>
     <div class="cards-grid">
+      <!-- 2023 Badge Card (LIVE) -->
+      <article class="year-card" id="card-2023">
+        <div class="card-top">
+          <a class="card-thumb landscape" href="?year=2023" title="Launch SAINTCON 2023 Incidents Badge Emulator">
+            <img src="badges/2023/board.png" alt="SAINTCON 2023 Incidents Badge PCB" />
+          </a>
+          <div class="card-head-info">
+            <div class="status-row">
+              <span class="year-badge">2023</span>
+              <span class="status-pill live">● Live</span>
+            </div>
+            <h2><a href="?year=2023" style="color: inherit;">"Incidents"</a></h2>
+            <p class="hw-summary">
+              ESP32-S3-WROOM-1 • 2.8" 320×240 ST7789 8080 LCD • 20 SK6812MINI LEDs • 4-way switch (SW5) + A &amp; B buttons (SW2, SW3) • NEC IR TX/RX • 4 I2C minibadge slots.
+            </p>
+          </div>
+        </div>
+
+        <div class="modes-row">
+          <a class="mode-chip" href="?year=2023" style="color: inherit;">🚀 <strong>Original Firmware</strong></a>
+        </div>
+
+        <div class="credits-box">
+          <div class="main-credit">
+            <strong>Badge by <a href="https://github.com/compukidmike" target="_blank" rel="noopener">compukidmike</a></strong>
+            • Repo: <a href="https://github.com/compukidmike/Saintcon2023" target="_blank" rel="noopener">github.com/compukidmike/Saintcon2023</a>
+            (<a href="https://github.com/compukidmike/Saintcon2023/tree/6f5f3407bb57000e0131fc317ad907f27bda7234/Firmware/Source" target="_blank" rel="noopener"><code>6f5f340</code></a>)
+            • <a href="badges/2023/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">Third-party licenses</a>
+          </div>
+          <div class="sub-credit">
+            Original badge firmware &amp; Incidents dungeon crawler from <a href="https://github.com/compukidmike/Saintcon2023" target="_blank" rel="noopener"><strong>compukidmike/Saintcon2023</strong></a>, with contributions from <a href="https://github.com/compukidmike/Saintcon2023/commits?author=jarmknecht" target="_blank" rel="noopener">jarmknecht</a> and <a href="https://github.com/compukidmike/Saintcon2023/pull/6" target="_blank" rel="noopener">klipperx</a>
+          </div>
+        </div>
+
+        <div class="card-actions">
+          <a class="card-cta" href="?year=2023">Play Original Firmware →</a>
+        </div>
+      </article>
+
       <!-- 2024 Badge Card (LIVE) -->
       <article class="year-card" id="card-2024">
         <div class="card-top">
@@ -545,7 +585,7 @@
         <strong><a href="https://saintcon.org" target="_blank" rel="noopener">SAINTCON</a></strong> is Utah's annual cybersecurity and hackers conference, organized by the UtahSAINT community and known for its custom electronic badges.
       </p>
       <p>
-        2024 and 2025 are built from <a href="https://github.com/compukidmike" target="_blank" rel="noopener">compukidmike</a>'s source (<a href="badges/2024/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2024 third-party licenses</a>, <a href="badges/2025/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2025 third-party licenses</a>); 2026 is built from <a href="https://github.com/Professor-plum" target="_blank" rel="noopener">Professor-plum</a>'s <a href="badges/2026/LICENSE.txt" target="_blank" rel="noopener">MIT-licensed</a> source (<a href="badges/2026/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2026 third-party licenses</a>).
+        2023, 2024, and 2025 are built from <a href="https://github.com/compukidmike" target="_blank" rel="noopener">compukidmike</a>'s source (<a href="badges/2023/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2023 third-party licenses</a>, <a href="badges/2024/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2024 third-party licenses</a>, <a href="badges/2025/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2025 third-party licenses</a>); 2026 is built from <a href="https://github.com/Professor-plum" target="_blank" rel="noopener">Professor-plum</a>'s <a href="badges/2026/LICENSE.txt" target="_blank" rel="noopener">MIT-licensed</a> source (<a href="badges/2026/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2026 third-party licenses</a>).
       </p>
       <p>
         <strong>Browser-Only Storage:</strong> Each badge's simulated EEPROM/flash is stored locally in your browser's <code>localStorage</code> (isolated per year and mode). No external CDNs, no analytics, and no cookies are used.

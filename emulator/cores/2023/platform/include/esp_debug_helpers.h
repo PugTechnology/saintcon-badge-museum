@@ -1,0 +1,3 @@
+#ifndef SC23_ESP_DEBUG_HELPERS_H
+#define SC23_ESP_DEBUG_HELPERS_H
+#endif

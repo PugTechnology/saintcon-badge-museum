@@ -6,7 +6,7 @@
   <title>SAINTCON Badge Emulator</title>
   <script>
     (function () {
-      var LIVE_YEARS = ['2024', '2025', '2026'];
+      var LIVE_YEARS = ['2023', '2024', '2025', '2026'];
       var PROD = 'sc.pug.technology';
       var host = (window.location.hostname || '').toLowerCase();
       var isProdDomain = host === PROD || host.endsWith('.' + PROD);
@@ -814,6 +814,28 @@
       color: #56d364;
     }
 
+    /* 2023 Incidents Companion — 4 Virtual I2C Minibadge Slots */
+    .mb-slots-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 6px;
+      margin-bottom: 7px;
+    }
+
+    .mb-slot-item {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .mb-slot-label {
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      color: var(--text-muted);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
     /* Phone Tap Notification Banner: Styled like a phone notification sliding in, dismisses on click */
     .phone-notification {
       position: fixed;
@@ -1197,6 +1219,44 @@
         </div>
       </div>
 
+      <!-- 2023 Incidents Companion Panel (4 Minibadge Slots + Solo IR & Vending) -->
+      <div class="panel-card" id="incidents-panel-card" style="display: none;" aria-label="2023 Incidents Companion">
+        <h2>Incidents Companion</h2>
+        <p class="towers-hint">
+          Plug virtual I2C minibadges into the 4 PCB slots (<code>U9</code>, <code>U10</code>, <code>U13</code>, <code>U14</code>) for gear buffs, or send solo IR beacons:
+        </p>
+        <div class="mb-slots-grid" aria-label="4 Virtual I2C Minibadge Slots">
+          <label class="mb-slot-item">
+            <span class="mb-slot-label">SLOT 1 (U9)</span>
+            <select id="mb-slot-0" class="nut-select" aria-label="Minibadge Slot 1 (U9)"></select>
+          </label>
+          <label class="mb-slot-item">
+            <span class="mb-slot-label">SLOT 2 (U10)</span>
+            <select id="mb-slot-1" class="nut-select" aria-label="Minibadge Slot 2 (U10)"></select>
+          </label>
+          <label class="mb-slot-item">
+            <span class="mb-slot-label">SLOT 3 (U13)</span>
+            <select id="mb-slot-2" class="nut-select" aria-label="Minibadge Slot 3 (U13)"></select>
+          </label>
+          <label class="mb-slot-item">
+            <span class="mb-slot-label">SLOT 4 (U14)</span>
+            <select id="mb-slot-3" class="nut-select" aria-label="Minibadge Slot 4 (U14)"></select>
+          </label>
+        </div>
+        <div class="btn-row" style="margin-bottom: 6px;">
+          <button type="button" class="ctrl-btn gold" id="btn-sc23-levelup" title="Beam a one-time Level-Up NEC IR code while on Level-up → Level Up">⬆️ Level-Up IR</button>
+          <button type="button" class="ctrl-btn" id="btn-sc23-party-ir" title="Beam Bot Party NEC IR code 232323 while on Party → Find Party">🤝 Party IR</button>
+          <button type="button" class="ctrl-btn" id="btn-sc23-bot-allies" title="Toggle BotAlpha &amp; BotBravo allies for solo party Incident battles">🤖 Bot Allies: OFF</button>
+        </div>
+        <div class="btn-row">
+          <button type="button" class="ctrl-btn" id="btn-sc23-starter-gear" title="Plug a balanced 4-slot set (Klipper Helm, SAINTCON Hoodie, Pixel Broadsword, Hot Coffee) into U9–U14">🎒 Starter Gear</button>
+          <button type="button" class="ctrl-btn" id="btn-sc23-loot" title="Add +1 pending loot drop to test the Vending machine menu">🎁 +1 Loot Drop</button>
+        </div>
+        <div class="nut-status-box" id="incidents-status-box">
+          First boot: use ↑/↓ + A (Z / Enter) to choose a class, avatar, and handle on the badge.
+        </div>
+      </div>
+
       <!-- Emulator Controls Panel -->
       <div class="panel-card">
         <h2>Emulator Controls</h2>
@@ -1327,6 +1387,7 @@
   </footer>
 
   <script src="mock-core.js"></script>
+  <script src="badges/2023/fake-server.js"></script>
   <script src="badges/2024/fake-server.js"></script>
   <script src="badges/2025/fake-server.js"></script>
   <script>
@@ -1337,7 +1398,7 @@
       const DESKTOP_BREAKPOINT_PX = 820;
       const MAX_STEP_DT_MS = 100;
       const MAX_HIDDEN_CATCHUP_MS = 300000; // Bound catch-up at 5 min of real time in 100 ms steps
-      const LIVE_YEARS = ['2024', '2025', '2026'];
+      const LIVE_YEARS = ['2023', '2024', '2025', '2026'];
       const COMING_SOON_YEARS = []; // Only years explicitly listed as coming soon
       const WASM_MISSING_MSG = 'This emulator needs WebAssembly; it may be turned off, e.g. iPhone Lockdown Mode';
 
@@ -1536,6 +1597,19 @@
       const btnTowersRespawn = document.getElementById('btn-towers-respawn');
       const wristTiltSelect = document.getElementById('wrist-tilt-select');
       const towersStatusBox = document.getElementById('towers-status-box');
+      const incidentsPanelCard = document.getElementById('incidents-panel-card');
+      const mbSlotSelects = [
+        document.getElementById('mb-slot-0'),
+        document.getElementById('mb-slot-1'),
+        document.getElementById('mb-slot-2'),
+        document.getElementById('mb-slot-3'),
+      ];
+      const btnSc23Levelup = document.getElementById('btn-sc23-levelup');
+      const btnSc23PartyIr = document.getElementById('btn-sc23-party-ir');
+      const btnSc23BotAllies = document.getElementById('btn-sc23-bot-allies');
+      const btnSc23StarterGear = document.getElementById('btn-sc23-starter-gear');
+      const btnSc23Loot = document.getElementById('btn-sc23-loot');
+      const incidentsStatusBox = document.getElementById('incidents-status-box');
       const nfcCaptureLabel = document.getElementById('nfc-capture-label');
       const btnPhoneTap = document.getElementById('btn-phone-tap');
 
@@ -2475,7 +2549,7 @@
         e.currentTarget.blur();
         if (!core) return;
         flushEepromToStorage(true);
-        if ((currentYear === '2025' || currentYear === '2024') && currentMode === 'stock' && !core.isMock && !isMockRequested) {
+        if ((currentYear === '2025' || currentYear === '2024' || currentYear === '2023') && currentMode === 'stock' && !core.isMock && !isMockRequested) {
           window.location.reload();
           return;
         }
@@ -2504,6 +2578,25 @@
           showStorageUnavailableNote();
         }
         if (removeFailed) {
+          return;
+        }
+        if (currentYear === '2023' && currentMode === 'stock' && !core.isMock && !isMockRequested) {
+          let wipe23Ok = true;
+          try {
+            localStorage.removeItem('saintcon_2023_stock_server');
+            localStorage.removeItem('saintcon_2023_stock_minibadges');
+            if (window.__sc23FakeServer && typeof window.__sc23FakeServer.resetState === 'function') {
+              window.__sc23FakeServer.resetState();
+            }
+          } catch (err) {
+            console.warn('Failed to wipe 2023 server/minibadges from localStorage:', err);
+            wipe23Ok = false;
+          }
+          if (wipe23Ok) {
+            window.location.reload();
+          } else {
+            showStorageUnavailableNote();
+          }
           return;
         }
         if (currentYear === '2024' && currentMode === 'stock' && !core.isMock && !isMockRequested) {
@@ -2826,6 +2919,226 @@
         });
       }
 
+      // 2023 Incidents Companion Panel (4 Virtual I2C Minibadge Slots + Solo IR & Vending)
+      const SC23_MB_STORAGE_KEY = 'saintcon_2023_stock_minibadges';
+      let sc23SlotsState = [-1, -1, -1, -1];
+      let sc23SelectsInitialized = false;
+      let lastIncidentsBannerInfo = null;
+
+      function loadSavedSc23Minibadges() {
+        if (isMockRequested || (core && core.isMock)) {
+          return [-1, -1, -1, -1];
+        }
+        try {
+          const raw = localStorage.getItem(SC23_MB_STORAGE_KEY);
+          if (!raw) return [-1, -1, -1, -1];
+          const parsed = JSON.parse(raw);
+          if (!Array.isArray(parsed)) return [-1, -1, -1, -1];
+          return [0, 1, 2, 3].map((i) => {
+            const v = Number(parsed[i]);
+            return Number.isInteger(v) && v >= -1 && v < 30 ? v : -1;
+          });
+        } catch (_) {
+          return [-1, -1, -1, -1];
+        }
+      }
+
+      function saveSc23Minibadges(slots) {
+        if (isMockRequested || (core && core.isMock)) return;
+        try {
+          localStorage.setItem(SC23_MB_STORAGE_KEY, JSON.stringify(slots));
+        } catch (_) {
+          showStorageUnavailableNote();
+        }
+      }
+
+      function initSc23MinibadgeSelects() {
+        if (sc23SelectsInitialized || !window.__sc23FakeServer) return;
+        const catalog = window.__sc23FakeServer.getMinibadgeCatalog();
+        const slotTag = { helmet: 'Helm', armor: 'Armor', weapon: 'Wpn', item: 'Item' };
+        sc23SlotsState = loadSavedSc23Minibadges();
+
+        mbSlotSelects.forEach((sel, slotIdx) => {
+          if (!sel) return;
+          sel.replaceChildren();
+          const emptyOpt = document.createElement('option');
+          emptyOpt.value = '-1';
+          emptyOpt.textContent = '— Empty Slot —';
+          sel.appendChild(emptyOpt);
+
+          for (const mb of catalog) {
+            const opt = document.createElement('option');
+            const wIdx = Number.isInteger(mb.wasm_index) ? mb.wasm_index : -1;
+            if (wIdx < 0) continue;
+            opt.value = String(wIdx);
+            const tag = slotTag[mb.slot] || mb.slot;
+            opt.textContent = `[${tag}] ${mb.name} (${mb.stat})`;
+            sel.appendChild(opt);
+          }
+
+          sel.value = String(sc23SlotsState[slotIdx]);
+          sel.addEventListener('change', () => {
+            const chosen = Number(sel.value);
+            const validIdx = Number.isInteger(chosen) && chosen >= -1 && chosen < 30 ? chosen : -1;
+            sc23SlotsState[slotIdx] = validIdx;
+            saveSc23Minibadges(sc23SlotsState);
+            if (window.__sc23FakeServer && typeof window.__sc23FakeServer.syncMinibadgeIndices === 'function') {
+              window.__sc23FakeServer.syncMinibadgeIndices(sc23SlotsState);
+            }
+            if (core && typeof core.emu_set_minibadge === 'function') {
+              core.emu_set_minibadge(slotIdx, validIdx);
+            }
+            updateIncidentsPanel({
+              kind: 'minibadge',
+              slot: slotIdx + 1,
+              text: sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].textContent : 'Updated',
+            });
+          });
+        });
+
+        sc23SelectsInitialized = true;
+      }
+
+      function applySc23MinibadgesToCore() {
+        if (window.__sc23FakeServer && typeof window.__sc23FakeServer.syncMinibadgeIndices === 'function') {
+          window.__sc23FakeServer.syncMinibadgeIndices(sc23SlotsState);
+        }
+        if (!core || typeof core.emu_set_minibadge !== 'function') return;
+        for (let i = 0; i < 4; i++) {
+          core.emu_set_minibadge(i, sc23SlotsState[i]);
+        }
+      }
+
+      function updateIncidentsPanel(extraInfo) {
+        if (!incidentsStatusBox || !window.__sc23FakeServer) return;
+        initSc23MinibadgeSelects();
+        if (extraInfo !== undefined) {
+          lastIncidentsBannerInfo = extraInfo;
+        }
+        const st = window.__sc23FakeServer.getStateSummary();
+        if (btnSc23BotAllies) {
+          btnSc23BotAllies.textContent = st.bot_allies ? '🤖 Bot Allies: ON' : '🤖 Bot Allies: OFF';
+          btnSc23BotAllies.classList.toggle('active', Boolean(st.bot_allies));
+        }
+
+        incidentsStatusBox.replaceChildren();
+        if (lastIncidentsBannerInfo && typeof lastIncidentsBannerInfo === 'object') {
+          const evDiv = document.createElement('div');
+          evDiv.style.marginBottom = '3px';
+          evDiv.style.color = '#e6edf3';
+          if (lastIncidentsBannerInfo.kind === 'levelup') {
+            evDiv.append('⬆️ Level-Up NEC IR code ');
+            const codeEl = document.createElement('strong');
+            codeEl.textContent = String(lastIncidentsBannerInfo.code);
+            evDiv.appendChild(codeEl);
+            evDiv.append(' beamed (open Level-up → Level Up on badge).');
+          } else if (lastIncidentsBannerInfo.kind === 'party_ir') {
+            evDiv.append('🤝 Bot Party NEC IR code ');
+            const codeEl = document.createElement('strong');
+            codeEl.textContent = String(lastIncidentsBannerInfo.code);
+            evDiv.appendChild(codeEl);
+            evDiv.append(' beamed (open Party → Find Party on badge).');
+          } else if (lastIncidentsBannerInfo.kind === 'allies') {
+            evDiv.textContent = st.bot_allies
+              ? '🤖 BotAlpha & BotBravo joined your Incident party!'
+              : '🤖 Bot allies dismissed (solo Incident battles).';
+          } else if (lastIncidentsBannerInfo.kind === 'allies_locked') {
+            evDiv.textContent = '🤖 Finish Incident "1. Bot Training" on the badge first, then the bots can join.';
+          } else if (lastIncidentsBannerInfo.kind === 'starter') {
+            evDiv.textContent = '🎒 Inserted Klipper Helm, SAINTCON Hoodie, Pixel Broadsword & Hot Coffee into U9–U14.';
+          } else if (lastIncidentsBannerInfo.kind === 'loot') {
+            evDiv.textContent = `🎁 Added +1 loot drop (${st.pending_lootdrop} pending — open Vending machine on badge).`;
+          } else if (lastIncidentsBannerInfo.kind === 'minibadge') {
+            evDiv.textContent = `🔌 Slot ${lastIncidentsBannerInfo.slot}: ${lastIncidentsBannerInfo.text}`;
+          }
+          incidentsStatusBox.appendChild(evDiv);
+        }
+
+        const pDiv = document.createElement('div');
+        if (st.registered) {
+          pDiv.append('Responder: ');
+          const stH = document.createElement('strong');
+          stH.textContent = String(st.handle || 'Responder');
+          pDiv.appendChild(stH);
+          const partyStr = st.in_party
+            ? (st.bot_allies ? ` • Party #${st.party_code} (+2 bots)` : ` • Party #${st.party_code}`)
+            : '';
+          pDiv.append(
+            ` • ${st.class_name} Lv.${st.level}/4 • ${st.max_hp} HP / ${st.atk} ATK / ${st.def} DEF • ${st.coins} coins • ${st.pending_lootdrop} loot${partyStr}`
+          );
+        } else {
+          pDiv.textContent = 'First boot: use ↑/↓ + A (Z / Enter) to choose a class, avatar, and handle on the badge.';
+        }
+        incidentsStatusBox.appendChild(pDiv);
+      }
+
+      if (btnSc23Levelup) {
+        btnSc23Levelup.addEventListener('click', (e) => {
+          e.currentTarget.blur();
+          if (!core || core.isMock || isMockRequested || !window.__sc23FakeServer) return;
+          const code = window.__sc23FakeServer.issueLevelUpCode() >>> 0;
+          if (typeof core.emu_send_ir === 'function') {
+            core.emu_send_ir(code);
+          }
+          updateIncidentsPanel({ kind: 'levelup', code });
+        });
+      }
+
+      if (btnSc23PartyIr) {
+        btnSc23PartyIr.addEventListener('click', (e) => {
+          e.currentTarget.blur();
+          if (!core || core.isMock || isMockRequested || !window.__sc23FakeServer) return;
+          const code = (window.__sc23FakeServer.BOT_PARTY_CODE || 232323) >>> 0;
+          if (typeof core.emu_send_ir === 'function') {
+            core.emu_send_ir(code);
+          }
+          updateIncidentsPanel({ kind: 'party_ir', code });
+        });
+      }
+
+      if (btnSc23BotAllies) {
+        btnSc23BotAllies.addEventListener('click', (e) => {
+          e.currentTarget.blur();
+          if (!core || core.isMock || isMockRequested || !window.__sc23FakeServer) return;
+          const cur = window.__sc23FakeServer.getStateSummary();
+          const res = window.__sc23FakeServer.setPartyBotAllies(!cur.bot_allies);
+          updateIncidentsPanel({ kind: res && res.needs_training ? 'allies_locked' : 'allies' });
+        });
+      }
+
+      if (btnSc23StarterGear) {
+        btnSc23StarterGear.addEventListener('click', (e) => {
+          e.currentTarget.blur();
+          if (!core || core.isMock || isMockRequested || !window.__sc23FakeServer) return;
+          initSc23MinibadgeSelects();
+          const starter = [4, 7, 5, 14]; // KlipperH, SCHoodie, Sword, Coffee
+          sc23SlotsState = starter.slice();
+          saveSc23Minibadges(sc23SlotsState);
+          mbSlotSelects.forEach((sel, idx) => {
+            if (sel) sel.value = String(sc23SlotsState[idx]);
+          });
+          applySc23MinibadgesToCore();
+          updateIncidentsPanel({ kind: 'starter' });
+        });
+      }
+
+      if (btnSc23Loot) {
+        btnSc23Loot.addEventListener('click', (e) => {
+          e.currentTarget.blur();
+          if (!core || core.isMock || isMockRequested || !window.__sc23FakeServer) return;
+          window.__sc23FakeServer.grantLootDrop();
+          updateIncidentsPanel({ kind: 'loot' });
+        });
+      }
+
+      if (window.__sc23FakeServer && typeof window.__sc23FakeServer.onChange === 'function') {
+        window.__sc23FakeServer.onChange(() => {
+          if (core && !core.isMock && !isMockRequested && currentYear === '2023') {
+            updateIncidentsPanel();
+          }
+        });
+      }
+
       document.getElementById('btn-phone-tap').addEventListener('click', (e) => {
         e.currentTarget.blur();
         if (!core) return;
@@ -2899,6 +3212,7 @@
         const emu_set_touch = fn('emu_set_touch', () => {});
         const emu_send_ir = fn('emu_send_ir', () => {});
         const emu_set_accel = fn('emu_set_accel', () => {});
+        const emu_set_minibadge = fn('emu_set_minibadge', () => {});
 
         return {
           isMock: Boolean(isMock || raw.isMock),
@@ -2918,6 +3232,7 @@
           emu_set_touch,
           emu_send_ir,
           emu_set_accel,
+          emu_set_minibadge,
           getFramebufferView() {
             const ptr = emu_framebuffer() >>> 0;
             const len = (emu_fb_width() | 0) * (emu_fb_height() | 0);
@@ -3204,6 +3519,9 @@
         if (towersPanelCard) {
           towersPanelCard.style.display = 'none';
         }
+        if (incidentsPanelCard) {
+          incidentsPanelCard.style.display = 'none';
+        }
         syncTouchUiState();
 
         const hasNfc = meta.has_nfc !== false;
@@ -3404,6 +3722,8 @@
                 st,
                 document.createElement('br'),
                 'Available badges: ',
+                makeNavLink(yearHref('2023'), '2023 ("Incidents")'),
+                ', ',
                 makeNavLink(yearHref('2024'), '2024 ("Tower Battle")'),
                 ', ',
                 makeNavLink(yearHref('2025'), '2025 ("The Wrench")'),
@@ -3489,6 +3809,18 @@
           updateTowersPanel();
         }
 
+        const showIncidentsControls = Boolean(
+          ((activeModeObj && activeModeObj.has_incidents_companion) || meta.has_incidents_companion) &&
+          !core.isMock &&
+          !isMockRequested
+        );
+        if (incidentsPanelCard) {
+          incidentsPanelCard.style.display = showIncidentsControls ? '' : 'none';
+        }
+        if (showIncidentsControls) {
+          updateIncidentsPanel();
+        }
+
         // Sync framebuffer dimensions, LED count, and EEPROM size from the Generalized Core ABI
         const coreW = core.emu_fb_width() | 0;
         const coreH = core.emu_fb_height() | 0;
@@ -3516,11 +3848,22 @@
             hadNvs = Boolean(localStorage.getItem('saintcon_2024_stock_nvs'));
           } catch (_) {}
           telEeprom.textContent = hadNvs ? 'saintcon_2024_stock_nvs (Loaded)' : 'saintcon_2024_stock_nvs (Fresh)';
+        } else if (currentYear === '2023' && currentMode === 'stock' && !core.isMock && !isMockRequested) {
+          let hadSrv23 = false;
+          try {
+            hadSrv23 = Boolean(localStorage.getItem('saintcon_2023_stock_server'));
+          } catch (_) {}
+          telEeprom.textContent = (hadSaved || hadSrv23)
+            ? 'saintcon_2023_stock_* (Loaded)'
+            : 'saintcon_2023_stock_* (Fresh)';
         } else {
           telEeprom.textContent = hadSaved ? `${eepromKey} (Loaded)` : `${eepromKey} (Fresh)`;
         }
 
         core.emu_init((Date.now() & 0xffffffff) >>> 0);
+        if (showIncidentsControls) {
+          applySc23MinibadgesToCore();
+        }
         core.emu_set_speed(currentSpeed);
         if (core.emu_eeprom_dirty()) {
           eepromPendingSave = true;
@@ -3640,6 +3983,11 @@
           setAccel(x, y, z) {
             if (core && typeof core.emu_set_accel === 'function') {
               core.emu_set_accel(x | 0, y | 0, z | 0);
+            }
+          },
+          setMinibadge(slot, idx) {
+            if (core && typeof core.emu_set_minibadge === 'function') {
+              core.emu_set_minibadge(slot | 0, idx | 0);
             }
           },
           simulateHiddenReturn(elapsedMs) {

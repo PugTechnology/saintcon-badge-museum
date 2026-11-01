@@ -1,0 +1,54 @@
+# SAINTCON 2023 Badge ("Incidents") headless smoke script
+# Drives boot -> character registration -> main menu -> entering a dungeon -> battle
+
+# 1. Boot splash screen + 8-LED ring chase (0..800 ms)
+wait 260
+shot-screen 01-boot
+shot-badge 01b-boot-badge
+
+# 2. Finish boot -> unregistered badge enters CharacterPicker ("Pick your avatar")
+wait 1400
+press right
+wait 120
+press a
+wait 150
+
+# Class picker ("Pick your class": Blue Team, Red Team, Social Engineer, Physical Security)
+press down
+press a
+wait 150
+
+# Handle & Email entry on EntryScreen 13x5 keypad
+type-entry Player23
+wait 150
+type-entry p23@example.org
+wait 400
+
+# Insert virtual minibadges (Sword weapon, SCHoodie armor, Coffee usable item)
+minibadge 1 Sword
+minibadge 2 SCHoodie
+minibadge 3 Coffee
+wait 400
+
+# 3. Main Menu screen (+ full PCB composite with Wi-Fi & minibadge slot LEDs)
+shot-screen 02-main-screen
+shot-badge 02b-main-badge
+
+# 4. Select "Incidents" -> "Choose Incident" -> enter "1. Bot Training" (committee face dialogue)
+press a
+wait 350
+press a
+wait 450
+shot-screen 03-enter-dungeon
+
+# 5. Advance past intro dialogue into Battle against TrainingBot1
+press a
+wait 450
+shot-screen 04-battle
+shot-badge 04b-battle-badge
+
+# Execute an Attack round in battle to verify /dungeon/battle & /dungeon/battle/update
+press a
+wait 220
+shot-screen 04c-battle-attack
+wait 1000
