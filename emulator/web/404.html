@@ -76,8 +76,10 @@
     <p>No emulator resource exists at this URL.</p>
     <div class="links">
       <a class="btn" id="link-museum" href="/museum.html">🏛️ Badge Museum</a>
+      <a class="btn secondary" id="link-2017" href="/?year=2017">2017 Minibadge</a>
       <a class="btn secondary" id="link-2018" href="/?year=2018">2018 Badge</a>
       <a class="btn secondary" id="link-2019" href="/?year=2019">2019 Badge</a>
+      <a class="btn secondary" id="link-2020" href="/?year=2020">2020 Badge</a>
       <a class="btn secondary" id="link-2021" href="/?year=2021">2021 Badge</a>
       <a class="btn secondary" id="link-2023" href="/?year=2023">2023 Badge</a>
       <a class="btn secondary" id="link-2024" href="/?year=2024">2024 Badge</a>
@@ -92,16 +94,20 @@
       var host = (window.location.hostname || '').toLowerCase();
       if (host === 'sc.pug.technology' || host.endsWith('.sc.pug.technology')) {
         var lMuseum = document.getElementById('link-museum');
+        var l2017 = document.getElementById('link-2017');
         var l2018 = document.getElementById('link-2018');
         var l2019 = document.getElementById('link-2019');
+        var l2020 = document.getElementById('link-2020');
         var l2021 = document.getElementById('link-2021');
         var l2023 = document.getElementById('link-2023');
         var l2024 = document.getElementById('link-2024');
         var l2025 = document.getElementById('link-2025');
         var l2026 = document.getElementById('link-2026');
         if (lMuseum) lMuseum.href = 'https://sc.pug.technology/';
+        if (l2017) l2017.href = 'https://17.sc.pug.technology/';
         if (l2018) l2018.href = 'https://18.sc.pug.technology/';
         if (l2019) l2019.href = 'https://19.sc.pug.technology/';
+        if (l2020) l2020.href = 'https://20.sc.pug.technology/';
         if (l2021) l2021.href = 'https://21.sc.pug.technology/';
         if (l2023) l2023.href = 'https://23.sc.pug.technology/';
         if (l2024) l2024.href = 'https://24.sc.pug.technology/';

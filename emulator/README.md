@@ -2,8 +2,10 @@
 
 Browser-based hardware shell (`emulator/web/index.html`), multi-year badge museum (`emulator/web/museum.html`), and native headless script runners for SAINTCON electronic conference badges:
 
+- **2017 — SAINTCON 2017 HITB Minibadge (minibadge — not the main 2017 conference badge)** (`?year=2017`): ATtiny45 (`U1`, board package `Tiny45-20-SMT`, schematic device `TINY45-20-SMT`) 2-layer EAGLE PCB (`HITBUTT_Minibadge/Base-Rev0.brd`, `20.32×20.32 mm`), two APA102 5050 RGB LEDs (`U2`, `U3` driven via `APA102<dataPin, clockPin>` with `dataPin = 0` on `PB0` and `clockPin = 2` on `PB2` at `brightness = 10` in `HITBUTT_Minibadge/HITB_Test.ino:5-18,56`), and two capacitive touch pads (`TOUCH_BTN_1` circular center ring on `A3`/`PB3` on the bottom copper layer `Base-Rev0.brd:191` with threshold `value0 > 40`, and `TOUCH_BTN_2` rectangular pad `"You Can't Touch This"` on `A2`/`PB4` on the top copper layer `Base-Rev0.brd:1854`, text `:223`, with threshold `value1 > 10` in `HITB_Test.ino:23-53`), running `compukidmike`'s unmodified `HITBUTT_Minibadge/HITB_Test.ino` sketch (`mode=stock`, "Original Firmware"; back silkscreen `Base-Rev0.brd:215-222` under `@HITBUTT 2017` names `compukidmike`, `d4rkm4tter`, `kampf`, `D3M0S`, `Heinrich`, `dumby`, `RuShan`, listed in the order of the board file) against our own `APA102.h` and `ADCTouch.h` shims.
 - **2018, LED matrix badge (our description, upstream gives no title)** (`?year=2018`): ESP32 (LOLIN D32) padlock PCB (`Saintcon2018.kicad_pcb`), arched 8×32 discrete red 0603 LED matrix (`D1..D256`) driven by two `IS31FL3730` I2C dual-8×8 matrix drivers (`U2` at `0x60`, `U3` at `0x61`), 3 tactile switches (`SW1`=`UP`, `SW2`=`DOWN`, `SW3`=`SELECT`), second I2C bus (`i2c2`, 10 kHz) for 5 minibadge addresses (`0x01, 0x29, 0x40, 0x41, 0x42`), and `microWebSrv` Wi-Fi AP config portal (`www/`), running `compukidmike` and `miketweaver`'s original SAINTCON 2018 MicroPython firmware (`mode=stock`, "Original Firmware") inside MicroPython `v1.24.1` compiled to WebAssembly (`ports/webassembly`).
 - **2019 — Enigma badge** (`?year=2019`): STM32L433VCTx two-board stack (`Saintcon2019TopBoard.kicad_pcb` + `Saintcon2019.kicad_pcb`, `Saintcon2019.ioc:30,121`), Lattice `ICE40HX1K-TQ144` FPGA (`Saintcon2019TopBoard.kicad_pcb` `U1`, `SaintconFPGA.ice`) driving a `64×16` RGB LED matrix over `SPI1` (`hspi1` at `Src/matrix.c:192`), 26 RGB lampboard LEDs (`D1..D26`) driven by an `IS31FL3736` (`U4` at `LED_I2C_ADDR = 0x50 << 1` on `I2C1`, `Drivers/IS31FL3736/drv_is31fl.c:41`), 26 tactile QWERTZ keyboard switches (`SW1..SW26` on `KBD_A_Pin..KBD_Z_Pin` active-low GPIOs, `Inc/main.h:69-78,117-134,139-146,170-185`), 26-pin `A`–`Z` physical jumper plugboard (`J3`/`J4`, `PlugA..PlugZ` on `Inc/main.h:79-84,87-116,154-169` and `PLUGA..PLUGZ` on `Inc/main.h:279-330`), ST `EEPROM_Emul` non-volatile storage (`VirtAddVarTab[NB_OF_VARIABLES]` in `Src/main.c:88,181-184`, with `NB_OF_VARIABLES` raised from `260U` in `Inc/eeprom_emul_conf.h:97` to `320U` in `platform/eeprom_emul.h:13`), `I2C2` minibadge bus, and `USART1` side connectors, running `compukidmike`'s original SAINTCON 2019 C firmware at commit `4ec59a1` ("New Firmware", the at-home challenge version, with Enigma machine code copied from Cory Lutton's `enigma-c` under Apache 2.0 and heavily modified by `@_bashNinja`, Snake/Screen Animations/User Profile by `bashNinja`, `IS31FL3736` driver by `AND!XOR LLC` under Apache 2.0, and matrix effects `mapf`, `plasma`, `bound`, and `LED_waveEffect` from `bikefrivolously/led_matrix`).
+- **2020, LED badge (our description, upstream gives no title)** (`?year=2020`): ATtiny84A (`U1` on `Saintcon2020DaughterBoard.kicad_pcb`) 7 KiCad `.kicad_pcb` files (`Saintcon2020MainBoard` with 7 minibadge slots, `Saintcon2020DaughterBoard`, `Saintcon2020VerticalBoard` with 6 minibadge slots, `Saintcon2020HorizontalBoard` with 4 minibadge connectors, `MinibadgeHolder`, `MinibadgeHolder90`, and `MinibadgeHoldersPanel` with 13 standard + 4 90-degree holders; upstream `README.md` states the badge holds 17 minibadges), 8 LEDs on `PORTA` `PA0..PA7` (`D1..D4` on `F.Cu` front and `D5..D8` on `B.Cu` back of `Saintcon2020MainBoard.kicad_pcb`, LED colour not specified in upstream files; driven by `ISR(TIM1_COMPA_vect)` 1 kHz software PWM in `Firmware/Saintcon2020/main.cpp:448-471`), active-low mode button `SW1` on `PB2` (`BUTTONPIN`, 50 ms `millis` debounce in `main.cpp:85,473-489`), 8 display modes persisted in `EEPROM[0]` (`main.cpp:150,191`), test pads `TP1` (`PB0`) and `TP2` (`PB1`), and boot-time `specialModes()` (`if ((PINB & 1<<TP1PIN) == 0) specialModes();` at `main.cpp:153,495-558`), running `compukidmike`'s unpatched `Firmware/Saintcon2020/main.cpp` (`mode=stock`, "Original Firmware").
 - **2021, combination lock badge (our description, upstream gives no title)** (`?year=2021`): ATSAME53J18A combination lock PCB (`Saintcon2020Front.kicad_pcb` + `Saintcon2020Shackle.kicad_pcb` + `Saintcon2020.kicad_pcb`), circular `240×240` ILI9331 16-bit parallel LCD, 3-channel QTouch capacitive dial wheel + 4 shackle/shim capacitive sensors, tactile Back button (`SW3`), 1 RGB LED (`D1`), 512-byte `NVMCTRL` SmartEEPROM, 8 MB QSPI external flash (`flash.bin` generated by `ExternalFlash/makeFlash.py`), ST25R95 SPI NFC reader/tag emulator, and `I2C_0` minibadge bus, running `compukidmike`, `Professor_Plum`, and `Sodium_Hydrogen`'s original SAINTCON 2021 C firmware (with firmware contribution from `kfeuz`, `mode=stock`, "Original Firmware") paired with an on-page virtual NFC tag, registration vCard, solo `"Museum Bot"` trade, and I2C minibadge panel.
 - **2023 — "Incidents"** (`?year=2023`): ESP32-S3 landscape dungeon-crawler badge (`Saintcon2023.kicad_pcb`), rectangular `320×240` ST7789 8-bit 8080 parallel LCD, 20 SK6812MINI LEDs (`D1..D20`), 4-way + center navigation switch (`SW5`) + `A` & `B` action buttons (`SW2`, `SW3`), NEC IR TX/RX, fixed MC3419 accelerometer, silent TFA9879 audio shim, and 4 virtual I2C minibadge slots (`U9, U10, U13, U14`), running `compukidmike`'s original SAINTCON 2023 firmware (`mode=stock`, "Original Firmware") backed by a per-visitor in-browser fake `sc23-api` game server (`badges/2023/fake-server.js`) and `"Incidents Companion"` panel.
 - **2024 — "Tower Battle"** (`?year=2024`): ESP32-S3 landscape wrist badge (`Saintcon2024.kicad_pcb` + `Saintcon2024Top.kicad_pcb`), rectangular `320×240` ST7789 8080 parallel LCD with GT911 capacitive touchscreen, NEC IR TX/RX, MC3419 accelerometer, and TCA9544A Klip-on I2C mux, running `compukidmike`'s original SAINTCON 2024 firmware (`mode=stock`, "Original Firmware") backed by a per-visitor in-browser fake tower server (`badges/2024/fake-server.js`) and an 11-station virtual IR `"Towers"` panel.
@@ -22,11 +24,18 @@ All year-specific assets, metadata, and compiled WebAssembly cores live under `e
 
 ```text
 emulator/web/
-├── index.html               # Multi-year emulator shell (?year=2018|2019|2021|2023|2024|2025|2026 or <yy>.sc.pug.technology)
-├── museum.html              # Badge museum index (2018, 2019, 2021, 2023, 2024, 2025, and 2026 live)
+├── index.html               # Multi-year emulator shell (?year=2017|2018|2019|2020|2021|2023|2024|2025|2026 or <yy>.sc.pug.technology)
+├── museum.html              # Badge museum index (2017, 2018, 2019, 2020, 2021, 2023, 2024, 2025, and 2026 live)
 ├── 404.html                 # Custom 404 page with links to museum and live badge years
 ├── mock-core.js             # Fallback JS implementation of the 12-function Core ABI
 └── badges/
+    ├── 2017/
+    │   ├── badge.json       # Year profile: "SAINTCON 2017 HITB Minibadge" (minibadge), screenless, 2 APA102 LEDs, 2 touch pads, 0B EEPROM, mode: stock
+    │   ├── layout.json      # Board geometry (1920×1008 Front + mirrored Back), 2 APA102 5050 LEDs (U2, U3), 2 capacitive touch pads (TOUCH_BTN_1 on A3, TOUCH_BTN_2 on A2)
+    │   ├── board.png        # 1920×1008 EAGLE XML PCB render of HITBUTT_Minibadge/Base-Rev0.brd (Front top view + mirrored Back bottom view)
+    │   ├── core.js          # Emscripten MODULARIZE loader (createCore)
+    │   ├── core.wasm        # Compiled unpatched HITB_Test.ino + our own APA102.h & ADCTouch.h shims
+    │   └── THIRD_PARTY_LICENSES.txt # Generated license notices for Saintcon2017, APA102/ADCTouch shim note, Emscripten/musl
     ├── 2018/
     │   ├── badge.json       # Year profile: LED matrix badge, 320×96 matrix closeup, 256 LEDs, 3 buttons, 4096B flash config, mode: stock
     │   ├── layout.json      # Board geometry (858×1385), hidden LCD bezel, SW1/SW2/SW3, 256 arched 0603 LEDs (D1..D256), 12 minibadge headers
@@ -41,6 +50,13 @@ emulator/web/
     │   ├── core.js          # Emscripten MODULARIZE + ASYNCIFY loader (createCore)
     │   ├── core.wasm        # Compiled 2019 original C firmware + first-party STM32L4/FPGA/IS31FL3736/plugboard shims
     │   └── THIRD_PARTY_LICENSES.txt # Generated license notices for Saintcon2019, enigma-c (Apache-2.0), drv_is31fl (Apache-2.0), bikefrivolously/led_matrix, Emscripten/musl
+    ├── 2020/
+    │   ├── badge.json       # Year profile: LED badge, screenless, 8 LEDs on PORTA, 1 mode button (Button SW1 on PB2), 512B EEPROM, mode: stock
+    │   ├── layout.json      # Board geometry (2160×1752), 8 LEDs (D1..D4 on F.Cu front, D5..D8 on B.Cu mirrored back), Button SW1 (PB2), TP1/TP2 pads, and 6 PCB views
+    │   ├── board.png        # 2160×1752 KiCad composite PCB render (MainBoard Front + mirrored Back + 1:1 DaughterBoard + VerticalBoard + HorizontalBoard + MinibadgeHolders)
+    │   ├── core.js          # Emscripten MODULARIZE + ASYNCIFY loader (createCore)
+    │   ├── core.wasm        # Compiled unpatched Firmware/Saintcon2020/main.cpp + our own AVR/1 kHz TIM1_COMPA ISR shims
+    │   └── THIRD_PARTY_LICENSES.txt # Generated license notices for Saintcon2020, avr-libc headers, Emscripten/musl
     ├── 2021/
     │   ├── badge.json       # Year profile: combination lock badge, 240×240 round screen, 1 RGB LED (D1), 7 buttons + dial wheel, 512B EEPROM, mode: stock
     │   ├── layout.json      # Board geometry (1024×1428), round screen + QTouch dial ring, SW3 Back button, D1 RGB LED
@@ -89,6 +105,13 @@ emulator/
 ├── core/                    # 2025 ("The Wrench") platform layer, ABI glue (emu.c/emu.h), and headless CLI
 ├── build-core.sh            # Builds 2025 WASM core (-> web/badges/2025/) and emulator/core/emu-cli
 ├── cores/
+│   ├── 2017/                # 2017 ("SAINTCON 2017 HITB Minibadge", original ATtiny45 HITB_Test.ino sketch) core
+│   │   ├── UPSTREAM.md      # Provenance, EAGLE author-email scrub (Base-Rev0.brd:344,1425 & Base-Rev0.sch:421,932,4335), and zero patches record (commit d5f1d93)
+│   │   ├── fetch-upstream.sh# Pins Saintcon2017 HITBUTT_Minibadge/ into git-ignored upstream/ and scrubs EAGLE XML author emails
+│   │   ├── gen-licenses.sh  # Runs fetch-upstream.sh and generates web/badges/2017/THIRD_PARTY_LICENSES.txt
+│   │   ├── platform/        # First-party Arduino.h, APA102.h, and ADCTouch.h shims + Core ABI glue (emu_2017.cpp)
+│   │   ├── cli_2017.cpp     # Headless CLI verifier (ref0/ref1 calibration, exact 40/10 thresholds, RGB/brightness curve) & smoke PNG renderer
+│   │   └── build.sh         # Builds 2017 emu-cli, WASM core (-> web/badges/2017/core.{js,wasm}), and THIRD_PARTY_LICENSES.txt
 │   ├── 2018/                # 2018 (LED matrix badge, original MicroPython firmware & microWebSrv portal) core
 │   │   ├── UPSTREAM.md      # Provenance, secret-scrubbing, and 2-line flash-parity patch record (commit fee2837, compukidmike & miketweaver)
 │   │   ├── fetch-upstream.sh# Pins Saintcon2018 + MicroPython v1.24.1 into git-ignored upstream/ and scrubs hcid.py/www/configure.py secrets
@@ -104,6 +127,13 @@ emulator/
 │   │   ├── platform/        # First-party STM32L4 replacement layer (64×16 RGB matrix SPI1 shim, IS31FL3736 26 RGB lamps, 26-key GPIO keyboard, 26-pin GPIO plugboard, EEPROM_Emul)
 │   │   ├── cli_2019.c       # Headless CLI with independent Enigma I reference verifier, Challenge Message 1 solver, and smoke PNG renderer
 │   │   └── build.sh         # Builds 2019 emu-cli, WASM core (-> web/badges/2019/core.{js,wasm}), and THIRD_PARTY_LICENSES.txt
+│   ├── 2020/                # 2020 (LED badge, original ATtiny84A Firmware/Saintcon2020/main.cpp) core
+│   │   ├── UPSTREAM.md      # Provenance, excluded .hex/Windows-path KiCad netlists, and zero C++ patches record (commit 9b11ef8)
+│   │   ├── fetch-upstream.sh# Pins Saintcon2020 main.cpp + 7 KiCad PCBs from Hardware/*-KiCad.zip into git-ignored upstream/
+│   │   ├── gen-licenses.sh  # Runs fetch-upstream.sh and generates web/badges/2020/THIRD_PARTY_LICENSES.txt
+│   │   ├── platform/        # First-party avr/{io,interrupt,pgmspace,eeprom,sleep}.h & util/delay.h shims + 1 kHz TIM1_COMPA ISR & PORTA PWM duty measurement
+│   │   ├── cli_2020.cpp     # Headless CLI verifier (all 8 modes from real PORTA writes, 50 ms debounce, EEPROM reload, 16-bit millis wrap, all 8 special mode messages) & smoke PNG renderer
+│   │   └── build.sh         # Builds 2020 emu-cli, WASM core (-> web/badges/2020/core.{js,wasm}), and THIRD_PARTY_LICENSES.txt
 │   ├── 2021/                # 2021 (combination lock badge, original ATSAME53J18A C firmware) core
 │   │   ├── UPSTREAM.md      # Provenance, excluded QTouch/ASF vendor dirs, trade_key[16] scrub, and 5 C99/WASM portability fixes (commit 092bf1c)
 │   │   ├── fetch-upstream.sh# Pins Saintcon2021 badge C sources + ExternalFlash + KiCad PCBs into git-ignored upstream/ and scrubs trade_key[16]
@@ -142,12 +172,14 @@ emulator/
 │       ├── cli_2026.c       # Headless script runner & PNG renderer (circular LCD + 884×1792 badge composite)
 │       └── build.sh         # Builds 2026 WASM core (-> web/badges/2026/) and emulator/cores/2026/emu-cli
 └── tools/
-    └── kicad_layout.py      # Extracts layout.json + renders board.png for --year 2018, 2019, 2021, 2023, 2024, 2025, 2026, or all
+    ├── eagle_layout_2017.py # Parses EAGLE XML HITBUTT_Minibadge/Base-Rev0.brd and renders web/badges/2017/{board.png,layout.json}
+    └── kicad_layout.py      # Extracts layout.json + renders board.png for --year 2017, 2018, 2019, 2020, 2021, 2023, 2024, 2025, 2026, or all
 ```
 
-- **Year & Mode Resolution**: `emulator/web/index.html` resolves the badge year from `?year=<year>` (default `2025`) or from the host `<yy>.sc.pug.technology` (e.g. `19.sc.pug.technology` = 2019, `21.sc.pug.technology` = 2021, `24.sc.pug.technology` = 2024, `25.sc.pug.technology` = 2025), fetches `badges/<year>/badge.json`, configures screen dimensions, shape (`rect` vs `round` circular mask), capacitive touch or button bitmask/keybindings, LED count, EEPROM size, modes, and credits, and loads `badges/<year>/core.js` + `core.wasm`.
+- **Year & Mode Resolution**: `emulator/web/index.html` resolves the badge year from `?year=<year>` (default `2025`) or from the host `<yy>.sc.pug.technology` (e.g. `17.sc.pug.technology` = 2017, `19.sc.pug.technology` = 2019, `20.sc.pug.technology` = 2020, `21.sc.pug.technology` = 2021, `24.sc.pug.technology` = 2024, `25.sc.pug.technology` = 2025), fetches `badges/<year>/badge.json`, configures screen dimensions (or screenless LED-board layout for 2017 and 2020), shape (`rect` vs `round` circular mask), capacitive touch or button bitmask/keybindings, LED count, EEPROM size, modes, and credits, and loads `badges/<year>/core.js` + `core.wasm`.
 - **Per-Year & Per-Mode Browser Storage**: `localStorage` keys are scoped by year and mode:
-  - `saintcon_<year>_<mode>_eeprom` (e.g. `saintcon_2018_stock_eeprom`, `saintcon_2019_stock_eeprom`, `saintcon_2021_stock_eeprom`, `saintcon_2023_stock_eeprom`, `saintcon_2025_pug_eeprom`, `saintcon_2025_stock_eeprom`, `saintcon_2026_stock_eeprom`)
+  - `saintcon_<year>_<mode>_eeprom` (e.g. `saintcon_2018_stock_eeprom`, `saintcon_2019_stock_eeprom`, `saintcon_2020_stock_eeprom`, `saintcon_2021_stock_eeprom`, `saintcon_2023_stock_eeprom`, `saintcon_2025_pug_eeprom`, `saintcon_2025_stock_eeprom`, `saintcon_2026_stock_eeprom`; 2017 `HITB Minibadge 2017` uses `0` bytes of EEPROM)
+  - `saintcon_2020_stock_tp1_boot` (whether `TP1` on `PB0` is held low at boot on `?year=2020` to enter `specialModes()`; mode `0..7` is persisted in `saintcon_2020_stock_eeprom`)
   - `saintcon_2018_stock_minibadges`, `saintcon_2018_stock_hc_score` (virtual I2C2 minibadge selections and stand-in Hacker Challenge score for 2018 stock mode; `wifi.json` flash config is persisted in `saintcon_2018_stock_eeprom`)
   - `saintcon_2019_stock_plugboard` (up to 10 `A`–`Z` plugboard jumper wire pairs for 2019 stock mode; 512-byte virtual EEPROM is persisted in `saintcon_2019_stock_eeprom`)
   - `saintcon_2021_stock_vcard`, `saintcon_2021_stock_minibadge` (512-byte QSPI flash vCard sector at `0x7F8000` and virtual `0x28` I2C minibadge state for 2021 stock mode; 512-byte `NVMCTRL` SmartEEPROM state is persisted in `saintcon_2021_stock_eeprom`)
@@ -189,6 +221,21 @@ For firmwares whose `main()` or FreeRTOS tasks block inside polling, queues, or 
 ---
 
 ## Building Cores & Running Headless Smoke Tests
+
+### 2017 Core (SAINTCON 2017 HITB Minibadge — Minibadge, `mode=stock`)
+
+```bash
+./emulator/cores/2017/build.sh
+./emulator/cores/2017/emu-cli --test
+./emulator/cores/2017/emu-cli --smoke emulator/build/2017-smoke
+```
+
+`emulator/cores/2017/build.sh` runs `fetch-upstream.sh` (staging `HITBUTT_Minibadge/HITB_Test.ino`, `Base-Rev0.brd`, and `Base-Rev0.sch` at commit `d5f1d932035e589253eafbd97a414d78ee9b37e8` (`2017-10-12 10:00:18 -0600`, `"Update README.md"`) into git-ignored `emulator/cores/2017/upstream/`, excluding upstream README/PNG/PDF files, and scrubbing the embedded library author email address at `HITBUTT_Minibadge/Base-Rev0.brd:344,1425` and `HITBUTT_Minibadge/Base-Rev0.sch:421,932,4335` with a fail-if-not-applied count check), compiles `HITB_Test.ino` completely unpatched against `emulator/cores/2017/platform/` (`Arduino.h`, `APA102.h`, `ADCTouch.h`, `emu_2017.cpp`) natively (`emulator/cores/2017/emu-cli`) and with `emscripten/emsdk:3.1.73` (`emulator/web/badges/2017/core.{js,wasm}`), and runs `gen-licenses.sh` to generate `emulator/web/badges/2017/THIRD_PARTY_LICENSES.txt`.
+
+Hardware shims in `emulator/cores/2017/platform/` (verified against `HITBUTT_Minibadge/HITB_Test.ino` and `Base-Rev0.brd`/`.sch`):
+- **Minibadge Scope (`SAINTCON 2017 HITB Minibadge`)**: `compukidmike/Saintcon2017` contains the **SAINTCON 2017 HITB Minibadge** (`HITBUTT_Minibadge/HITB_Test.ino`, `Base-Rev0.brd`, `Base-Rev0.sch`) and `MinibadgeTutorial/`; the main 2017 SAINTCON conference badge firmware is not in that repository. Back silkscreen (`Base-Rev0.brd:215-222`) under `@HITBUTT 2017` names `compukidmike`, `d4rkm4tter`, `kampf`, `D3M0S`, `Heinrich`, `dumby`, and `RuShan`, listed in the order of the board file.
+- **Capacitive Touch (`ADCTouch.read(A3)` and `ADCTouch.read(A2)`, `HITB_Test.ino:23-53`)**: `setup()` (`HITB_Test.ino:23-30`) calls `ref0 = ADCTouch.read(A3, 500)` (`512` untouched, `580` if held during reset) and `ref1 = ADCTouch.read(A2, 500)` (`508` untouched, `544` if held during reset). In `loop()` (`HITB_Test.ino:32-58`), `value0 = ADCTouch.read(A3) - ref0` and `value1 = ADCTouch.read(A2) - ref1` are compared against the sketch's own thresholds `if (value0 > 40)` (`r = 255` on `TOUCH_BTN_1`, center circular ring on the bottom layer `Base-Rev0.brd:191`) and `if (value1 > 10)` (`b = 255; g = 0;` on `TOUCH_BTN_2`, `"You Can't Touch This"` rectangular pad on the top layer `Base-Rev0.brd:1854`, text `:223`). Holding Pad 1 (`A3`, bit 0) after normal boot returns `ref0 + 68` (`value0 = 68 > 40`, Red `(255, 0, 0)`); holding Pad 2 (`A2`, bit 1) returns `ref1 + 36` (`value1 = 36 > 10`, Blue `(0, 0, 255)`); holding both (`A3 + A2`) sets `r = 255, g = 0, b = 255` (Magenta). If a pad is held during `setup()` / Reset, `ref0` or `ref1` absorbs that touch so the LEDs stay Green (`value0 <= 40` / `value1 <= 10`).
+- **2× APA102 5050 RGB LEDs (`U2`, `U3`, `APA102<dataPin, clockPin>` with `dataPin = 0` on `PB0` and `clockPin = 2` on `PB2`, `HITB_Test.ino:5-18,56`)**: `ledStrip.write(colors, ledCount, brightness)` (`ledCount = 2`, `brightness = 10` out of `31`) maps each raw RGB channel through the monotonic power curve `round(255 * ((brightness / 31.0) ^ 0.384))` (`255 @ 10/31 -> 165`, matching `kApa102BrightnessCurve[32]` in `emu_2017.cpp:54-60`) into `emu_leds()`.
 
 ### 2018 Core (LED matrix badge, `mode=stock`)
 
@@ -233,6 +280,21 @@ Hardware shims in `emulator/cores/2019/platform/` (verified against `Firmware/Sa
   - `I2C2` minibadge holder boards (`32..39` / `0x20..0x27` shifted `<< 1` in `Src/minibadge.c:122-125,303-307`) and individual minibadges (`1..31` / `0x01..0x1F` and `40..126` / `0x28..0x7E` in `Src/minibadge.c:310-323`) return `HAL_ERROR` with no minibadges attached (`MinibadgeDisplayMode()` in `Src/minibadge.c:36-107` still edits and saves `EEP_MINIBADGE_STATE` at `Src/minibadge.c:68`), USB CDC is disabled, and `CheckSerial()` (`Src/main.c:544-736`) stays idle because commit `4ec59a1` ("New Firmware") includes all 9 challenge message codes (`MSG1CODE..MSG9CODE` in `Src/enigma_emulator.c:42-50,199-306`) and triggers `RING1_MESSAGE`, `RING2_MESSAGE`, and `RING3_MESSAGE` directly on the badge at levels 5, 9, and 13 (`Src/enigma_emulator.c:142-145`).
 - **Known oddity:** the curly apostrophe in `RING2_MESSAGE` is three UTF-8 bytes the firmware's 5x7 font was never meant to draw. They index past the font table (`Src/matrix.c`), as on the real badge, so that one spot shows stray pixels that may differ from a real badge. The read is safe.
 - **Enigma Engine Notes (`Src/enigma.c`, `Src/enigma_emulator.c`)**: In 3-rotor mode with rotors `I`–`VIII` and reflector B, `enigma_encode_char()` matches a real three-rotor Enigma (rotors `I`–`V` are the Enigma I set, `VI`–`VIII` are the naval M3 rotors) except that the firmware's middle rotor steps twice if you start on both notches simultaneously (e.g. `I-II-III` at `AEV` steps to `BGW` instead of `BFW`, `Src/enigma.c:208-227`). Its 4-rotor mode (`Src/enigma.c:274,278-288`, `Src/enigma_emulator.c:668-686`, pairing thick reflector B with `Beta`/`Gamma`) and rotor 9 (`IX` = `"BASHCOMPUKIDZERGYJWLQTFXVN"`, notch `"Y"` at `Src/enigma.c:40,45`) are the firmware's own, not a real M4 or real rotors.
+
+### 2020 Core (LED badge, `mode=stock`)
+
+```bash
+./emulator/cores/2020/build.sh
+./emulator/cores/2020/emu-cli --test
+./emulator/cores/2020/emu-cli --smoke emulator/build/2020-smoke
+```
+
+`emulator/cores/2020/build.sh` runs `fetch-upstream.sh` (staging `Firmware/Saintcon2020/main.cpp` and the 7 KiCad `.kicad_pcb` files extracted from `Hardware/*-KiCad.zip` at commit `9b11ef8514be376b9b798ec66248ab2f7a8d1fd3` (`2026-04-24 09:30:47 -0600`, `"Update README.md"`) into git-ignored `emulator/cores/2020/upstream/`, excluding the prebuilt `.hex` and Windows-path `.net`/`fp-lib-table`/`sym-lib-table` files), compiles `Firmware/Saintcon2020/main.cpp` completely unpatched against `emulator/cores/2020/platform/` (`avr/io.h`, `avr/interrupt.h`, `avr/pgmspace.h`, `avr/eeprom.h`, `avr/sleep.h`, `util/delay.h`, `emu_2020.cpp`) natively (`emulator/cores/2020/emu-cli`) and with `emscripten/emsdk:3.1.73` (`emulator/web/badges/2020/core.{js,wasm}`), and runs `gen-licenses.sh` to generate `emulator/web/badges/2020/THIRD_PARTY_LICENSES.txt`.
+
+Hardware shims in `emulator/cores/2020/platform/` (verified against `Firmware/Saintcon2020/main.cpp` and `Hardware/*.kicad_pcb`):
+- **ATtiny84A 1 kHz Software PWM & 16-bit `millis` (`main.cpp:36,94-106,448-471`)**: `OCR1A = 124` with `WGM12` (CTC) and `CS11` (`/8` prescaler at `F_CPU = 1000000` Hz, `1000000 / ((124 + 1) * 8) = 1000 Hz`) fires `ISR(TIM1_COMPA_vect)` every `1 ms` of badge time, incrementing 16-bit `millis += 1` (wrapping modulo `65536` via `avr_uint16_t` in `platform/avr/io.h:29-115`; both `LEDS[8]` and `millis` are placed in `.bss.leds_isolated` with `aligned(64)` at `platform/avr/io.h:172-186` so Ring mode's `LEDS[8] = 0` write at `main.cpp:201` lands in unused alignment padding in both native and WASM builds). In each ISR invocation, `pwmcounter` steps by `5` (`1, 6, 11, ..., 96` over 20 ticks per 20 ms PWM cycle) and writes `PORTA = ledstate;` (`PA0..PA7` -> `D1..D8`, `main.cpp:464`). `emu_2020.cpp` records every real write to `PORTA` across the 20-tick PWM cycle (`g_porta_pwm_ring[20]`) and computes each LED's brightness directly from the share of time its `PORTA` bit was high in the PWM cycle (never from reading `LEDS[]`). Because no upstream file states an LED colour, `emu_leds()` renders `D1..D8` in a neutral warm white.
+- **Mode Button `SW1` (`PB2`), 8 Display Modes, & EEPROM (`main.cpp:53-59,85,150-383,473-489`)**: Active-low `Button SW1` on `PB2` (`PORTB |= 1<<BUTTONPIN` at `main.cpp:85`) is debounced in `isButtonPressed()` (`(millis - lastDebounceTime) > 50` at `main.cpp:473-489`), cycling through Mode `0` (Ring, `ringDelay = 50` -> 51 ms steps at `main.cpp:195`), Mode `1` (Chase, `chaseDelay = 50` -> 51 ms steps at `main.cpp:210`), Mode `2` (Blink, `waveDelay = 100` -> 101 ms steps at `main.cpp:228`), Mode `3` (Pulse, `pulseDelay = 10` -> 11 ms software PWM ramp `0..100..0` at `main.cpp:248`), Mode `4` (Alternate, `alternateDelay = 500` -> 501 ms steps at `main.cpp:269`), Mode `5` (Alternate 2, `alternate2Delay = 500` -> 501 ms steps at `main.cpp:299`), Mode `6` (Circle, `circleDelay = 100` -> 101 ms steps at `main.cpp:329`), and Mode `7` (On, continuous `LEDS[0..7] = 100` at `main.cpp:376-380`), saved to `EEPROM[0]` (`eeprom_write_byte((uint8_t*)0, displayState)` at `main.cpp:191`) and persisted in `localStorage['saintcon_2020_stock_eeprom']` (fresh/wiped `0xFF` falls back to Mode `0` via `if (displayState > numStates) displayState = 0;` at `main.cpp:150-151`).
+- **Boot-Time Special Mode (`TP1` on `PB0`) & `TP1` Pull-Up Toggle (`main.cpp:77,89-90,153,385-401,495-558`)**: If `TP1` (`PB0`) is held low at power-on (`if ((PINB & 1<<TP1PIN) == 0) specialModes();` at `main.cpp:153`), `specialModes()` (`main.cpp:495-558`) displays 8 hidden messages (`char messages[8][19]`, `main.cpp:499-506`) in binary on `PORTA` (`D1..D8`) while `SW1` cycles which of the 8 messages is shown. Because `specialModes()` checks `if (millis > (lastDisplayUpdate + binaryDelay))` (`main.cpp:523`) in 16-bit unsigned arithmetic (`binaryDelay = 1000`), whenever `lastDisplayUpdate >= 64536` their sum wraps modulo `65536` to `0..999`, causing `specialModes()` to advance rapidly for ~0.47 s before `millis` wraps at `65536`. On `TP1` (`PB0`), `//DDRB |= 1<<TP1PIN;` (`main.cpp:89`) is commented out in upstream source, so `tpCounter` (`main.cpp:385-401`, `540-556`) toggles only the internal pull-up resistor (`PORTB` bit 0) on an input pin `displayState + 1` times every `tpDelay = 1000` ms (`1001` ms per step); `TP2` (`PB1`) is configured as an output (`DDRB |= 1<<TP2PIN` at `main.cpp:87`) and never written again (`LOW`). `LONGPRESSTIME` (`main.cpp:29`) and `set_sleep_mode(SLEEP_MODE_PWR_DOWN)` (`main.cpp:77`) are defined/configured at boot, but `sleep_mode()` / `sleep_cpu()` are never called in `main.cpp`.
 
 ### 2021 Core (Combination lock badge, `mode=stock`)
 
@@ -378,8 +440,10 @@ Start the static HTTP server from the repository root:
 `tools/emu-serve` serves `emulator/web/` on port `8765`:
 
 - Museum index: `http://localhost:8765/museum.html`
+- 2017 minibadge (SAINTCON 2017 HITB Minibadge): `http://localhost:8765/?year=2017`
 - 2018 badge: `http://localhost:8765/?year=2018`
 - 2019 badge: `http://localhost:8765/?year=2019`
+- 2020 badge: `http://localhost:8765/?year=2020`
 - 2021 badge: `http://localhost:8765/?year=2021`
 - 2023 badge: `http://localhost:8765/?year=2023`
 - 2024 badge: `http://localhost:8765/?year=2024`
@@ -388,7 +452,7 @@ Start the static HTTP server from the repository root:
 
 ## Public site (live since 2026-11-01)
 
-- Museum `https://sc.pug.technology/`, 2018 `https://18.sc.pug.technology/` (configured in `wrangler.jsonc`), 2019 `https://19.sc.pug.technology/` (configured in `wrangler.jsonc`), 2021 `https://21.sc.pug.technology/` (configured in `wrangler.jsonc`), 2023 `https://23.sc.pug.technology/` and 2024 `https://24.sc.pug.technology/` (all live since 2026-11-01), 2025 `https://25.sc.pug.technology/`, 2026 `https://26.sc.pug.technology/`.
+- Museum `https://sc.pug.technology/`, 2017 `https://17.sc.pug.technology/` (configured in `wrangler.jsonc`), 2018 `https://18.sc.pug.technology/` (configured in `wrangler.jsonc`), 2019 `https://19.sc.pug.technology/` (configured in `wrangler.jsonc`), 2020 `https://20.sc.pug.technology/` (configured in `wrangler.jsonc`), 2021 `https://21.sc.pug.technology/` (configured in `wrangler.jsonc`), 2023 `https://23.sc.pug.technology/` and 2024 `https://24.sc.pug.technology/` (all live since 2026-11-01), 2025 `https://25.sc.pug.technology/`, 2026 `https://26.sc.pug.technology/`.
 - Served by the Cloudflare Worker `sc-badge-museum` (static assets only).
   Config: `emulator/deploy/wrangler.jsonc` (no request logs, no workers.dev or preview URLs, 404 page, custom domains).
 - Deploy: `cd emulator/deploy && npx -y wrangler@4 deploy`. It uploads only `emulator/web/`; never put build files,
@@ -399,6 +463,14 @@ Start the static HTTP server from the repository root:
 ---
 
 ## Controls by Year
+
+### 2017 (SAINTCON 2017 HITB Minibadge — Capacitive Touch Pads `A3` / `A2`)
+
+| Input / Pad | Bit | Hardware | Keyboard | On-Screen |
+|---|---|---|---|---|
+| **Touch Pad 1 (`A3`)** | `bit 0` (`0x01`) | `TOUCH_BTN_1` center circular ring on bottom layer (`PB3`/`A3`, `value0 > 40` -> Red) | `1`, `A`, or `ArrowLeft` | Hold `TOUCH_BTN_1` ring on Back PCB view, `Touch Pad 1 (A3)` on pad, or `🔴 Hold Pad 1 (A3 > 40)` |
+| **Touch Pad 2 (`A2`)** | `bit 1` (`0x02`) | `TOUCH_BTN_2` rectangular pad `"You Can't Touch This"` on top layer (`PB4`/`A2`, `value1 > 10` -> Blue) | `2`, `B`, or `ArrowRight` | Hold `TOUCH_BTN_2` rect on Front PCB view, `Touch Pad 2 (A2)` on pad, or `🔵 Hold Pad 2 (A2 > 10)` |
+| **Both Pads (`A3 + A2`)** | `0x03` | Both capacitive pads touched together (`r=255, g=0, b=255` -> Magenta) | Hold `1`+`2` or `A`+`B` | Hold `🟣 Hold Both (A3 + A2)` in the companion panel |
 
 ### 2018 (LED matrix badge, Tactile Switches `SW1` / `SW2` / `SW3`)
 
@@ -416,6 +488,13 @@ Start the static HTTP server from the repository root:
 | **Menu / Setup Navigation** | `W` (`▲`), `A` (`◀`), `S` (`▼`), `D` (`▶`), `K` (`Enter`) | `W`, `A`, `S`, `D`, `K` (or arrow keys + `Enter`) | Gold-accented `W`, `A`, `S`, `D`, `K` keys on the QWERTZ pad (`O` = backspace in `CUSTOM MESSAGE`) |
 | **Back / Exit (3s Hold)** | Any key held for 90 frames (3.0 s at 30 Hz, `buttons >> 31 & 1`) | Hold any `A`–`Z` key for 3 seconds | Touch-and-hold or mouse-hold any key on the PCB or QWERTZ pad for 3 seconds (exits `ENIGMA EMULATOR` / setup screens) |
 | **Plugboard (`A`–`Z`)** | 26 GPIO header pins on `J3` / `J4` (`PlugA..PlugZ`, `Inc/main.h:132-183`) | — | Click/tap two letters in **Plugboard Jumper Wires (J3 / J4)** to connect a color-coded jumper wire (up to 10 pairs, drawn on both the panel and the PCB); click a wired letter to remove |
+
+### 2020 (LED badge, Button `SW1` on `PB2` + Boot Test Pad `TP1` on `PB0`)
+
+| Input / Control | Bit | Hardware | Keyboard | On-Screen |
+|---|---|---|---|---|
+| **Button SW1** | `bit 0` (`0x01`) | `SW1` (`PB2` active-low with pull-up, 50 ms `millis` debounce) | `Space` or `Enter` | Click/hold `Button SW1` on the DaughterBoard PCB (`>= 44 px` hit target), `Button SW1` on pad, or `🔘 Press Button SW1` |
+| **Short TP1 to ground, then power on** | — | `TP1` (`PB0` held low at boot -> `specialModes()`) | — | Toggle **Short TP1 to ground, then power on** in the companion panel |
 
 ### 2021 (Combination lock badge, QTouch Dial Wheel + Shackle/Shim + Back Button `SW3`)
 
@@ -482,8 +561,10 @@ Start the static HTTP server from the repository root:
 `emulator/tools/kicad_layout.py` parses `Saintcon2024.kicad_pcb` + `Saintcon2024Top.kicad_pcb`, `Saintcon2025.kicad_pcb`, and `Apollo.kicad_pcb` (automatically converting KiCad 10 syntax in a temporary build copy when rendering with `kicad/kicad:9.0`), traces WS2812 `DIN`→`DOUT` net chains from the MCU GPIO pin where present, extracts screen/button/IR/outline geometry, renders the 3D raytraced PCB, and writes `emulator/web/badges/<year>/{layout.json,board.png}`:
 
 ```bash
+python3 emulator/tools/kicad_layout.py --year 2017
 python3 emulator/tools/kicad_layout.py --year 2018
 python3 emulator/tools/kicad_layout.py --year 2019
+python3 emulator/tools/kicad_layout.py --year 2020
 python3 emulator/tools/kicad_layout.py --year 2021
 python3 emulator/tools/kicad_layout.py --year 2023
 python3 emulator/tools/kicad_layout.py --year 2024

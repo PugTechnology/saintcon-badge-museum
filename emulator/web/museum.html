@@ -6,7 +6,7 @@
   <title>SAINTCON Badge Museum</title>
   <script>
     (function () {
-      var LIVE_YEARS = ['2018', '2019', '2021', '2023', '2024', '2025', '2026'];
+      var LIVE_YEARS = ['2017', '2018', '2019', '2020', '2021', '2023', '2024', '2025', '2026'];
       var PROD = 'sc.pug.technology';
       var host = (window.location.hostname || '').toLowerCase();
       var isProdDomain = host === PROD || host.endsWith('.' + PROD);
@@ -410,13 +410,63 @@
       <a class="card-cta secondary" style="padding: 8px 14px; width: auto;" href="?year=2024">Play 2024 Badge →</a>
       <a class="card-cta secondary" style="padding: 8px 14px; width: auto;" href="?year=2023">Play 2023 Badge →</a>
       <a class="card-cta secondary" style="padding: 8px 14px; width: auto;" href="?year=2021">Play 2021 Badge →</a>
+      <a class="card-cta secondary" style="padding: 8px 14px; width: auto;" href="?year=2020">Play 2020 Badge →</a>
       <a class="card-cta secondary" style="padding: 8px 14px; width: auto;" href="?year=2019">Play 2019 Badge →</a>
       <a class="card-cta secondary" style="padding: 8px 14px; width: auto;" href="?year=2018">Play 2018 Badge →</a>
+      <a class="card-cta secondary" style="padding: 8px 14px; width: auto;" href="?year=2017">Play 2017 Minibadge →</a>
     </div>
   </header>
 
   <main>
     <div class="cards-grid">
+      <!-- 2017 HITB Minibadge Card (LIVE) -->
+      <article class="year-card" id="card-2017">
+        <div class="card-top">
+          <a class="card-thumb landscape" href="?year=2017" title="Launch HITB Minibadge 2017 Emulator">
+            <img src="badges/2017/board.png" alt="HITB Minibadge 2017 PCB" />
+          </a>
+          <div class="card-head-info">
+            <div class="status-row">
+              <span class="year-badge">2017</span>
+              <span class="status-pill live">● Live</span>
+              <span class="status-pill soon" title="This repository contains the HITB Minibadge 2017, not the main 2017 conference badge.">Minibadge Only</span>
+            </div>
+            <h2><a href="?year=2017" style="color: inherit;">HITB Minibadge 2017</a></h2>
+            <p class="hw-summary">
+              <strong>Note:</strong> This is a <strong>minibadge</strong> (HITB Minibadge 2017), not the main 2017 conference badge — the main 2017 badge's firmware is not in this repository. ATtiny45 (<code>Tiny45-20-SMT</code>) • 2× APA102 5050 RGB LEDs (U2, U3 @ brightness 10) • 2 capacitive touch pads: Pad 1 ring &amp; <code>TOUCH_BTN_1</code> on bottom (A3, <code>value0 &gt; 40</code>) &amp; "You Can't Touch This" polygon on top + <code>TOUCH_BTN_2</code> on bottom (A2, <code>value1 &gt; 10</code>) • 16-pin minibadge header.
+            </p>
+          </div>
+        </div>
+
+        <div class="modes-row">
+          <a class="mode-chip" href="?year=2017" style="color: inherit;">🚀 <strong>Original Firmware</strong></a>
+        </div>
+
+        <div class="credits-box">
+          <div class="main-credit">
+            <strong>Minibadge by <a href="https://github.com/compukidmike" target="_blank" rel="noopener">compukidmike</a></strong>
+            • Repo: <a href="https://github.com/compukidmike/Saintcon2017" target="_blank" rel="noopener">github.com/compukidmike/Saintcon2017</a>
+            (<a href="https://github.com/compukidmike/Saintcon2017/tree/d5f1d932035e589253eafbd97a414d78ee9b37e8/HITBUTT_Minibadge" target="_blank" rel="noopener"><code>d5f1d93</code></a>)
+            • <strong>compukidmike</strong> (named on the board)
+            • <strong>d4rkm4tter</strong> (named on the board)
+            • <strong>kampf</strong> (named on the board)
+            • <strong>D3M0S</strong> (named on the board)
+            • <strong>Heinrich</strong> (named on the board)
+            • <strong>dumby</strong> (named on the board)
+            • <strong>RuShan</strong> (named on the board)
+            • Licence not stated
+            • <a href="badges/2017/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">Third-party licenses</a>
+          </div>
+          <div class="sub-credit">
+            Original <code>HITB_Test.ino</code> sketch &amp; EAGLE board from <a href="https://github.com/compukidmike/Saintcon2017/tree/d5f1d932035e589253eafbd97a414d78ee9b37e8/HITBUTT_Minibadge" target="_blank" rel="noopener"><strong>compukidmike/Saintcon2017</strong></a> (also includes <a href="https://github.com/compukidmike/Saintcon2017/tree/d5f1d932035e589253eafbd97a414d78ee9b37e8/MinibadgeTutorial" target="_blank" rel="noopener">MinibadgeTutorial</a>) • Written to be used with <code>APA102</code> by pololu and <code>ADCTouch</code> by martin2250 (replaced by our emulator shims)
+          </div>
+        </div>
+
+        <div class="card-actions">
+          <a class="card-cta" href="?year=2017">Play Original Firmware →</a>
+        </div>
+      </article>
+
       <!-- 2018 Badge Card (LIVE) -->
       <article class="year-card" id="card-2018">
         <div class="card-top">
@@ -492,6 +542,46 @@
 
         <div class="card-actions">
           <a class="card-cta" href="?year=2019">Play Original Firmware →</a>
+        </div>
+      </article>
+
+      <!-- 2020 Badge Card (LIVE) -->
+      <article class="year-card" id="card-2020">
+        <div class="card-top">
+          <a class="card-thumb landscape" href="?year=2020" title="Launch SAINTCON 2020 Badge Emulator">
+            <img src="badges/2020/board.png" alt="SAINTCON 2020 LED badge PCBs" />
+          </a>
+          <div class="card-head-info">
+            <div class="status-row">
+              <span class="year-badge">2020</span>
+              <span class="status-pill live">● Live</span>
+            </div>
+            <h2><a href="?year=2020" style="color: inherit;">LED badge</a></h2>
+            <p class="hw-summary">
+              ATtiny84A (SOIC-14 on DaughterBoard) • 8× 5 mm LEDs on PORTA (D1–D4 on MainBoard front <code>F.Cu</code>, D5–D8 on MainBoard back <code>B.Cu</code>; 1 kHz Timer1 software PWM; colour not specified in files) • Button SW1 on PB2 (8 modes in EEPROM) • Test pads TP1 &amp; TP2 (hold TP1 low at power-on for hidden binary messages) • Upstream README states 17 power-only minibadges (panel has 13 <code>MinibadgeHolder</code> + 4 <code>MinibadgeHolder90</code>; MainBoard has 7 slots, VerticalBoard 6, HorizontalBoard 4 connectors).
+            </p>
+          </div>
+        </div>
+
+        <div class="modes-row">
+          <a class="mode-chip" href="?year=2020" style="color: inherit;">🚀 <strong>Original Firmware</strong></a>
+        </div>
+
+        <div class="credits-box">
+          <div class="main-credit">
+            <strong>Badge by <a href="https://github.com/compukidmike" target="_blank" rel="noopener">compukidmike</a></strong>
+            • Repo: <a href="https://github.com/compukidmike/Saintcon2020" target="_blank" rel="noopener">github.com/compukidmike/Saintcon2020</a>
+            (<a href="https://github.com/compukidmike/Saintcon2020/tree/9b11ef8514be376b9b798ec66248ab2f7a8d1fd3/Firmware/Saintcon2020" target="_blank" rel="noopener"><code>9b11ef8</code></a>)
+            • Licence not stated
+            • <a href="badges/2020/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">Third-party licenses</a>
+          </div>
+          <div class="sub-credit">
+            Original ATtiny84A firmware &amp; KiCad multi-board hardware from <a href="https://github.com/compukidmike/Saintcon2020" target="_blank" rel="noopener"><strong>compukidmike/Saintcon2020</strong></a>
+          </div>
+        </div>
+
+        <div class="card-actions">
+          <a class="card-cta" href="?year=2020">Play Original Firmware →</a>
         </div>
       </article>
 
@@ -705,7 +795,7 @@
         <strong><a href="https://saintcon.org" target="_blank" rel="noopener">SAINTCON</a></strong> is Utah's annual cybersecurity and hackers conference, organized by the UtahSAINT community and known for its custom electronic badges.
       </p>
       <p>
-        2018, 2019, 2023, 2024, and 2025 are built from <a href="https://github.com/compukidmike" target="_blank" rel="noopener">compukidmike</a>'s source (<a href="badges/2018/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2018 third-party licenses</a>, <a href="badges/2019/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2019 third-party licenses</a>, <a href="badges/2023/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2023 third-party licenses</a>, <a href="badges/2024/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2024 third-party licenses</a>, <a href="badges/2025/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2025 third-party licenses</a>); 2021 is built from the badge created by <a href="https://github.com/compukidmike" target="_blank" rel="noopener">compukidmike</a>, <a href="https://github.com/Professor-plum" target="_blank" rel="noopener">Professor_Plum</a>, and <a href="https://github.com/Sodium-Hydrogen" target="_blank" rel="noopener">Sodium_Hydrogen</a> (<a href="badges/2021/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2021 third-party licenses</a>); 2026 is built from <a href="https://github.com/Professor-plum" target="_blank" rel="noopener">Professor-plum</a>'s <a href="badges/2026/LICENSE.txt" target="_blank" rel="noopener">MIT-licensed</a> source (<a href="badges/2026/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2026 third-party licenses</a>).
+        2017 (HITB Minibadge 2017), 2018, 2019, 2020, 2023, 2024, and 2025 are built from <a href="https://github.com/compukidmike" target="_blank" rel="noopener">compukidmike</a>'s source (<a href="badges/2017/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2017 third-party licenses</a>, <a href="badges/2018/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2018 third-party licenses</a>, <a href="badges/2019/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2019 third-party licenses</a>, <a href="badges/2020/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2020 third-party licenses</a>, <a href="badges/2023/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2023 third-party licenses</a>, <a href="badges/2024/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2024 third-party licenses</a>, <a href="badges/2025/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2025 third-party licenses</a>); 2021 is built from the badge created by <a href="https://github.com/compukidmike" target="_blank" rel="noopener">compukidmike</a>, <a href="https://github.com/Professor-plum" target="_blank" rel="noopener">Professor_Plum</a>, and <a href="https://github.com/Sodium-Hydrogen" target="_blank" rel="noopener">Sodium_Hydrogen</a> (<a href="badges/2021/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2021 third-party licenses</a>); 2026 is built from <a href="https://github.com/Professor-plum" target="_blank" rel="noopener">Professor-plum</a>'s <a href="badges/2026/LICENSE.txt" target="_blank" rel="noopener">MIT-licensed</a> source (<a href="badges/2026/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2026 third-party licenses</a>).
       </p>
       <p>
         <strong>Browser-Only Storage:</strong> Each badge's simulated EEPROM/flash is stored locally in your browser's <code>localStorage</code> (isolated per year and mode). No external CDNs, no analytics, and no cookies are used.

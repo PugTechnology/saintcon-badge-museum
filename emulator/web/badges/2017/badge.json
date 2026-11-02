@@ -1,0 +1,120 @@
+{
+  "year": 2017,
+  "name": "HITB Minibadge",
+  "name_is_description": true,
+  "title": "SAINTCON 2017 HITB Minibadge",
+  "subtitle": "HITB Minibadge 2017 — not the main 2017 conference badge (main badge firmware is not in the upstream repo)",
+  "mcu": "ATtiny45 (Tiny45-20-SMT)",
+  "has_screen": false,
+  "screen_size": null,
+  "has_touch": false,
+  "has_led_board_companion": true,
+  "has_2017_companion": true,
+  "led_count": 2,
+  "led_label": "LEDs (2× APA102 5050 RGB, Brightness 10)",
+  "led_summary": "2 APA102 RGB LEDs (U2, U3)",
+  "eeprom_bytes": 0,
+  "has_nfc": false,
+  "has_speed_control": false,
+  "buttons": [
+    {
+      "id": "pad_a3",
+      "name": "Touch Pad 1 (A3)",
+      "bit": 1,
+      "keys": [
+        "Digit1",
+        "KeyA",
+        "ArrowLeft"
+      ],
+      "hint": "Hold Pad A3 (1 / A)",
+      "ref": "TOUCH_BTN_1",
+      "kind": "push"
+    },
+    {
+      "id": "pad_a2",
+      "name": "Touch Pad 2 (A2)",
+      "bit": 2,
+      "keys": [
+        "Digit2",
+        "KeyB",
+        "ArrowRight"
+      ],
+      "hint": "Hold Pad A2 (2 / B)",
+      "ref": "TOUCH_BTN_2",
+      "kind": "push"
+    }
+  ],
+  "files": {
+    "layout": "layout.json",
+    "board": "board.png",
+    "core_js": "core.js",
+    "core_wasm": "core.wasm"
+  },
+  "default_mode": "stock",
+  "modes_available": [
+    "stock"
+  ],
+  "modes_coming_soon": [],
+  "modes": {
+    "stock": {
+      "id": "stock",
+      "name": "Original Firmware",
+      "label": "Original Firmware",
+      "status": "available",
+      "core_js": "core.js",
+      "core_wasm": "core.wasm",
+      "has_speed_control": false,
+      "has_nut_tap": false,
+      "has_led_board_companion": true,
+      "has_2017_companion": true,
+      "description": "HITB Minibadge 2017 sketch (HITBUTT_Minibadge/HITB_Test.ino)"
+    }
+  },
+  "credits": {
+    "badge_by": "compukidmike",
+    "author_url": "https://github.com/compukidmike",
+    "repo_url": "https://github.com/compukidmike/Saintcon2017",
+    "source_url": "https://github.com/compukidmike/Saintcon2017/blob/d5f1d932035e589253eafbd97a414d78ee9b37e8/HITBUTT_Minibadge/HITB_Test.ino",
+    "commit": "d5f1d93",
+    "license": "Licence not stated",
+    "third_party_licenses_url": "badges/2017/THIRD_PARTY_LICENSES.txt",
+    "other_credits": [
+      {
+        "name": "compukidmike",
+        "role": "named on the board"
+      },
+      {
+        "name": "d4rkm4tter",
+        "role": "named on the board"
+      },
+      {
+        "name": "kampf",
+        "role": "named on the board"
+      },
+      {
+        "name": "D3M0S",
+        "role": "named on the board"
+      },
+      {
+        "name": "Heinrich",
+        "role": "named on the board"
+      },
+      {
+        "name": "dumby",
+        "role": "named on the board"
+      },
+      {
+        "name": "RuShan",
+        "role": "named on the board"
+      },
+      {
+        "name": "APA102 by pololu",
+        "role": "Written to be used with APA102 library by Pololu (replaced by our own emulator shim; library not shipped)"
+      },
+      {
+        "name": "ADCTouch by martin2250",
+        "role": "Written to be used with ADCTouch library by martin2250 (replaced by our own emulator shim; library not shipped)"
+      }
+    ]
+  }
+}

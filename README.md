@@ -11,8 +11,10 @@ Play SAINTCON conference badges in your browser, running their real firmware com
 | 2024 | "Tower Battle" wrist badge by [compukidmike](https://github.com/compukidmike) ([source](https://github.com/compukidmike/Saintcon2024)): original firmware with a stand-in tower server | https://24.sc.pug.technology/ |
 | 2023 | "Incidents" by [compukidmike](https://github.com/compukidmike) ([source](https://github.com/compukidmike/Saintcon2023)), with contributions from jarmknecht and klipperx: original firmware with a stand-in game server | https://23.sc.pug.technology/ |
 | 2021 | Combination lock badge by [compukidmike](https://github.com/compukidmike), [Professor_Plum](https://github.com/Professor-plum) and [Sodium_Hydrogen](https://github.com/Sodium-Hydrogen) ([source](https://github.com/compukidmike/Saintcon2021)), with a firmware fix by [kfeuz](https://github.com/kfeuz): original firmware with stand-in NFC tags and a solo trade partner | https://21.sc.pug.technology/ |
+| 2020 | LED badge by [compukidmike](https://github.com/compukidmike) ([source](https://github.com/compukidmike/Saintcon2020)): the original firmware with its 8 LED modes and the hidden boot mode | https://20.sc.pug.technology/ |
 | 2019 | Enigma badge by [compukidmike](https://github.com/compukidmike) ([source](https://github.com/compukidmike/Saintcon2019)), with Enigma code from Cory Lutton's enigma-c as changed by @_bashNinja: the original firmware with the matrix, lamps, keys and plugboard on a picture of the real board, and the at-home challenge playable to the end | https://19.sc.pug.technology/ |
 | 2018 | LED matrix badge by [compukidmike](https://github.com/compukidmike) ([source](https://github.com/compukidmike/Saintcon2018)), with frozen modules added by miketweaver: the original MicroPython code running in MicroPython's WebAssembly port | https://18.sc.pug.technology/ |
+| 2017 | HITB Minibadge by [compukidmike](https://github.com/compukidmike) ([source](https://github.com/compukidmike/Saintcon2017)): a minibadge, not the main 2017 badge, whose firmware is not in that repo. The board also names d4rkm4tter, kampf, D3M0S, Heinrich, dumby and RuShan | https://17.sc.pug.technology/ |
 
 Unofficial fan project. Not affiliated with or endorsed by [SAINTCON](https://saintcon.org/) or UtahSAINT.
 
@@ -46,6 +48,6 @@ firmware. See `emulator/README.md`.
 
 The code made for this project (the emulator shell, platform layers, build scripts) is MIT licensed, see `LICENSE`.
 The pug pet is MIT licensed in its own repo. The badge firmware belongs to its authors: the compiled cores in
-`emulator/web/badges/<year>/` contain their code under their terms (the 2026 firmware is MIT; the 2018, 2019, 2021, 2023, 2024 and 2025 firmware
+`emulator/web/badges/<year>/` contain their code under their terms (the 2026 firmware is MIT; the 2017, 2018, 2019, 2020, 2021, 2023, 2024 and 2025 firmware
 belongs to compukidmike and its contributors, as credited above), plus the third-party libraries listed in each
 year's `THIRD_PARTY_LICENSES.txt`.

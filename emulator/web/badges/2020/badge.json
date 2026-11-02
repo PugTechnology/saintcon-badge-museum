@@ -1,0 +1,75 @@
+{
+  "year": 2020,
+  "name": "LED badge",
+  "name_is_description": true,
+  "title": "SAINTCON 2020 LED badge",
+  "mcu": "ATtiny84A (F_CPU 1000000)",
+  "has_screen": false,
+  "screen_size": null,
+  "has_touch": false,
+  "has_led_board_companion": true,
+  "has_2020_companion": true,
+  "led_count": 8,
+  "led_label": "LEDs (PORTA PA0..PA7, 1 kHz Software PWM)",
+  "led_summary": "8 LEDs (D1–D4 front, D5–D8 back)",
+  "eeprom_bytes": 512,
+  "has_nfc": false,
+  "has_speed_control": false,
+  "buttons": [
+    {
+      "id": "mode",
+      "name": "Button SW1 (PB2)",
+      "bit": 1,
+      "keys": [
+        "Space",
+        " ",
+        "Enter"
+      ],
+      "hint": "SW1 / Space / Enter",
+      "ref": "SW1",
+      "kind": "push"
+    }
+  ],
+  "files": {
+    "layout": "layout.json",
+    "board": "board.png",
+    "core_js": "core.js",
+    "core_wasm": "core.wasm"
+  },
+  "default_mode": "stock",
+  "modes_available": [
+    "stock"
+  ],
+  "modes_coming_soon": [],
+  "modes": {
+    "stock": {
+      "id": "stock",
+      "name": "Original Firmware",
+      "label": "Original Firmware",
+      "status": "available",
+      "core_js": "core.js",
+      "core_wasm": "core.wasm",
+      "has_speed_control": false,
+      "has_nut_tap": false,
+      "has_led_board_companion": true,
+      "has_2020_companion": true,
+      "description": "Original SAINTCON 2020 ATtiny84A firmware (main.cpp)"
+    }
+  },
+  "credits": {
+    "badge_by": "compukidmike",
+    "author_url": "https://github.com/compukidmike",
+    "repo_url": "https://github.com/compukidmike/Saintcon2020",
+    "source_url": "https://github.com/compukidmike/Saintcon2020/blob/9b11ef8514be376b9b798ec66248ab2f7a8d1fd3/Firmware/Saintcon2020/main.cpp",
+    "commit": "9b11ef8",
+    "license": "Licence not stated",
+    "third_party_licenses_url": "badges/2020/THIRD_PARTY_LICENSES.txt",
+    "other_credits": [
+      {
+        "name": "compukidmike",
+        "role": "Firmware/Saintcon2020/main.cpp and Hardware/* KiCad PCBs",
+        "url": "https://github.com/compukidmike"
+      }
+    ]
+  }
+}
