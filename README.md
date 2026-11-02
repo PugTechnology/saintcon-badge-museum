@@ -18,7 +18,7 @@ Play SAINTCON conference badges in your browser, running their real firmware. Mo
 | 2018 | LED matrix badge by [compukidmike](https://github.com/compukidmike) ([source](https://github.com/compukidmike/Saintcon2018)), with frozen modules added by miketweaver: the original MicroPython code running in MicroPython's WebAssembly port | https://18.sc.pug.technology/ |
 | 2017 | HITB Minibadge by [compukidmike](https://github.com/compukidmike) ([source](https://github.com/compukidmike/Saintcon2017)): a minibadge, not the main 2017 badge, whose firmware is not in that repo. The board also names d4rkm4tter, kampf, D3M0S, Heinrich, dumby and RuShan | https://17.sc.pug.technology/ |
 
-Unofficial fan project. Not affiliated with or endorsed by [SAINTCON](https://saintcon.org/) or UtahSAINT.
+Unofficial fan project. Not affiliated with or endorsed by [SAINTCON](https://saintcon.org/) or [UtahSAINT](https://www.utahsaint.org/).
 
 ## How it works
 

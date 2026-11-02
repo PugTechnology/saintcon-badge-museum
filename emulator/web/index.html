@@ -2380,7 +2380,7 @@ EMAIL:visitor@example.invalid</textarea>
   </main>
   <footer class="site-footer">
     <a href="https://saintcon.org/" target="_blank" rel="noopener">SAINTCON</a> is Utah's annual cybersecurity conference, run by
-    <a href="https://saintcon.org/about" target="_blank" rel="noopener">UtahSAINT</a>.
+    <a href="https://www.utahsaint.org/" target="_blank" rel="noopener">UtahSAINT</a>.
     Unofficial fan project, not affiliated with or endorsed by SAINTCON or UtahSAINT.
   </footer>
 
@@ -4461,7 +4461,7 @@ EMAIL:visitor@example.invalid</textarea>
           }
           const holdVal = sc22BootHoldSelect ? String(sc22BootHoldSelect.value || 'none') : 'none';
           core.sc22Reset(holdVal === 'DOWN' || holdVal === 'SELECT' ? holdVal : 'none');
-          if (holdVal === 'none') {
+          if (holdVal === 'none' && !sc22WipeResumePending) {
             setSc22Status('Reset badge. Click Visit a Kiosk to receive elimination clues.');
           }
           renderOutputs();
@@ -4593,9 +4593,14 @@ EMAIL:visitor@example.invalid</textarea>
           }
           sc22WinStatusSynced = false;
           sc22WipeHold = true;
-          setSc22Status(wipe22Restarted
-            ? 'Wiped flash save and started a new mystery: this is the firmware\'s own LED test, which it runs on a fresh save and never ends by itself. Click Reset Badge to start the notepad.'
-            : 'Wiped flash save. The emulator has stopped, so nothing is running: reload the page to start the badge again.');
+          sc22WipeResumePending = wipe22Restarted && wasPaused;
+          if (!wipe22Restarted) {
+            setSc22Status('Wiped flash save. The emulator has stopped, so nothing is running: reload the page to start the badge again.');
+          } else if (wasPaused) {
+            setSc22Status('Wiped flash save and started a new mystery. The badge is paused: press Resume and the firmware runs its own LED test, which it runs on a fresh save and never ends by itself. Then click Reset Badge to start the notepad.');
+          } else {
+            setSc22Status('Wiped flash save and started a new mystery: this is the firmware\'s own LED test, which it runs on a fresh save and never ends by itself. Click Reset Badge to start the notepad.');
+          }
           renderOutputs();
           if (!wasPaused) {
             paused = false;
@@ -7151,6 +7156,8 @@ EMAIL:visitor@example.invalid</textarea>
       let sc22WinStatusSynced = false;
       // Set by Wipe Save: the Worker still reports the old won game until the restarted badge reports in.
       let sc22WipeHold = false;
+      // Save wiped while paused: the firmware has not run yet, so its LED test starts only on Resume.
+      let sc22WipeResumePending = false;
       let activeSc22Worker = null;
       let sc22WorkerFailed = false;
       const sc22SerialLines = [];
@@ -7597,12 +7604,19 @@ EMAIL:visitor@example.invalid</textarea>
           sc22BootloaderBanner.classList.toggle('visible', Boolean(st.inBootloader));
         }
 
-        const inSpecialBootState = Boolean(st.inSelfTest || st.inBootloader);
+        if (sc22WipeResumePending && !paused) {
+          sc22WipeResumePending = false;
+          setSc22Status('This is the firmware\'s own LED test, which it runs on a fresh save and never ends by itself. Click Reset Badge to start the notepad.');
+        }
+        const inSpecialBootState = Boolean(st.inSelfTest || st.inBootloader || sc22WipeResumePending);
         if (sc22BoardNotice) {
           sc22BoardNotice.classList.toggle('visible', currentYear === '2022' && inSpecialBootState);
         }
         if (sc22BoardNoticeText) {
-          if (st.inBootloader) {
+          if (sc22WipeResumePending) {
+            sc22BoardNoticeText.textContent =
+              'Save wiped while paused. Press Resume and the firmware runs its own LED test, which it runs on a fresh save and never ends by itself.';
+          } else if (st.inBootloader) {
             sc22BoardNoticeText.textContent =
               'The badge is waiting for a firmware file in the RP2040 USB bootloader (all 52 LEDs off). Click Reset Badge to start the notepad.';
           } else if (st.inSelfTest) {
@@ -7625,7 +7639,10 @@ EMAIL:visitor@example.invalid</textarea>
         }
         if (sc22KioskDisabledNote) {
           sc22KioskDisabledNote.classList.toggle('visible', inSpecialBootState);
-          if (st.inBootloader) {
+          if (sc22WipeResumePending) {
+            sc22KioskDisabledNote.textContent =
+              'Kiosk buttons are disabled until the badge is resumed and Reset Badge starts the notepad.';
+          } else if (st.inBootloader) {
             sc22KioskDisabledNote.textContent =
               'Kiosk buttons are disabled in the USB bootloader — click Reset Badge to start the notepad.';
           } else if (st.inSelfTest) {
@@ -7635,7 +7652,9 @@ EMAIL:visitor@example.invalid</textarea>
         }
 
         if (sc22ModePill) {
-          if (st.inBootloader) {
+          if (sc22WipeResumePending) {
+            sc22ModePill.textContent = 'Paused (LED test starts on Resume)';
+          } else if (st.inBootloader) {
             sc22ModePill.textContent = 'USB Bootloader (Click Reset Badge to start notepad)';
           } else if (st.inSelfTest) {
             sc22ModePill.textContent = 'LED Self-Test (Click Reset Badge to start notepad)';
@@ -7653,7 +7672,7 @@ EMAIL:visitor@example.invalid</textarea>
           const blinking = !st.inBootloader && !st.inSelfTest && (st.displayMode >>> 0) === 0 && st.newClueBlinkCounter > 0;
           const cluesNow = sc22KioskState ? sc22KioskState.cluesSent : 0;
           let note = '';
-          if (st.inBootloader || st.inSelfTest || gameWon) {
+          if (st.inBootloader || st.inSelfTest || gameWon || sc22WipeResumePending) {
             note = '';
           } else if (blinking) {
             note = 'The new clue is blinking (about 15 seconds). Leave the badge buttons alone until it ends. If one is pressed, the firmware can leave some LEDs dark; that is its own behaviour, and Reset Badge redraws them from the save.';
@@ -7723,7 +7742,9 @@ EMAIL:visitor@example.invalid</textarea>
         }
 
         if (sc22CursorReadout) {
-          if (st.inBootloader) {
+          if (sc22WipeResumePending) {
+            sc22CursorReadout.textContent = 'Paused';
+          } else if (st.inBootloader) {
             sc22CursorReadout.textContent = 'Waiting for firmware file (Bootloader)';
           } else if (st.inSelfTest) {
             sc22CursorReadout.textContent = 'LED Self-Test Loop';
