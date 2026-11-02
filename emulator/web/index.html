@@ -6,7 +6,7 @@
   <title>SAINTCON Badge Emulator</title>
   <script>
     (function () {
-      var LIVE_YEARS = ['2018', '2021', '2023', '2024', '2025', '2026'];
+      var LIVE_YEARS = ['2018', '2019', '2021', '2023', '2024', '2025', '2026'];
       var PROD = 'sc.pug.technology';
       var host = (window.location.hostname || '').toLowerCase();
       var isProdDomain = host === PROD || host.endsWith('.' + PROD);
@@ -185,13 +185,13 @@
 
     /* Landscape wrist badge PCB (e.g. 2024 844x570): size by width so 3-column desktop fits 1280px */
     .board-stage.landscape {
-      width: clamp(300px, 28vw, 460px);
+      width: clamp(290px, 27vw, 440px);
       height: auto;
     }
 
     /* Wide portrait PCB (e.g. 2018 858x1385 padlock): size by width so 3-column desktop fits 1280px */
     .board-stage.wide-portrait {
-      width: clamp(280px, 29vw, 430px);
+      width: clamp(280px, 28vw, 430px);
       height: auto;
     }
 
@@ -342,7 +342,7 @@
       border-radius: 10px;
       padding: 7px 12px;
       text-align: center;
-      max-width: 420px;
+      max-width: 370px;
       width: 100%;
       box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
       user-select: text;
@@ -1314,6 +1314,165 @@
       user-select: text;
       -webkit-user-select: text;
     }
+
+    /* 2019 Enigma Badge: Arched 64x16 Matrix Overlay, 26-Key QWERTZ Pad & Plugboard */
+    .screen-holder.arch-matrix {
+      background: transparent;
+      box-shadow: none;
+      overflow: visible;
+    }
+    .screen-holder.arch-matrix canvas#screen-canvas {
+      opacity: 0 !important;
+      pointer-events: none;
+    }
+    canvas#arch-screen-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: none;
+      pointer-events: none;
+    }
+    .screen-holder.arch-matrix canvas#arch-screen-canvas {
+      display: block;
+    }
+    svg.board-plug-svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 4;
+      overflow: visible;
+    }
+    .sc19-qwertz-pad {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      width: 100%;
+      touch-action: none;
+    }
+    .sc19-qwertz-pad.visible {
+      display: flex;
+    }
+    .sc19-qwertz-row {
+      display: flex;
+      justify-content: center;
+      gap: 4px;
+      width: 100%;
+      touch-action: none;
+    }
+    .sc19-qwertz-key {
+      position: relative;
+      flex: 1 1 0;
+      max-width: 39px;
+      min-width: 28px;
+      height: 38px;
+      padding: 2px 1px;
+      border-radius: 8px;
+      border: 1px solid #3b434d;
+      background: #21262d;
+      color: var(--text-main);
+      font-size: 0.8rem;
+      font-weight: 800;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      touch-action: none;
+      box-shadow: 0 2px 0 #0d1117;
+      transition: transform 0.05s, background 0.08s, border-color 0.08s;
+    }
+    .sc19-qwertz-key.nav-key {
+      border-color: rgba(212, 167, 44, 0.55);
+    }
+    .sc19-qwertz-key .sub {
+      font-size: 0.52rem;
+      font-weight: 700;
+      color: #f0c654;
+      line-height: 1;
+      margin-top: 1px;
+    }
+    .sc19-qwertz-key .key-lamp {
+      position: absolute;
+      top: 3px;
+      right: 3px;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: #161b22;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      pointer-events: none;
+    }
+    .sc19-qwertz-key:active,
+    .sc19-qwertz-key.pressed {
+      transform: translateY(2px);
+      box-shadow: 0 0 0 #0d1117;
+      background: #1f6feb;
+      border-color: #79c0ff;
+      color: #ffffff;
+    }
+    .sc19-plugboard-wrap {
+      position: relative;
+      background: #0d1117;
+      border: 1px solid #2a313a;
+      border-radius: 9px;
+      padding: 8px 6px;
+    }
+    .sc19-plugboard-grid {
+      position: relative;
+      display: grid;
+      grid-template-columns: repeat(13, minmax(0, 1fr));
+      gap: 8px 3px;
+      z-index: 2;
+    }
+    .sc19-plug-btn {
+      position: relative;
+      height: 36px;
+      padding: 2px 1px;
+      border-radius: 6px;
+      border: 1px solid #30363d;
+      background: rgba(22, 27, 34, 0.92);
+      color: var(--text-main);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.72rem;
+      font-weight: 800;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      touch-action: manipulation;
+      transition: border-color 0.1s, background 0.1s, transform 0.05s;
+    }
+    .sc19-plug-btn:hover {
+      border-color: #58a6ff;
+    }
+    .sc19-plug-btn.selected {
+      border-color: #ffd33d;
+      background: rgba(212, 167, 44, 0.28);
+      box-shadow: 0 0 0 1px #ffd33d inset;
+    }
+    .sc19-plug-btn.wired {
+      background: rgba(30, 38, 50, 0.95);
+    }
+    .sc19-plug-btn .plug-pair {
+      font-size: 0.52rem;
+      font-weight: 700;
+      line-height: 1;
+      margin-top: 2px;
+      color: var(--text-muted);
+    }
+    svg.sc19-plugboard-svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 3;
+      overflow: visible;
+    }
   </style>
 </head>
 <body>
@@ -1350,7 +1509,7 @@
       <span>Mode: <strong id="mode-readout">—</strong></span>
       <span>FPS: <strong id="fps-readout">0</strong></span>
       <span id="speed-strip-item">Speed: <strong id="speed-readout">1x</strong></span>
-      <span><span id="backlight-status-label">Backlight</span>: <strong id="backlight-readout">255</strong></span>
+      <span id="backlight-strip-item"><span id="backlight-status-label">Backlight</span>: <strong id="backlight-readout">255</strong></span>
       <span>EEPROM: <strong id="eeprom-status">Clean</strong></span>
     </div>
   </header>
@@ -1366,8 +1525,10 @@
           <div id="touch-wheel-overlay" class="touch-wheel-overlay" style="display: none;" title="QTouch Capacitive Dial Wheel: Drag around dial ring, then release to open selected menu item"></div>
           <div id="screen-holder" class="screen-holder">
             <canvas id="screen-canvas" width="240" height="320"></canvas>
+            <canvas id="arch-screen-canvas" width="480" height="128"></canvas>
           </div>
           <div id="led-layer" class="led-layer"></div>
+          <svg id="board-plug-svg" class="board-plug-svg" viewBox="0 0 998 992" aria-hidden="true"></svg>
           <div id="sw2-overlay" class="sw2-overlay" title="5-Way Navigation Switch: Drag/Hold or Click">
             <div class="sw2-Overlay-ring"></div>
             <div id="sw2-cap" class="sw2-cap"></div>
@@ -1467,6 +1628,7 @@
           </div>
           <div id="action-pad-col" class="action-pad-col"></div>
         </div>
+        <div id="sc19-qwertz-pad" class="sc19-qwertz-pad" aria-label="26-Key Enigma Keyboard"></div>
       </div>
 
       <!-- 2023 Incidents Companion Panel (4 Minibadge Slots + Solo IR & Vending) -->
@@ -1678,6 +1840,54 @@ EMAIL:visitor@example.invalid</textarea>
         </div>
       </div>
 
+      <!-- 2019 Enigma Machine, Plugboard (J3/J4) & At-Home Challenge Companion -->
+      <div class="panel-card" id="sc19-panel-card" style="display: none;" aria-label="2019 Enigma and Plugboard Companion">
+        <h2>Enigma, Plugboard &amp; Challenge</h2>
+        <p class="towers-hint">
+          <strong>At-Home Challenge:</strong> open the upstream
+          <a href="https://github.com/compukidmike/Saintcon2019/blob/4ec59a1626dca09a0c75969f449a0ed3cca18bac/Code%20Sheet.pdf" target="_blank" rel="noopener"><strong>Code Sheet.pdf</strong></a>
+          and
+          <a href="https://github.com/compukidmike/Saintcon2019/blob/4ec59a1626dca09a0c75969f449a0ed3cca18bac/Saintcon2019BadgeChallenge.pdf" target="_blank" rel="noopener"><strong>Saintcon2019BadgeChallenge.pdf</strong></a>
+          (plus <a href="https://github.com/compukidmike/Saintcon2019/blob/4ec59a1626dca09a0c75969f449a0ed3cca18bac/Badge%20Instructions.pdf" target="_blank" rel="noopener">Badge Instructions.pdf</a>).
+          From <code>DIRECTIONS:</code>, press <kbd>S</kbd> then <kbd>K</kbd> to open <strong>ENIGMA EMULATOR</strong>, which walks through 5 setup screens (<kbd>K</kbd> advances each step): <strong>Machine</strong> (<kbd>A</kbd>=<code>3</code> / <kbd>D</kbd>=<code>4</code> Rotor), <strong>Set Rotors</strong> (<kbd>A</kbd>/<kbd>D</kbd> picks slot, <kbd>W</kbd>/<kbd>S</kbd> sets <code>1</code>–<code>9</code> or <code>BETA</code>/<code>GAMMA</code>), <strong>Set Rings</strong> (<kbd>A</kbd>/<kbd>D</kbd> picks slot, <kbd>W</kbd>/<kbd>S</kbd> sets <code>A</code>–<code>Z</code> for <code>01</code>–<code>26</code>), <strong>Start Pos.</strong> (<kbd>A</kbd>/<kbd>D</kbd> picks slot, <kbd>W</kbd>/<kbd>S</kbd> sets <code>A</code>–<code>Z</code>), and <strong>Plugboard</strong> (wire jumper pairs below, then press <kbd>K</kbd> to start encoding). Type the ciphertext on <code>A</code>–<code>Z</code> to decode.
+        </p>
+        <p class="towers-hint" style="margin-top: -2px;">
+          <strong>Scene Exit / Save:</strong> in <strong>Enigma Emulator</strong> (and Rotor Settings), hold <strong>any key 3 seconds</strong> to go back. In <strong>Games (Snake)</strong>, steer with <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> and press <kbd>K</kbd> to exit. In <strong>Challenge Info</strong>, envelopes unlock at levels <strong>1, 5, 9, and 13</strong>: from <code>EXIT</code>, press <kbd>W</kbd> to jump to the newest unlocked envelope, use <kbd>A</kbd>/<kbd>D</kbd> to move left/right between unlocked envelopes, press <kbd>K</kbd> to scroll the selected envelope's message, or press <kbd>S</kbd> then <kbd>K</kbd> on <code>EXIT</code>. In <strong>Custom Message</strong>, use <kbd>W</kbd>/<kbd>S</kbd> (char), <kbd>A</kbd>/<kbd>D</kbd> (cursor), <kbd>O</kbd> (backspace), and <kbd>K</kbd> to save &amp; exit. In <strong>Minibadge Control</strong> and <strong>Exit Menu (Animations)</strong>, use <kbd>W</kbd>/<kbd>S</kbd> to cycle and <kbd>K</kbd> to return to Menu.
+        </p>
+        <p class="towers-hint" style="margin-top: -2px;">
+          <strong>Enigma Note:</strong> in 3-rotor mode with rotors I–VIII this matches a real three-rotor Enigma, except that the firmware's middle rotor can step twice if you start on both notches (e.g. rotors I II III at <code>AEV</code> → <code>BGW</code> instead of <code>BFW</code>). Its 4-rotor mode (thick reflector B + Beta/Gamma) and rotor IX are its own, not a real M4 or real rotors.
+        </p>
+
+        <div class="sc21-section">
+          <div class="sc21-subhead">
+            <span>Plugboard Jumper Wires (J3 / J4)</span>
+            <span id="sc19-plug-count" style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 0.66rem; color: var(--text-muted); text-transform: none;">0 / 10 wires</span>
+          </div>
+          <p class="towers-hint" style="margin: 0;">Click or tap two letters to connect them with a jumper wire; click a wired letter to remove its wire. <strong>Run Factory Test</strong> runs the build-table test: press every key A–Z, <strong>Reset Badge</strong> returns, and your progress is kept.</p>
+          <div class="sc19-plugboard-wrap" id="sc19-plugboard-wrap">
+            <div id="sc19-plugboard-grid" class="sc19-plugboard-grid" aria-label="26 Plugboard Sockets A through Z"></div>
+            <svg id="sc19-plugboard-svg" class="sc19-plugboard-svg" aria-hidden="true"></svg>
+          </div>
+          <div class="btn-row">
+            <button type="button" class="ctrl-btn" id="btn-sc19-plug-clear" title="Remove all jumper wires from the 26-pin plugboard">🔌 Clear Wires</button>
+            <button type="button" class="ctrl-btn gold" id="btn-sc19-factory-test" title="Runs the build-table test: press every key A–Z, Reset Badge returns, your progress is kept">🧪 Run Factory Test</button>
+          </div>
+        </div>
+
+        <div class="sc21-section">
+          <div class="sc21-subhead">
+            <span>Minibadge &amp; UART Chain</span>
+          </div>
+          <p class="towers-hint" style="margin: 0;">
+            I2C2 minibadges: none attached (<code>MINIBADGE CONTROL</code> sets <code>OFF</code>, <code>ON</code>, or <code>Pattern 1</code>–<code>4</code> in EEPROM). UART1 side headers run in standalone at-home mode (all 9 messages and ring animations unlock directly on the badge).
+          </p>
+        </div>
+
+        <div class="nut-status-box" id="sc19-status-box">
+          Ready — use <strong>W</strong> / <strong>S</strong> + <strong>K</strong> to open <code>ENIGMA EMULATOR</code>, <code>GAMES</code> (Snake), <code>CHALLENGE INFO</code>, <code>CUSTOM MESSAGE</code>, <code>MINIBADGE CONTROL</code>, or <code>EXIT MENU</code> (Animations).
+        </div>
+      </div>
+
       <!-- Emulator Controls Panel -->
       <div class="panel-card">
         <h2>Emulator Controls</h2>
@@ -1819,7 +2029,7 @@ EMAIL:visitor@example.invalid</textarea>
       const DESKTOP_BREAKPOINT_PX = 820;
       const MAX_STEP_DT_MS = 100;
       const MAX_HIDDEN_CATCHUP_MS = 300000; // Bound catch-up at 5 min of real time in 100 ms steps
-      const LIVE_YEARS = ['2018', '2021', '2023', '2024', '2025', '2026'];
+      const LIVE_YEARS = ['2018', '2019', '2021', '2023', '2024', '2025', '2026'];
       const COMING_SOON_YEARS = []; // Only years explicitly listed as coming soon
       const WASM_MISSING_MSG = 'This emulator needs WebAssembly; it may be turned off, e.g. iPhone Lockdown Mode';
 
@@ -1983,6 +2193,9 @@ EMAIL:visitor@example.invalid</textarea>
       const screenHolder = document.getElementById('screen-holder');
       const screenCanvas = document.getElementById('screen-canvas');
       const screenCtx = screenCanvas.getContext('2d', { alpha: false });
+      const archScreenCanvas = document.getElementById('arch-screen-canvas');
+      const archScreenCtx = archScreenCanvas ? archScreenCanvas.getContext('2d') : null;
+      const boardPlugSvg = document.getElementById('board-plug-svg');
       let screenImageData = screenCtx.createImageData(screenW, screenH);
       let screenRgba32 = new Uint32Array(screenImageData.data.buffer);
 
@@ -2082,6 +2295,15 @@ EMAIL:visitor@example.invalid</textarea>
       const btnSc21MbSend = document.getElementById('btn-sc21-mb-send');
       const btnSc21MbBtn = document.getElementById('btn-sc21-mb-btn');
       const sc21StatusBox = document.getElementById('sc21-status-box');
+      const sc19QwertzPad = document.getElementById('sc19-qwertz-pad');
+      const sc19PanelCard = document.getElementById('sc19-panel-card');
+      const sc19PlugCount = document.getElementById('sc19-plug-count');
+      const sc19PlugWrap = document.getElementById('sc19-plugboard-wrap');
+      const sc19PlugGrid = document.getElementById('sc19-plugboard-grid');
+      const sc19PlugSvg = document.getElementById('sc19-plugboard-svg');
+      const btnSc19PlugClear = document.getElementById('btn-sc19-plug-clear');
+      const btnSc19FactoryTest = document.getElementById('btn-sc19-factory-test');
+      const sc19StatusBox = document.getElementById('sc19-status-box');
       const nfcCaptureLabel = document.getElementById('nfc-capture-label');
       const btnPhoneTap = document.getElementById('btn-phone-tap');
 
@@ -2241,11 +2463,66 @@ EMAIL:visitor@example.invalid</textarea>
 
       let lastInputMask = 0;
       let sc21PausedPendingMask = 0;
+      let sc19KbAzMask = 0;
+      let sc19BoardAzMask = 0;
+      let sc19PadAzMask = 0;
+      let sc19TestAzMask = 0;
+      let sc19LastAzMask = 0;
+      const SC19_PAUSED_QUEUE_LIMIT = 16;
+      const sc19PausedQueue = [];
+      let sc19PausedActiveItem = null;
+      const sc19ActiveKbByCode = new Map();
+      const activeBoardAzPointers = new Map();
+      const activeSc19PadPointers = new Map();
+      const sc19PadKeyElements = [];
+      let sc19InEnigmaScreens = false;
+      let sc19HoldHintDotEl = null;
+      let sc19HoldHintItemEl = null;
+
+      function clearSc19PausedQueue() {
+        sc19PausedQueue.length = 0;
+        sc19PausedActiveItem = null;
+      }
+
+      function getFreshRandomSeed() {
+        try {
+          if (window.crypto && typeof window.crypto.getRandomValues === 'function') {
+            const arr = new Uint32Array(1);
+            window.crypto.getRandomValues(arr);
+            if (arr[0] !== 0) return arr[0] >>> 0;
+          }
+        } catch (_) {}
+        return ((Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0) || 1;
+      }
+
+      function sc19EffectiveAzMask() {
+        let m = (sc19KbAzMask | sc19BoardAzMask | sc19PadAzMask | sc19TestAzMask) & 0x03ffffff;
+        const navMask = (kbMask | sw2Mask | boardBtnMask | padMask | testMask | macroMask) & validButtonsMask;
+        if (navMask & BTN_UP) m |= (1 << 22);     // W
+        if (navMask & BTN_DOWN) m |= (1 << 18);   // S
+        if (navMask & BTN_LEFT) m |= (1 << 0);    // A
+        if (navMask & BTN_RIGHT) m |= (1 << 3);   // D
+        if (navMask & centerBtnBit) m |= (1 << 10); // K
+        return m & 0x03ffffff;
+      }
+
+      function azMaskToLetters(azMask) {
+        if (!azMask) return 'IDLE';
+        const out = [];
+        for (let i = 0; i < 26; i++) {
+          if ((azMask >>> i) & 1) out.push(String.fromCharCode(65 + i));
+        }
+        return out.join('+');
+      }
 
       function updateInputVisuals() {
         const mask = getButtonsMask();
         const rising = mask & ~lastInputMask;
         lastInputMask = mask;
+        const azMask = currentYear === '2019' ? sc19EffectiveAzMask() : 0;
+        const risingAz = azMask & ~sc19LastAzMask;
+        sc19LastAzMask = azMask;
+
         if (paused && currentYear === '2021' && core && !core.isMock) {
           if (rising & 64) {
             if (typeof core.sc21SetShackle === 'function') {
@@ -2263,7 +2540,31 @@ EMAIL:visitor@example.invalid</textarea>
             }
           }
         }
-        if (hasTouchInput && validButtonsMask === 0) {
+        if (currentYear === '2019' && core) {
+          if (paused && !core.isMock) {
+            if (risingAz || rising) {
+              if (sc19PausedQueue.length < SC19_PAUSED_QUEUE_LIMIT) {
+                sc19PausedQueue.push({ azMask: risingAz, btnMask: rising });
+              }
+              if (typeof setSc19Status === 'function') {
+                const queuedList = sc19PausedQueue.map((it) => azMaskToLetters(it.azMask)).join(', ');
+                setSc19Status(`Badge is paused — queued ${sc19PausedQueue.length} key press${sc19PausedQueue.length === 1 ? '' : 'es'} (${queuedList}) to replay in order on Resume.`);
+              }
+            }
+          } else if (typeof core.sc19SetKeys === 'function') {
+            const activeQueuedAz = (sc19PausedActiveItem && sc19PausedActiveItem.phase === 'hold')
+              ? sc19PausedActiveItem.azMask
+              : 0;
+            core.sc19SetKeys(azMask | activeQueuedAz);
+          }
+        }
+        if (currentYear === '2019') {
+          if (telButtonsLabel) {
+            telButtonsLabel.textContent = 'KEY MATRIX (26 KEYS)';
+          }
+          telButtons.textContent =
+            '0x' + azMask.toString(16).padStart(7, '0').toUpperCase() + ' (' + azMaskToLetters(azMask) + ')';
+        } else if (hasTouchInput && validButtonsMask === 0) {
           if (telButtonsLabel) {
             telButtonsLabel.textContent = 'TOUCH INPUT (GT911)';
           }
@@ -2284,8 +2585,18 @@ EMAIL:visitor@example.invalid</textarea>
         });
 
         for (const el of boardPushElements) {
-          const bit = Number(el.dataset.btnBit);
-          el.classList.toggle('pressed', (mask & bit) !== 0);
+          if (el.dataset.azBit !== undefined) {
+            const azBit = Number(el.dataset.azBit);
+            el.classList.toggle('pressed', ((azMask >>> azBit) & 1) !== 0);
+          } else {
+            const bit = Number(el.dataset.btnBit);
+            el.classList.toggle('pressed', (mask & bit) !== 0);
+          }
+        }
+
+        for (const el of sc19PadKeyElements) {
+          const azBit = Number(el.dataset.azBit);
+          el.classList.toggle('pressed', ((azMask >>> azBit) & 1) !== 0);
         }
 
         let dx = 0;
@@ -2321,6 +2632,13 @@ EMAIL:visitor@example.invalid</textarea>
         updateInputVisuals();
       }
 
+      function recomputeSc19BoardAzMask() {
+        let m = 0;
+        for (const bit of activeBoardAzPointers.values()) m |= bit;
+        sc19BoardAzMask = m;
+        updateInputVisuals();
+      }
+
       // Apply KiCad layout.json coordinates to DOM elements
       function applyLayout(data) {
         layout = data;
@@ -2347,13 +2665,24 @@ EMAIL:visitor@example.invalid</textarea>
 
         const scr = data.screen;
         const isRound = (scr.shape || screenShape) === 'round';
+        const isArchMatrix = Boolean(scr.arch_matrix);
         screenHolder.classList.toggle('round', isRound);
+        screenHolder.classList.toggle('arch-matrix', isArchMatrix);
         bigScreenBezel.classList.toggle('round', isRound);
         screenHolder.style.display = scr.hidden ? 'none' : '';
         screenHolder.style.left = `${(scr.x_px / W) * 100}%`;
         screenHolder.style.top = `${(scr.y_px / H) * 100}%`;
         screenHolder.style.width = `${(scr.w_px / W) * 100}%`;
         screenHolder.style.height = `${(scr.h_px / H) * 100}%`;
+        if (archScreenCanvas && isArchMatrix) {
+          archScreenCanvas.width = Math.max(1, Math.round(scr.w_px));
+          archScreenCanvas.height = Math.max(1, Math.round(scr.h_px));
+        }
+        if (boardPlugSvg) {
+          boardPlugSvg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+          boardPlugSvg.style.display = (Array.isArray(data.plugboard_pins) && data.plugboard_pins.length === 26) ? '' : 'none';
+          boardPlugSvg.replaceChildren();
+        }
         if (scr.hidden) {
           bigScreenTitle.textContent = `LED Matrix (${scr.part || '2× IS31FL3730 8×32'})`;
         }
@@ -2373,7 +2702,7 @@ EMAIL:visitor@example.invalid</textarea>
           el.dataset.ref = led.ref;
           el.title = led.din_net
             ? `Chain #${led.index} (${led.ref}, DIN: ${led.din_net})`
-            : `LED #${led.index} (${led.ref}${led.part ? ', ' + led.part : ''})`;
+            : `LED #${led.index} (${led.ref}${led.line_note ? ' • ' + led.line_note : ''}${led.part ? ', ' + led.part : ''})`;
           ledLayer.appendChild(el);
           ledElements.push(el);
         }
@@ -2397,7 +2726,9 @@ EMAIL:visitor@example.invalid</textarea>
         boardButtonsLayer.replaceChildren();
         boardPushElements.length = 0;
         activeBoardBtnPointers.clear();
+        activeBoardAzPointers.clear();
         boardBtnMask = 0;
+        sc19BoardAzMask = 0;
         const pushList = Array.isArray(data.action_buttons)
           ? data.action_buttons
           : buttonDefs.filter((b) => b.kind === 'push' && typeof b.x_px === 'number');
@@ -2411,22 +2742,62 @@ EMAIL:visitor@example.invalid</textarea>
           el.style.width = `${(diamPx / W) * 100}%`;
           el.style.height = `${(diamPx / H) * 100}%`;
           el.dataset.btnBit = String(pb.bit);
+          if (typeof pb.az_bit === 'number') {
+            el.dataset.azBit = String(pb.az_bit);
+          }
           el.textContent = pb.name;
           if (String(pb.name || '').length > 3) {
             el.style.fontSize = '0.52rem';
           }
           el.title = `Button ${pb.name} (${pb.ref || 'SW'})`;
 
+          el.addEventListener('contextmenu', (e) => e.preventDefault());
+          el.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            for (let i = 0; i < e.changedTouches.length; i++) {
+              const tid = `touch_${e.changedTouches[i].identifier}`;
+              if (typeof pb.az_bit === 'number') {
+                activeBoardAzPointers.set(tid, 1 << pb.az_bit);
+              } else {
+                activeBoardBtnPointers.set(tid, Number(pb.bit));
+              }
+            }
+            if (typeof pb.az_bit === 'number') recomputeSc19BoardAzMask();
+            else recomputeBoardBtnMask();
+          }, { passive: false });
+          const releaseTouch = (e) => {
+            for (let i = 0; i < e.changedTouches.length; i++) {
+              const tid = `touch_${e.changedTouches[i].identifier}`;
+              activeBoardAzPointers.delete(tid);
+              activeBoardBtnPointers.delete(tid);
+            }
+            if (typeof pb.az_bit === 'number') recomputeSc19BoardAzMask();
+            else recomputeBoardBtnMask();
+          };
+          el.addEventListener('touchend', releaseTouch);
+          el.addEventListener('touchcancel', releaseTouch);
           el.addEventListener('pointerdown', (e) => {
+            if (e.pointerType === 'touch') return;
             e.preventDefault();
             if (el.setPointerCapture) {
               try { el.setPointerCapture(e.pointerId); } catch (_) {}
             }
-            activeBoardBtnPointers.set(e.pointerId, Number(pb.bit));
-            recomputeBoardBtnMask();
+            if (typeof pb.az_bit === 'number') {
+              activeBoardAzPointers.set(e.pointerId, 1 << pb.az_bit);
+              recomputeSc19BoardAzMask();
+            } else {
+              activeBoardBtnPointers.set(e.pointerId, Number(pb.bit));
+              recomputeBoardBtnMask();
+            }
           });
           const release = (e) => {
-            if (activeBoardBtnPointers.has(e.pointerId)) {
+            if (e.pointerType === 'touch') return;
+            if (typeof pb.az_bit === 'number') {
+              if (activeBoardAzPointers.has(e.pointerId)) {
+                activeBoardAzPointers.delete(e.pointerId);
+                recomputeSc19BoardAzMask();
+              }
+            } else if (activeBoardBtnPointers.has(e.pointerId)) {
               activeBoardBtnPointers.delete(e.pointerId);
               recomputeBoardBtnMask();
             }
@@ -2708,6 +3079,102 @@ EMAIL:visitor@example.invalid</textarea>
         return { kind: 'Empty EEPROM (Bytes 0–255)', text: '(No NDEF record or text present in bytes 0–255)' };
       }
 
+      // Render 2019 arched 64x16 RGB LED matrix dots onto a 2D canvas context
+      function drawSc19ArchedMatrix(targetCtx, scr, fb, originX, originY, alphaFrac) {
+        if (!targetCtx || !scr || !fb) return;
+        const cols = Number(scr.cols) || 64;
+        const rows = Number(scr.rows) || 16;
+        const scalePxMm = Number(scr.scale_px_per_mm) || 5.5373;
+        const colSpanPx = (Number(scr.col_span_h_mm) || 24.13) * scalePxMm;
+        const archDy = Array.isArray(scr.col_arch_dy_mm) ? scr.col_arch_dy_mm : null;
+        const dotScale = Math.max(1, Math.floor(screenW / cols));
+
+        targetCtx.save();
+        targetCtx.globalAlpha = alphaFrac;
+        for (let col = 0; col < cols; col++) {
+          const cx = originX + ((col + 0.5) / cols) * scr.w_px;
+          const dyPx = archDy && typeof archDy[col] === 'number' ? archDy[col] * scalePxMm : 0;
+          for (let row = 0; row < rows; row++) {
+            const cy = originY + dyPx + (row / Math.max(1, rows - 1)) * colSpanPx;
+            const baseIdx = (row * dotScale + 2) * screenW + (col * dotScale + 1);
+            const haloIdx = (row * dotScale + 1) * screenW + (col * dotScale + 1);
+            const core565 = fb[baseIdx] || 0;
+            const halo565 = fb[haloIdx] || 0;
+            const isUnlit = core565 === 0x2125 && halo565 === 0x10c4;
+            if (isUnlit) {
+              targetCtx.fillStyle = 'rgba(20, 24, 32, 0.72)';
+              targetCtx.fillRect(cx - 2.0, cy - 2.0, 4.0, 4.0);
+            } else {
+              const rgba = rgb565Lut[core565];
+              const r = rgba & 0xff;
+              const g = (rgba >>> 8) & 0xff;
+              const b = (rgba >>> 16) & 0xff;
+              targetCtx.beginPath();
+              targetCtx.arc(cx, cy, 4.8, 0, Math.PI * 2);
+              targetCtx.fillStyle = `rgba(${r},${g},${b},0.38)`;
+              targetCtx.fill();
+
+              targetCtx.beginPath();
+              targetCtx.arc(cx, cy, 2.3, 0, Math.PI * 2);
+              targetCtx.fillStyle = `rgb(${Math.min(255, r + 55)},${Math.min(255, g + 55)},${Math.min(255, b + 55)})`;
+              targetCtx.fill();
+            }
+          }
+        }
+        targetCtx.restore();
+      }
+
+      const SC19_WIRE_COLORS = [
+        '#58a6ff', '#f0883e', '#3fb950', '#bc8cff', '#ff7b72',
+        '#d29922', '#39c5cf', '#f778ba', '#79c0ff', '#a5d6ff'
+      ];
+      let sc19PlugPairs = [];
+
+      function drawSc19PlugWiresOnCanvas(targetCtx) {
+        if (!targetCtx || !layout || !Array.isArray(layout.plugboard_pins) || !sc19PlugPairs.length) return;
+        const pinByLetter = new Map();
+        for (const p of layout.plugboard_pins) {
+          pinByLetter.set(String(p.letter).toUpperCase(), p);
+        }
+        targetCtx.save();
+        targetCtx.lineCap = 'round';
+        sc19PlugPairs.forEach((pair, idx) => {
+          const a = pinByLetter.get(pair[0]);
+          const b = pinByLetter.get(pair[1]);
+          if (!a || !b) return;
+          const color = SC19_WIRE_COLORS[idx % SC19_WIRE_COLORS.length];
+          const midX = (a.x_px + b.x_px) / 2;
+          const dist = Math.hypot(b.x_px - a.x_px, b.y_px - a.y_px);
+          const sag = Math.min(48, 12 + dist * 0.12);
+          const ctrlY = Math.max(a.y_px, b.y_px) + sag;
+
+          targetCtx.beginPath();
+          targetCtx.moveTo(a.x_px, a.y_px);
+          targetCtx.quadraticCurveTo(midX, ctrlY, b.x_px, b.y_px);
+          targetCtx.strokeStyle = 'rgba(0, 0, 0, 0.65)';
+          targetCtx.lineWidth = 5.5;
+          targetCtx.stroke();
+
+          targetCtx.beginPath();
+          targetCtx.moveTo(a.x_px, a.y_px);
+          targetCtx.quadraticCurveTo(midX, ctrlY, b.x_px, b.y_px);
+          targetCtx.strokeStyle = color;
+          targetCtx.lineWidth = 3.2;
+          targetCtx.stroke();
+
+          for (const pt of [a, b]) {
+            targetCtx.beginPath();
+            targetCtx.arc(pt.x_px, pt.y_px, 4.5, 0, Math.PI * 2);
+            targetCtx.fillStyle = color;
+            targetCtx.fill();
+            targetCtx.strokeStyle = '#0d1117';
+            targetCtx.lineWidth = 1.2;
+            targetCtx.stroke();
+          }
+        });
+        targetCtx.restore();
+      }
+
       // Render Framebuffer (both on-badge and integer-scaled Big Screen), Backlight, and LEDs
       function renderOutputs() {
         if (!core) return;
@@ -2721,8 +3188,17 @@ EMAIL:visitor@example.invalid</textarea>
         const bl = core.emu_backlight() & 0xff;
         const brightnessFrac = (bl / 255).toFixed(3);
         screenCanvas.style.opacity = brightnessFrac;
-        backlightReadout.textContent = String(bl);
-        telBacklight.textContent = `${bl} / 255 (${Math.round((bl / 255) * 100)}%)`;
+        if (currentYear === '2019') {
+          telBacklight.textContent = '64×16 RGB (ICE40HX1K)';
+        } else {
+          backlightReadout.textContent = String(bl);
+          telBacklight.textContent = `${bl} / 255 (${Math.round((bl / 255) * 100)}%)`;
+        }
+
+        if (archScreenCtx && layout && layout.screen && layout.screen.arch_matrix) {
+          archScreenCtx.clearRect(0, 0, archScreenCanvas.width, archScreenCanvas.height);
+          drawSc19ArchedMatrix(archScreenCtx, layout.screen, fb, 0, 0, Number(brightnessFrac));
+        }
 
         // Update crisp nearest-neighbor integer-scaled Big Screen if enabled
         if (bigScreenEnabled) {
@@ -2741,7 +3217,7 @@ EMAIL:visitor@example.invalid</textarea>
           bigScreenCanvas.style.opacity = brightnessFrac;
         }
 
-        // Update 20 WS2812B LEDs in chain order
+        // Update LEDs in chain order
         const leds = core.getLedsView();
         for (let i = 0; i < numLeds && i < ledElements.length; i++) {
           const r = leds[i * 3 + 0];
@@ -2762,6 +3238,23 @@ EMAIL:visitor@example.invalid</textarea>
               : `0 0 8px 3px rgba(${r},${g},${b},0.85), 0 0 18px 7px rgba(${r},${g},${b},0.55)`;
           }
         }
+
+        if (currentYear === '2019' && sc19PadKeyElements.length === 26) {
+          for (let i = 0; i < 26; i++) {
+            const lampDot = sc19PadKeyElements[i] && sc19PadKeyElements[i]._lampEl;
+            if (!lampDot) continue;
+            const r = leds[i * 3 + 0] || 0;
+            const g = leds[i * 3 + 1] || 0;
+            const b = leds[i * 3 + 2] || 0;
+            if (r === 0 && g === 0 && b === 0) {
+              lampDot.style.background = '#161b22';
+              lampDot.style.boxShadow = '';
+            } else {
+              lampDot.style.background = `rgb(${r},${g},${b})`;
+              lampDot.style.boxShadow = `0 0 5px 1.5px rgba(${r},${g},${b},0.9)`;
+            }
+          }
+        }
       }
 
       // Full-badge PNG screenshot generator
@@ -2778,19 +3271,30 @@ EMAIL:visitor@example.invalid</textarea>
         if (layout && core) {
           const scr = layout.screen;
           if (!scr.hidden) {
-            const isRound = (scr.shape || screenShape) === 'round';
-            ctx.save();
-            if (isRound && typeof scr.cx_px === 'number' && typeof scr.r_px === 'number') {
-              ctx.beginPath();
-              ctx.arc(scr.cx_px, scr.cy_px, scr.r_px, 0, Math.PI * 2);
-              ctx.clip();
+            if (scr.arch_matrix) {
+              drawSc19ArchedMatrix(
+                ctx,
+                scr,
+                core.getFramebufferView(),
+                scr.x_px,
+                scr.y_px,
+                (core.emu_backlight() & 0xff) / 255
+              );
+            } else {
+              const isRound = (scr.shape || screenShape) === 'round';
+              ctx.save();
+              if (isRound && typeof scr.cx_px === 'number' && typeof scr.r_px === 'number') {
+                ctx.beginPath();
+                ctx.arc(scr.cx_px, scr.cy_px, scr.r_px, 0, Math.PI * 2);
+                ctx.clip();
+              }
+              ctx.fillStyle = '#05070a';
+              ctx.fillRect(scr.x_px, scr.y_px, scr.w_px, scr.h_px);
+              ctx.imageSmoothingEnabled = false;
+              ctx.globalAlpha = (core.emu_backlight() & 0xff) / 255;
+              ctx.drawImage(screenCanvas, scr.x_px, scr.y_px, scr.w_px, scr.h_px);
+              ctx.restore();
             }
-            ctx.fillStyle = '#05070a';
-            ctx.fillRect(scr.x_px, scr.y_px, scr.w_px, scr.h_px);
-            ctx.imageSmoothingEnabled = false;
-            ctx.globalAlpha = (core.emu_backlight() & 0xff) / 255;
-            ctx.drawImage(screenCanvas, scr.x_px, scr.y_px, scr.w_px, scr.h_px);
-            ctx.restore();
           }
 
           const leds = core.getLedsView();
@@ -2831,11 +3335,16 @@ EMAIL:visitor@example.invalid</textarea>
             ctx.restore();
           }
 
+          if (currentYear === '2019') {
+            drawSc19PlugWiresOnCanvas(ctx);
+          }
+
           const rawNavSw = layout.nav_switch !== undefined ? layout.nav_switch : (layout.sw4 || layout.sw2);
           const navSw = (rawNavSw && typeof rawNavSw.x_px === 'number' && typeof rawNavSw.radius_px === 'number')
             ? rawNavSw
             : null;
           const mask = getButtonsMask();
+          const azMask = currentYear === '2019' ? sc19EffectiveAzMask() : 0;
           if (navSw) {
             let jx = navSw.x_px;
             let jy = navSw.y_px;
@@ -2861,7 +3370,10 @@ EMAIL:visitor@example.invalid</textarea>
 
           if (Array.isArray(layout.action_buttons)) {
             for (const pb of layout.action_buttons) {
-              if (mask & pb.bit) {
+              const isPressed = typeof pb.az_bit === 'number'
+                ? ((azMask >>> pb.az_bit) & 1) !== 0
+                : (mask & pb.bit) !== 0;
+              if (isPressed) {
                 ctx.save();
                 ctx.beginPath();
                 ctx.arc(pb.x_px, pb.y_px, (pb.radius_px || 36) * 0.65, 0, Math.PI * 2);
@@ -2875,24 +3387,104 @@ EMAIL:visitor@example.invalid</textarea>
         return outCanvas;
       }
 
-      // Keyboard Input: mapped dynamically from badge.json buttons[]
+      function recomputeSc19KbMasks() {
+        let az = 0;
+        let nav = 0;
+        for (const entry of sc19ActiveKbByCode.values()) {
+          az |= (entry.azMask >>> 0);
+          nav |= (entry.navBit >>> 0);
+        }
+        sc19KbAzMask = az & 0x03ffffff;
+        kbMask = nav;
+      }
+
+      function resolveSc19KeyInput(e) {
+        let azMask = 0;
+        let navBit = 0;
+        const k = typeof e.key === 'string' ? e.key : '';
+        const c = typeof e.code === 'string' ? e.code : '';
+        if (/^[a-zA-Z]$/.test(k)) {
+          const azBit = k.toUpperCase().charCodeAt(0) - 65;
+          azMask = 1 << azBit;
+        } else {
+          const mappedNav = keyToBit[c] || keyToBit[k] || 0;
+          if (mappedNav) {
+            navBit = mappedNav;
+          } else if (/^Key([A-Z])$/.test(c)) {
+            const azBit = c.charCodeAt(3) - 65;
+            azMask = 1 << azBit;
+          }
+        }
+        return { azMask, navBit };
+      }
+
+      // Keyboard Input: mapped dynamically from badge.json buttons[] (plus A-Z for 2019)
       window.addEventListener('keydown', (e) => {
         if (e.ctrlKey || e.altKey || e.metaKey) return;
         const tag = e.target && e.target.tagName ? e.target.tagName.toUpperCase() : '';
         if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
-        const bit = keyToBit[e.code] || keyToBit[e.key];
-        if (bit) {
+        let handled = false;
+        if (currentYear === '2019') {
+          const { azMask, navBit } = resolveSc19KeyInput(e);
+          if (azMask || navBit) {
+            const codeId = (typeof e.code === 'string' && e.code.length > 0)
+              ? e.code
+              : `KEY_${String(e.key || '').toUpperCase()}`;
+            const prev = sc19ActiveKbByCode.get(codeId);
+            sc19ActiveKbByCode.set(codeId, {
+              azMask: (prev ? prev.azMask : 0) | azMask,
+              navBit: (prev ? prev.navBit : 0) | navBit,
+            });
+            recomputeSc19KbMasks();
+            handled = true;
+          }
+        } else {
+          const bit = keyToBit[e.code] || keyToBit[e.key];
+          if (bit) {
+            kbMask |= bit;
+            handled = true;
+          }
+        }
+        if (handled) {
           e.preventDefault();
-          kbMask |= bit;
           updateInputVisuals();
         }
       });
 
       window.addEventListener('keyup', (e) => {
-        const bit = keyToBit[e.code] || keyToBit[e.key];
-        if (bit) {
+        let handled = false;
+        if (currentYear === '2019') {
+          const codeId = (typeof e.code === 'string' && e.code.length > 0)
+            ? e.code
+            : `KEY_${String(e.key || '').toUpperCase()}`;
+          if (sc19ActiveKbByCode.has(codeId)) {
+            sc19ActiveKbByCode.delete(codeId);
+            handled = true;
+          } else {
+            const { azMask, navBit } = resolveSc19KeyInput(e);
+            const fallbackAz = /^Key([A-Z])$/.test(String(e.code || ''))
+              ? (1 << (e.code.charCodeAt(3) - 65))
+              : 0;
+            const clearAz = azMask | fallbackAz;
+            for (const [kId, entry] of sc19ActiveKbByCode.entries()) {
+              if ((clearAz && (entry.azMask & clearAz)) || (navBit && (entry.navBit & navBit))) {
+                sc19ActiveKbByCode.delete(kId);
+                handled = true;
+              }
+            }
+          }
+          if (handled) {
+            recomputeSc19KbMasks();
+          }
+        } else {
+          const bit = keyToBit[e.code] || keyToBit[e.key];
+          if (bit) {
+            kbMask &= ~bit;
+            handled = true;
+          }
+        }
+        if (handled) {
           e.preventDefault();
-          kbMask &= ~bit;
           updateInputVisuals();
         }
       });
@@ -2981,11 +3573,17 @@ EMAIL:visitor@example.invalid</textarea>
 
       window.addEventListener('blur', () => {
         kbMask = 0;
+        sc19KbAzMask = 0;
+        sc19ActiveKbByCode.clear();
         sw2Mask = 0;
         boardBtnMask = 0;
+        sc19BoardAzMask = 0;
         activeBoardBtnPointers.clear();
+        activeBoardAzPointers.clear();
         padMask = 0;
+        sc19PadAzMask = 0;
         activePadPointers.clear();
+        activeSc19PadPointers.clear();
         releaseActiveTouch();
         updateInputVisuals();
       });
@@ -3075,6 +3673,7 @@ EMAIL:visitor@example.invalid</textarea>
       }
 
       function bindPadButtonHold(btn) {
+        btn.addEventListener('contextmenu', (e) => e.preventDefault());
         btn.addEventListener('pointerdown', (e) => {
           e.preventDefault();
           const bit = Number(btn.dataset.btnBit);
@@ -3151,12 +3750,22 @@ EMAIL:visitor@example.invalid</textarea>
           sc21VcardPendingSave = true;
           flushSc21VcardToStorage(true);
         }
+        if (currentYear === '2019' && currentMode === 'stock' && !core.isMock && !isMockRequested) {
+          clearSc19PausedQueue();
+          core.emu_reset();
+          core.emu_set_speed(currentSpeed);
+          applySc19PlugboardToCore();
+          updateSc19Poll();
+          renderOutputs();
+          setSc19Status(`Reset badge to Menu — Challenge Level ${core.sc19GetBadgeLevel()} preserved.`);
+          return;
+        }
         if ((currentYear === '2025' || currentYear === '2024' || currentYear === '2023' || currentYear === '2021' || currentYear === '2018') && currentMode === 'stock' && !core.isMock && !isMockRequested) {
           window.location.reload();
           return;
         }
         loadEepromFromStorage(core.getEepromView());
-        core.emu_init((Date.now() & 0xffffffff) >>> 0);
+        core.emu_init(getFreshRandomSeed());
         core.emu_set_speed(currentSpeed);
         if (core.emu_eeprom_dirty()) {
           eepromPendingSave = true;
@@ -3178,6 +3787,42 @@ EMAIL:visitor@example.invalid</textarea>
           console.warn('Failed to remove EEPROM from localStorage:', err);
           removeFailed = true;
           showStorageUnavailableNote();
+        }
+        if (currentYear === '2019' && currentMode === 'stock' && !core.isMock && !isMockRequested) {
+          let wipe19Ok = !removeFailed;
+          try {
+            localStorage.removeItem(getStorageKey('plugboard'));
+          } catch (err) {
+            console.warn('Failed to wipe 2019 plugboard key from localStorage:', err);
+            wipe19Ok = false;
+            showStorageUnavailableNote();
+          }
+          clearSc19PausedQueue();
+          sc19SelectedPlugLetter = null;
+          sc19PlugPairs = [];
+          core.getEepromView().fill(0);
+          eepromPendingSave = false;
+          core.emu_init(getFreshRandomSeed());
+          core.emu_set_speed(currentSpeed);
+          initSc19PlugboardUi();
+          updateSc19Poll();
+          if (wipe19Ok) {
+            eepromStatus.textContent = 'Wiped';
+            telEeprom.textContent = `${key} (Wiped)`;
+          }
+          renderOutputs();
+          if (!wasPaused) {
+            paused = false;
+            loopStopped = false;
+            if (btnPause) {
+              btnPause.textContent = 'Pause';
+              btnPause.classList.remove('active');
+            }
+            if (resumeLoopFn) {
+              resumeLoopFn();
+            }
+          }
+          return;
         }
         if (removeFailed) {
           return;
@@ -4700,6 +5345,453 @@ EMAIL:visitor@example.invalid</textarea>
         });
       }
 
+      // 2019 Enigma Badge: 26-Key QWERTZ Pad, Plugboard (J3/J4) & Factory Test Companion
+      const SC19_MAX_PLUG_WIRES = 10;
+      const SC19_QWERTZ_ROWS = [
+        ['Q', 'W', 'E', 'R', 'T', 'Z', 'U', 'I', 'O'],
+        ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K'],
+        ['P', 'Y', 'X', 'C', 'V', 'B', 'N', 'M', 'L'],
+      ];
+      const SC19_KEY_SUBS = {
+        W: '▲ UP',
+        A: '◀ L',
+        S: '▼ DN',
+        D: '▶ R',
+        K: '● OK',
+        O: '⌫ DEL',
+      };
+      let sc19QwertzInitialized = false;
+      let sc19PlugInitialized = false;
+      let sc19SelectedPlugLetter = null;
+      let sc19LastBadgeLevel = -1;
+      let sc19LastMenuState = -1;
+      const sc19PlugBtnByLetter = new Map();
+
+      function setSc19Status(msg) {
+        if (!sc19StatusBox) return;
+        sc19StatusBox.textContent = String(msg || '');
+      }
+
+      function recomputeSc19PadAzMask() {
+        let m = 0;
+        for (const bit of activeSc19PadPointers.values()) m |= bit;
+        sc19PadAzMask = m;
+        updateInputVisuals();
+      }
+
+      function updateSc19HoldHintVisibility(inEnigma) {
+        sc19InEnigmaScreens = Boolean(inEnigma);
+        if (currentYear !== '2019') return;
+        const dpadSubtitleEl = dpadTitleLabel && dpadTitleLabel.nextElementSibling;
+        if (dpadSubtitleEl) {
+          dpadSubtitleEl.textContent = sc19InEnigmaScreens ? 'Hold 3s = Back' : 'Hold or Tap';
+        }
+        if (sc19HoldHintDotEl) {
+          sc19HoldHintDotEl.style.display = sc19InEnigmaScreens ? '' : 'none';
+        }
+        if (sc19HoldHintItemEl) {
+          sc19HoldHintItemEl.style.display = sc19InEnigmaScreens ? '' : 'none';
+        }
+        for (const btn of sc19PadKeyElements) {
+          const letter = btn.dataset.letter || '';
+          btn.title = sc19InEnigmaScreens
+            ? `Key ${letter} (SW, Hold 3s = Back)`
+            : `Key ${letter} (SW)`;
+        }
+      }
+
+      function initSc19QwertzPad() {
+        if (sc19QwertzInitialized || !sc19QwertzPad) return;
+        sc19QwertzPad.replaceChildren();
+        sc19PadKeyElements.length = 0;
+
+        for (const rowLetters of SC19_QWERTZ_ROWS) {
+          const rowEl = document.createElement('div');
+          rowEl.className = 'sc19-qwertz-row';
+          for (const letter of rowLetters) {
+            const azBit = letter.charCodeAt(0) - 65;
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            const isNav = letter === 'W' || letter === 'A' || letter === 'S' || letter === 'D' || letter === 'K';
+            btn.className = `sc19-qwertz-key${isNav ? ' nav-key' : ''}`;
+            btn.id = `sc19-key-${letter}`;
+            btn.dataset.azBit = String(azBit);
+            btn.dataset.letter = letter;
+            btn.title = sc19InEnigmaScreens
+              ? `Key ${letter} (SW, Hold 3s = Back)`
+              : `Key ${letter} (SW)`;
+
+            const lampEl = document.createElement('span');
+            lampEl.className = 'key-lamp';
+            btn.appendChild(lampEl);
+            btn._lampEl = lampEl;
+
+            const lbl = document.createElement('span');
+            lbl.textContent = letter;
+            btn.appendChild(lbl);
+
+            if (SC19_KEY_SUBS[letter]) {
+              const sub = document.createElement('span');
+              sub.className = 'sub';
+              sub.textContent = SC19_KEY_SUBS[letter];
+              btn.appendChild(sub);
+            }
+
+            btn.addEventListener('contextmenu', (e) => e.preventDefault());
+            btn.addEventListener('touchstart', (e) => {
+              e.preventDefault();
+              for (let i = 0; i < e.changedTouches.length; i++) {
+                activeSc19PadPointers.set(`touch_${e.changedTouches[i].identifier}`, 1 << azBit);
+              }
+              recomputeSc19PadAzMask();
+            }, { passive: false });
+            const releaseTouch = (e) => {
+              for (let i = 0; i < e.changedTouches.length; i++) {
+                activeSc19PadPointers.delete(`touch_${e.changedTouches[i].identifier}`);
+              }
+              recomputeSc19PadAzMask();
+            };
+            btn.addEventListener('touchend', releaseTouch);
+            btn.addEventListener('touchcancel', releaseTouch);
+            btn.addEventListener('pointerdown', (e) => {
+              if (e.pointerType === 'touch') return;
+              e.preventDefault();
+              if (btn.setPointerCapture) {
+                try { btn.setPointerCapture(e.pointerId); } catch (_) {}
+              }
+              activeSc19PadPointers.set(e.pointerId, 1 << azBit);
+              recomputeSc19PadAzMask();
+            });
+            const release = (e) => {
+              if (e.pointerType === 'touch') return;
+              if (activeSc19PadPointers.has(e.pointerId)) {
+                activeSc19PadPointers.delete(e.pointerId);
+                recomputeSc19PadAzMask();
+              }
+            };
+            btn.addEventListener('pointerup', release);
+            btn.addEventListener('pointercancel', release);
+            btn.addEventListener('lostpointercapture', release);
+
+            rowEl.appendChild(btn);
+            sc19PadKeyElements.push(btn);
+          }
+          sc19QwertzPad.appendChild(rowEl);
+        }
+        sc19QwertzInitialized = true;
+      }
+
+      function normalizeSc19Pairs(rawPairs) {
+        const used = new Set();
+        const out = [];
+        if (!Array.isArray(rawPairs)) return out;
+        for (const item of rawPairs) {
+          const s = String(item || '').toUpperCase().replace(/[^A-Z]/g, '');
+          if (s.length !== 2) continue;
+          const a = s[0];
+          const b = s[1];
+          if (a === b || used.has(a) || used.has(b)) continue;
+          used.add(a);
+          used.add(b);
+          const pair = a < b ? `${a}${b}` : `${b}${a}`;
+          out.push(pair);
+          if (out.length >= SC19_MAX_PLUG_WIRES) break;
+        }
+        return out;
+      }
+
+      function loadSc19PlugboardFromStorage() {
+        const key = getStorageKey('plugboard');
+        try {
+          const raw = localStorage.getItem(key);
+          if (!raw) {
+            sc19PlugPairs = [];
+            return false;
+          }
+          const parsed = JSON.parse(raw);
+          sc19PlugPairs = normalizeSc19Pairs(parsed);
+          return sc19PlugPairs.length > 0;
+        } catch (err) {
+          console.warn('Failed to load 2019 plugboard from localStorage:', err);
+          sc19PlugPairs = [];
+          return false;
+        }
+      }
+
+      function saveSc19PlugboardToStorage() {
+        const key = getStorageKey('plugboard');
+        try {
+          localStorage.setItem(key, JSON.stringify(sc19PlugPairs));
+          return true;
+        } catch (err) {
+          console.warn('Failed to save 2019 plugboard to localStorage:', err);
+          showStorageUnavailableNote();
+          return false;
+        }
+      }
+
+      function applySc19PlugboardToCore() {
+        if (!core || typeof core.sc19PlugboardClear !== 'function') return;
+        core.sc19PlugboardClear();
+        for (const pair of sc19PlugPairs) {
+          const a = pair.charCodeAt(0) - 65;
+          const b = pair.charCodeAt(1) - 65;
+          core.sc19PlugboardConnect(a, b);
+        }
+      }
+
+      function renderSc19PlugboardWires() {
+        if (sc19PlugCount) {
+          sc19PlugCount.textContent = `${sc19PlugPairs.length} / ${SC19_MAX_PLUG_WIRES} wires`;
+        }
+        const partnerMap = new Map();
+        const colorMap = new Map();
+        sc19PlugPairs.forEach((pair, idx) => {
+          const a = pair[0];
+          const b = pair[1];
+          const col = SC19_WIRE_COLORS[idx % SC19_WIRE_COLORS.length];
+          partnerMap.set(a, b);
+          partnerMap.set(b, a);
+          colorMap.set(a, col);
+          colorMap.set(b, col);
+        });
+
+        for (let i = 0; i < 26; i++) {
+          const letter = String.fromCharCode(65 + i);
+          const btn = sc19PlugBtnByLetter.get(letter);
+          if (!btn) continue;
+          const partner = partnerMap.get(letter) || null;
+          const col = colorMap.get(letter) || '';
+          const isSel = sc19SelectedPlugLetter === letter;
+          btn.classList.toggle('selected', isSel);
+          btn.classList.toggle('wired', Boolean(partner));
+          btn.style.borderColor = isSel ? '#ffd33d' : (col || '');
+          if (btn._pairEl) {
+            btn._pairEl.textContent = partner ? `↔${partner}` : '•';
+            btn._pairEl.style.color = col || '';
+          }
+        }
+
+        // Render SVG jumper curves inside the companion panel (#sc19-plugboard-svg)
+        if (sc19PlugSvg && sc19PlugWrap) {
+          sc19PlugSvg.replaceChildren();
+          const wrapRect = sc19PlugWrap.getBoundingClientRect();
+          if (wrapRect.width > 0 && wrapRect.height > 0) {
+            sc19PlugSvg.setAttribute('viewBox', `0 0 ${wrapRect.width} ${wrapRect.height}`);
+            sc19PlugPairs.forEach((pair, idx) => {
+              const btnA = sc19PlugBtnByLetter.get(pair[0]);
+              const btnB = sc19PlugBtnByLetter.get(pair[1]);
+              if (!btnA || !btnB) return;
+              const rA = btnA.getBoundingClientRect();
+              const rB = btnB.getBoundingClientRect();
+              const x1 = rA.left - wrapRect.left + rA.width / 2;
+              const y1 = rA.top - wrapRect.top + rA.height / 2;
+              const x2 = rB.left - wrapRect.left + rB.width / 2;
+              const y2 = rB.top - wrapRect.top + rB.height / 2;
+              const midX = (x1 + x2) / 2;
+              const sag = 10 + Math.abs(x2 - x1) * 0.08;
+              const ctrlY = Math.max(y1, y2) + sag;
+              const col = SC19_WIRE_COLORS[idx % SC19_WIRE_COLORS.length];
+
+              const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+              path.setAttribute('d', `M ${x1.toFixed(1)} ${y1.toFixed(1)} Q ${midX.toFixed(1)} ${ctrlY.toFixed(1)} ${x2.toFixed(1)} ${y2.toFixed(1)}`);
+              path.setAttribute('fill', 'none');
+              path.setAttribute('stroke', col);
+              path.setAttribute('stroke-width', '2.4');
+              path.setAttribute('stroke-linecap', 'round');
+              path.setAttribute('opacity', '0.86');
+              sc19PlugSvg.appendChild(path);
+            });
+          }
+        }
+
+        // Render SVG jumper curves across the physical J3/J4 headers on the badge PCB (#board-plug-svg)
+        if (boardPlugSvg && layout && Array.isArray(layout.plugboard_pins)) {
+          boardPlugSvg.replaceChildren();
+          const pinByLetter = new Map();
+          for (const p of layout.plugboard_pins) {
+            pinByLetter.set(String(p.letter).toUpperCase(), p);
+          }
+          sc19PlugPairs.forEach((pair, idx) => {
+            const a = pinByLetter.get(pair[0]);
+            const b = pinByLetter.get(pair[1]);
+            if (!a || !b) return;
+            const col = SC19_WIRE_COLORS[idx % SC19_WIRE_COLORS.length];
+            const midX = (a.x_px + b.x_px) / 2;
+            const dist = Math.hypot(b.x_px - a.x_px, b.y_px - a.y_px);
+            const sag = Math.min(48, 12 + dist * 0.12);
+            const ctrlY = Math.max(a.y_px, b.y_px) + sag;
+            const dStr = `M ${a.x_px} ${a.y_px} Q ${midX.toFixed(1)} ${ctrlY.toFixed(1)} ${b.x_px} ${b.y_px}`;
+
+            const shadow = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            shadow.setAttribute('d', dStr);
+            shadow.setAttribute('fill', 'none');
+            shadow.setAttribute('stroke', 'rgba(0,0,0,0.68)');
+            shadow.setAttribute('stroke-width', '5.5');
+            shadow.setAttribute('stroke-linecap', 'round');
+            boardPlugSvg.appendChild(shadow);
+
+            const wire = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            wire.setAttribute('d', dStr);
+            wire.setAttribute('fill', 'none');
+            wire.setAttribute('stroke', col);
+            wire.setAttribute('stroke-width', '3.2');
+            wire.setAttribute('stroke-linecap', 'round');
+            boardPlugSvg.appendChild(wire);
+
+            for (const pt of [a, b]) {
+              const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+              dot.setAttribute('cx', String(pt.x_px));
+              dot.setAttribute('cy', String(pt.y_px));
+              dot.setAttribute('r', '4.5');
+              dot.setAttribute('fill', col);
+              dot.setAttribute('stroke', '#0d1117');
+              dot.setAttribute('stroke-width', '1.2');
+              boardPlugSvg.appendChild(dot);
+            }
+          });
+        }
+      }
+
+      function handleSc19PlugClick(letter) {
+        const L = String(letter || '').toUpperCase();
+        if (!/^[A-Z]$/.test(L)) return;
+
+        const existingIdx = sc19PlugPairs.findIndex((p) => p[0] === L || p[1] === L);
+        if (sc19SelectedPlugLetter === null) {
+          if (existingIdx >= 0) {
+            const removed = sc19PlugPairs.splice(existingIdx, 1)[0];
+            const saved = saveSc19PlugboardToStorage();
+            applySc19PlugboardToCore();
+            renderSc19PlugboardWires();
+            setSc19Status(`Removed plugboard jumper wire ${removed[0]}↔${removed[1]} (${sc19PlugPairs.length}/${SC19_MAX_PLUG_WIRES} wires${saved ? '' : ', wires not saved — browser storage unavailable'}).`);
+          } else {
+            if (sc19PlugPairs.length >= SC19_MAX_PLUG_WIRES) {
+              setSc19Status(`All ${SC19_MAX_PLUG_WIRES} jumper wires are in use — click a wired letter or Clear Wires to free one first.`);
+              return;
+            }
+            sc19SelectedPlugLetter = L;
+            renderSc19PlugboardWires();
+            setSc19Status(`Plugboard socket ${L} selected — click a second letter to connect a jumper wire (or click ${L} again to cancel).`);
+          }
+          return;
+        }
+
+        const first = sc19SelectedPlugLetter;
+        sc19SelectedPlugLetter = null;
+        if (first === L) {
+          renderSc19PlugboardWires();
+          setSc19Status(`Cancelled selection on plugboard socket ${L}.`);
+          return;
+        }
+
+        // Remove any existing wire on either endpoint before connecting
+        sc19PlugPairs = sc19PlugPairs.filter((p) => p[0] !== first && p[1] !== first && p[0] !== L && p[1] !== L);
+        if (sc19PlugPairs.length >= SC19_MAX_PLUG_WIRES) {
+          renderSc19PlugboardWires();
+          setSc19Status(`Maximum ${SC19_MAX_PLUG_WIRES} plugboard jumper wires reached.`);
+          return;
+        }
+        const pair = first < L ? `${first}${L}` : `${L}${first}`;
+        sc19PlugPairs.push(pair);
+        const saved = saveSc19PlugboardToStorage();
+        applySc19PlugboardToCore();
+        renderSc19PlugboardWires();
+        setSc19Status(`Connected plugboard jumper wire ${pair[0]}↔${pair[1]} (${sc19PlugPairs.length}/${SC19_MAX_PLUG_WIRES} wires, ${saved ? 'saved in localStorage' : 'wires not saved — browser storage unavailable'}).`);
+      }
+
+      function initSc19PlugboardUi() {
+        if (!sc19PlugGrid) return;
+        if (!sc19PlugInitialized) {
+          sc19PlugGrid.replaceChildren();
+          sc19PlugBtnByLetter.clear();
+          for (let i = 0; i < 26; i++) {
+            const letter = String.fromCharCode(65 + i);
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'sc19-plug-btn';
+            btn.id = `sc19-plug-btn-${letter}`;
+            btn.dataset.letter = letter;
+            btn.title = `Plugboard Socket ${letter} (${i < 13 ? 'J3' : 'J4'})`;
+
+            const top = document.createElement('span');
+            top.textContent = letter;
+            const sub = document.createElement('span');
+            sub.className = 'plug-pair';
+            sub.textContent = '•';
+            btn._pairEl = sub;
+            btn.append(top, sub);
+
+            btn.addEventListener('click', (e) => {
+              e.currentTarget.blur();
+              handleSc19PlugClick(letter);
+            });
+            sc19PlugGrid.appendChild(btn);
+            sc19PlugBtnByLetter.set(letter, btn);
+          }
+          sc19PlugInitialized = true;
+        }
+        sc19SelectedPlugLetter = null;
+        applySc19PlugboardToCore();
+        renderSc19PlugboardWires();
+        if (core && typeof core.sc19GetBadgeLevel === 'function') {
+          sc19LastBadgeLevel = core.sc19GetBadgeLevel();
+          sc19LastMenuState = typeof core.sc19GetMenuState === 'function' ? core.sc19GetMenuState() : 0;
+          updateSc19HoldHintVisibility(((sc19LastMenuState >>> 24) & 1) === 1);
+          const wireInfo = sc19PlugPairs.length
+            ? `Plugboard: ${sc19PlugPairs.join(' ')} (${sc19PlugPairs.length} wire${sc19PlugPairs.length === 1 ? '' : 's'})`
+            : 'Plugboard: 0 wires';
+          setSc19Status(`Challenge Level ${sc19LastBadgeLevel} • ${wireInfo} — use W/S + K on the badge to open Enigma Emulator, Games (Snake), Challenge Info, Custom Message, Minibadge Control, or Animations.`);
+        }
+      }
+
+      function updateSc19Poll() {
+        if (!core || typeof core.sc19GetBadgeLevel !== 'function') return;
+        const lvl = core.sc19GetBadgeLevel();
+        const ms = typeof core.sc19GetMenuState === 'function' ? core.sc19GetMenuState() : 0;
+        const inEnigma = ((ms >>> 24) & 1) === 1;
+        if (inEnigma !== sc19InEnigmaScreens) {
+          updateSc19HoldHintVisibility(inEnigma);
+        }
+        if (sc19LastBadgeLevel >= 0 && lvl > sc19LastBadgeLevel) {
+          setSc19Status(`🎉 Decoded challenge message! Badge advanced from Level ${sc19LastBadgeLevel} to Level ${lvl} (saved to EEPROM).`);
+        }
+        sc19LastBadgeLevel = lvl;
+        sc19LastMenuState = ms;
+      }
+
+      if (btnSc19PlugClear) {
+        btnSc19PlugClear.addEventListener('click', (e) => {
+          e.currentTarget.blur();
+          sc19SelectedPlugLetter = null;
+          sc19PlugPairs = [];
+          const saved = saveSc19PlugboardToStorage();
+          applySc19PlugboardToCore();
+          renderSc19PlugboardWires();
+          setSc19Status(`Cleared all plugboard jumper wires${saved ? '.' : ' (wires not saved — browser storage unavailable).'}`);
+        });
+      }
+
+      if (btnSc19FactoryTest) {
+        btnSc19FactoryTest.addEventListener('click', (e) => {
+          e.currentTarget.blur();
+          if (!core || typeof core.sc19StartFactoryTest !== 'function') return;
+          clearSc19PausedQueue();
+          core.sc19StartFactoryTest();
+          updateSc19HoldHintVisibility(false);
+          renderOutputs();
+          setSc19Status(paused
+            ? 'Started build-table Factory Test — badge is paused; click Resume to press every key A–Z. Reset Badge returns to Menu and your progress is kept.'
+            : 'Started build-table Factory Test — press every key A–Z until every lamp turns off and the matrix shows TEST DONE. Reset Badge returns to Menu and your progress is kept.');
+        });
+      }
+
+      window.addEventListener('resize', () => {
+        if (currentYear === '2019' && sc19PlugInitialized) {
+          renderSc19PlugboardWires();
+        }
+      });
+
       document.getElementById('btn-phone-tap').addEventListener('click', (e) => {
         e.currentTarget.blur();
         if (!core) return;
@@ -4778,6 +5870,7 @@ EMAIL:visitor@example.invalid</textarea>
         const emu_send_ir = fn('emu_send_ir', () => {});
         const emu_set_accel = fn('emu_set_accel', () => {});
         const emu_set_minibadge = fn('emu_set_minibadge', () => {});
+        const emu_reset = fn('emu_reset', () => {});
         const cMalloc = fn('malloc', () => 0);
         const cFree = fn('free', () => {});
         const c2018ApInfo = fn('emu_2018_ap_info', () => 0);
@@ -4788,6 +5881,16 @@ EMAIL:visitor@example.invalid</textarea>
         const c2018MbQueuePixels = fn('emu_2018_mb_queue_pixels', () => {});
         const c2018MbQueueButton = fn('emu_2018_mb_queue_button', () => {});
         const c2018MbGetInfo = fn('emu_2018_mb_get_info', () => 0);
+        const c2019SetKeys = fn('emu_2019_set_keys', () => {});
+        const c2019GetKeys = fn('emu_2019_get_keys', () => 0);
+        const c2019PlugClear = fn('emu_2019_plugboard_clear', () => {});
+        const c2019PlugConnect = fn('emu_2019_plugboard_connect', () => -1);
+        const c2019PlugDisconnect = fn('emu_2019_plugboard_disconnect', () => -1);
+        const c2019PlugGetPartner = fn('emu_2019_plugboard_get_partner', () => -1);
+        const c2019PlugGetState = fn('emu_2019_plugboard_get_state', () => 0);
+        const c2019GetBadgeLevel = fn('emu_2019_get_badge_level', () => 1);
+        const c2019GetMenuState = fn('emu_2019_get_menu_state', () => 0);
+        const c2019StartFactoryTest = fn('emu_2019_start_factory_test', () => {});
         const c2021LoadFlash = fn('emu_2021_load_flash', () => {});
         const c2021VcardPtr = fn('emu_2021_vcard_ptr', () => 0);
         const c2021VcardSize = fn('emu_2021_vcard_size', () => 0);
@@ -4843,10 +5946,11 @@ EMAIL:visitor@example.invalid</textarea>
           isMock: Boolean(isMock || raw.isMock),
           raw,
           emu_init,
+          emu_reset,
           emu_step(dt, mask) {
-            const pending = sc21PausedPendingMask;
+            const pending21 = sc21PausedPendingMask;
             sc21PausedPendingMask = 0;
-            return emu_step(dt, (mask | 0) | pending);
+            return emu_step(dt, (mask | 0) | pending21);
           },
           emu_framebuffer,
           emu_leds,
@@ -4862,6 +5966,44 @@ EMAIL:visitor@example.invalid</textarea>
           emu_send_ir,
           emu_set_accel,
           emu_set_minibadge,
+          sc19SetKeys(mask26) {
+            c2019SetKeys((mask26 >>> 0) & 0x03ffffff);
+          },
+          sc19GetKeys() {
+            return (c2019GetKeys() >>> 0) & 0x03ffffff;
+          },
+          sc19PlugboardClear() {
+            c2019PlugClear();
+          },
+          sc19PlugboardConnect(a, b) {
+            return c2019PlugConnect(a | 0, b | 0) | 0;
+          },
+          sc19PlugboardDisconnect(a) {
+            return c2019PlugDisconnect(a | 0) | 0;
+          },
+          sc19PlugboardGetPartner(a) {
+            return c2019PlugGetPartner(a | 0) | 0;
+          },
+          sc19PlugboardGetState() {
+            const cap = 128;
+            const ptr = cMalloc(cap) >>> 0;
+            if (!ptr) return '';
+            try {
+              c2019PlugGetState(ptr, cap);
+              return readCString(ptr, cap);
+            } finally {
+              cFree(ptr);
+            }
+          },
+          sc19GetBadgeLevel() {
+            return c2019GetBadgeLevel() | 0;
+          },
+          sc19GetMenuState() {
+            return c2019GetMenuState() | 0;
+          },
+          sc19StartFactoryTest() {
+            c2019StartFactoryTest();
+          },
           sc18GetApInfo() {
             const ptr = cMalloc(512) >>> 0;
             if (!ptr) return null;
@@ -5103,7 +6245,13 @@ EMAIL:visitor@example.invalid</textarea>
         if (typeof window.createCore !== 'function') {
           throw new Error(`createCore factory missing from ${coreJsUrl}`);
         }
+        const wasmResp = await fetch(coreWasmUrl);
+        if (!wasmResp.ok) {
+          throw new Error(`HTTP ${wasmResp.status} while downloading ${coreWasmUrl}`);
+        }
+        const wasmBinary = await wasmResp.arrayBuffer();
         const raw = await window.createCore({
+          wasmBinary,
           locateFile(path) {
             if (path.endsWith('.wasm')) return coreWasmUrl;
             return `${baseDir}/${path}`;
@@ -5126,15 +6274,31 @@ EMAIL:visitor@example.invalid</textarea>
         screenHolder.classList.toggle('round', isRound);
         bigScreenBezel.classList.toggle('round', isRound);
         const ctrl = controller || (badgeMeta && badgeMeta.screen_size && badgeMeta.screen_size.controller) || 'LCD';
-        const isMatrixOnly = Boolean((badgeMeta && Number(badgeMeta.year) === 2018) || (layout && layout.screen && layout.screen.hidden));
-        bigScreenTitle.textContent = isMatrixOnly
-          ? `8×32 LED Matrix Closeup (${ctrl} ${screenW}×${screenH})`
-          : `LCD Closeup (${ctrl} ${screenW}×${screenH}${isRound ? ' Round' : ''})`;
+        const is2018Matrix = Boolean((badgeMeta && Number(badgeMeta.year) === 2018) || (layout && layout.screen && layout.screen.hidden));
+        const is2019Matrix = Boolean(badgeMeta && Number(badgeMeta.year) === 2019);
+        if (is2018Matrix) {
+          bigScreenTitle.textContent = `8×32 LED Matrix Closeup (${ctrl} ${screenW}×${screenH})`;
+        } else if (is2019Matrix) {
+          bigScreenTitle.textContent = `64×16 RGB Matrix (${ctrl} ${screenW}×${screenH})`;
+        } else {
+          bigScreenTitle.textContent = `LCD Closeup (${ctrl} ${screenW}×${screenH}${isRound ? ' Round' : ''})`;
+        }
         if (telBacklightLabel) {
-          telBacklightLabel.textContent = isMatrixOnly ? 'MATRIX PWM (0x19)' : 'LCD BACKLIGHT';
+          telBacklightLabel.textContent = is2018Matrix
+            ? 'MATRIX PWM (0x19)'
+            : (is2019Matrix ? 'MATRIX DISPLAY (SPI1)' : 'LCD BACKLIGHT');
+        }
+        if (is2019Matrix && telBacklight) {
+          telBacklight.textContent = '64×16 RGB (ICE40HX1K)';
+        }
+        const backlightStripItem = document.getElementById('backlight-strip-item');
+        if (backlightStripItem) {
+          backlightStripItem.style.display = is2019Matrix ? 'none' : '';
         }
         const backlightStatusLabel = document.getElementById('backlight-status-label');
-        if (backlightStatusLabel) backlightStatusLabel.textContent = isMatrixOnly ? 'Matrix PWM' : 'Backlight';
+        if (backlightStatusLabel) {
+          backlightStatusLabel.textContent = is2018Matrix ? 'Matrix PWM' : 'Backlight';
+        }
         updateBigScreenLayout();
       }
 
@@ -5170,6 +6334,18 @@ EMAIL:visitor@example.invalid</textarea>
         }
 
         // Dynamic button set & keyboard map from badge.json
+        const is2019 = Number(yr) === 2019;
+        const padLayoutEl = touchDpadCard ? touchDpadCard.querySelector('.pad-layout') : null;
+        if (padLayoutEl) {
+          padLayoutEl.style.display = is2019 ? 'none' : '';
+        }
+        if (sc19QwertzPad) {
+          sc19QwertzPad.classList.toggle('visible', is2019);
+          if (is2019) {
+            initSc19QwertzPad();
+          }
+        }
+
         if (Array.isArray(meta.buttons) && meta.buttons.length === 0) {
           buttonDefs = [];
           validButtonsMask = 0;
@@ -5273,10 +6449,40 @@ EMAIL:visitor@example.invalid</textarea>
 
           const dpadSubtitleEl = dpadTitleLabel && dpadTitleLabel.nextElementSibling;
           if (dpadSubtitleEl) {
-            dpadSubtitleEl.textContent = Number(yr) === 2021 ? 'Release Dial to Open' : 'Hold or Tap';
+            dpadSubtitleEl.textContent = Number(yr) === 2021
+              ? 'Release Dial to Open'
+              : (is2019 ? (sc19InEnigmaScreens ? 'Hold 3s = Back' : 'Hold or Tap') : 'Hold or Tap');
           }
 
-          if (pushDefs.length > 0) {
+          if (is2019) {
+            dpadTitleLabel.textContent = '26-Key Enigma Keyboard (SW1–SW26)';
+            const makeHintItem = (label, keys) => {
+              const sp = document.createElement('span');
+              sp.append(`${label}: `);
+              keys.forEach((k, idx) => {
+                if (idx > 0) sp.append(' / ');
+                const kbd = document.createElement('kbd');
+                kbd.textContent = k;
+                sp.appendChild(kbd);
+              });
+              return sp;
+            };
+            sc19HoldHintDotEl = makeDotSpan();
+            sc19HoldHintItemEl = makeHintItem('Back (Enigma)', ['Hold 3s']);
+            sc19HoldHintDotEl.style.display = sc19InEnigmaScreens ? '' : 'none';
+            sc19HoldHintItemEl.style.display = sc19InEnigmaScreens ? '' : 'none';
+            keyHintsBar.replaceChildren(
+              makeHintItem('Type', ['A–Z']),
+              makeDotSpan(),
+              makeHintItem('Nav', ['W A S D', '↑ ↓ ← →']),
+              makeDotSpan(),
+              makeHintItem('OK', ['K', 'Enter']),
+              sc19HoldHintDotEl,
+              sc19HoldHintItemEl
+            );
+            actionPadCol.replaceChildren();
+            actionPadCol.classList.remove('visible');
+          } else if (pushDefs.length > 0) {
             if (Number(yr) === 2021) {
               dpadTitleLabel.textContent = 'Dial Wheel, Shackle & Back (SW3)';
               const makeHintItem = (label, keys) => {
@@ -5427,6 +6633,9 @@ EMAIL:visitor@example.invalid</textarea>
         if (sc21PanelCard) {
           sc21PanelCard.style.display = 'none';
         }
+        if (sc19PanelCard) {
+          sc19PanelCard.style.display = 'none';
+        }
         syncTouchUiState();
 
         const hasNfc = meta.has_nfc !== false;
@@ -5470,7 +6679,11 @@ EMAIL:visitor@example.invalid</textarea>
                 else if (idx === list.length - 1) target.append(', and ');
                 else target.append(', ');
               }
-              target.appendChild(createExtLink(item.url || `https://github.com/${item.name}`, item.name, false));
+              if (item.url) {
+                target.appendChild(createExtLink(item.url, item.name, false));
+              } else {
+                target.append(String(item.name));
+              }
             });
           };
 
@@ -5602,7 +6815,9 @@ EMAIL:visitor@example.invalid</textarea>
           codeLs.textContent = 'localStorage';
           const storageDesc = Number(yr) === 2021
             ? `simulated ${eepromBytes}-byte EEPROM & registration vCard flash`
-            : `simulated ${eepromBytes}-byte EEPROM`;
+            : (is2019
+              ? `simulated ${eepromBytes}-byte EEPROM & plugboard jumper wires`
+              : `simulated ${eepromBytes}-byte EEPROM`);
           aboutPrivacyPara.append(
             stPriv,
             ` All badge progress (${storageDesc}) is saved in `,
@@ -5614,6 +6829,37 @@ EMAIL:visitor@example.invalid</textarea>
         }
       }
 
+      function showAssetLoadError(titleMsg, detailMsg, pillLabel = 'LOAD ERROR') {
+        if (badgeColumn) {
+          badgeColumn.classList.remove('badge-loading');
+        }
+        coreModePill.textContent = pillLabel;
+        eepromStatus.textContent = 'Untouched';
+        telEeprom.textContent = titleMsg;
+        comingSoonBanner.classList.add('visible', 'error');
+        const stMsg = document.createElement('strong');
+        stMsg.textContent = titleMsg;
+        const detailSpan = document.createElement('span');
+        detailSpan.textContent = `${detailMsg ? detailMsg + '. ' : ''}Your saved badge data was not modified.`;
+        const retryWrap = document.createElement('div');
+        retryWrap.style.marginTop = '10px';
+        const retryBtn = document.createElement('button');
+        retryBtn.type = 'button';
+        retryBtn.id = 'btn-asset-retry';
+        retryBtn.className = 'ctrl-btn gold';
+        retryBtn.style.flex = '0 0 auto';
+        retryBtn.style.display = 'inline-flex';
+        retryBtn.textContent = '↻ Reload to Retry';
+        retryBtn.addEventListener('click', () => window.location.reload());
+        retryWrap.appendChild(retryBtn);
+        comingSoonBanner.replaceChildren(
+          stMsg,
+          document.createElement('br'),
+          detailSpan,
+          retryWrap
+        );
+      }
+
       // Boot sequence
       async function boot() {
         const baseDir = `badges/${currentYear}`;
@@ -5623,80 +6869,73 @@ EMAIL:visitor@example.invalid</textarea>
         updateBigScreenLayout();
 
         let meta = null;
-        try {
-          try {
-            if (!LIVE_YEARS.includes(currentYear)) {
-              throw new Error(`Unsupported year ${currentYear}`);
-            }
-            const metaResp = await fetch(`${baseDir}/badge.json`);
-            if (!metaResp.ok) {
-              throw new Error(`HTTP ${metaResp.status}`);
-            }
-            meta = await metaResp.json();
-          } catch (primaryErr) {
-            const requestedYear = currentYear;
-            const isListedSoon = COMING_SOON_YEARS.includes(requestedYear);
-            comingSoonBanner.classList.add('visible');
-            comingSoonBanner.replaceChildren();
-            const makeNavLink = (href, text) => {
-              const a = document.createElement('a');
-              a.href = href;
-              a.textContent = text;
-              return a;
-            };
-            if (isListedSoon) {
-              const st = document.createElement('strong');
-              st.textContent = `SAINTCON ${requestedYear} Badge Emulator — Coming Soon`;
-              comingSoonBanner.append(
-                st,
-                document.createElement('br'),
-                `The profile for ${requestedYear} is not live yet. Visit the `,
-                makeNavLink(museumHref(), 'Badge Museum'),
-                ' or ',
-                makeNavLink(yearHref('2025'), 'launch the 2025 ("The Wrench") badge'),
-                '.'
-              );
-            } else {
-              const st = document.createElement('strong');
-              st.textContent = `No emulator for this year (${requestedYear})`;
-              comingSoonBanner.append(
-                st,
-                document.createElement('br'),
-                'Available badges: ',
-                makeNavLink(yearHref('2018'), '2018 (LED matrix badge)'),
-                ', ',
-                makeNavLink(yearHref('2021'), '2021 (Combination lock badge)'),
-                ', ',
-                makeNavLink(yearHref('2023'), '2023 ("Incidents")'),
-                ', ',
-                makeNavLink(yearHref('2024'), '2024 ("Tower Battle")'),
-                ', ',
-                makeNavLink(yearHref('2025'), '2025 ("The Wrench")'),
-                ', and ',
-                makeNavLink(yearHref('2026'), '2026 ("Orion Trail")'),
-                '. Visit the ',
-                makeNavLink(museumHref(), 'Badge Museum'),
-                '.'
-              );
-            }
-            if (currentYear !== '2025') {
-              currentYear = '2025';
-              const fallbackResp = await fetch('badges/2025/badge.json');
-              if (!fallbackResp.ok) {
-                throw new Error(`Fallback HTTP ${fallbackResp.status}`);
-              }
-              meta = await fallbackResp.json();
-            } else {
-              throw primaryErr;
-            }
+        if (!LIVE_YEARS.includes(currentYear)) {
+          const requestedYear = currentYear;
+          const isListedSoon = COMING_SOON_YEARS.includes(requestedYear);
+          comingSoonBanner.classList.add('visible');
+          comingSoonBanner.replaceChildren();
+          const makeNavLink = (href, text) => {
+            const a = document.createElement('a');
+            a.href = href;
+            a.textContent = text;
+            return a;
+          };
+          if (isListedSoon) {
+            const st = document.createElement('strong');
+            st.textContent = `SAINTCON ${requestedYear} Badge Emulator — Coming Soon`;
+            comingSoonBanner.append(
+              st,
+              document.createElement('br'),
+              `The profile for ${requestedYear} is not live yet. Visit the `,
+              makeNavLink(museumHref(), 'Badge Museum'),
+              ' or ',
+              makeNavLink(yearHref('2025'), 'launch the 2025 ("The Wrench") badge'),
+              '.'
+            );
+          } else {
+            const st = document.createElement('strong');
+            st.textContent = `No emulator for this year (${requestedYear})`;
+            comingSoonBanner.append(
+              st,
+              document.createElement('br'),
+              'Available badges: ',
+              makeNavLink(yearHref('2018'), '2018 (LED matrix badge)'),
+              ', ',
+              makeNavLink(yearHref('2019'), '2019 (Enigma badge)'),
+              ', ',
+              makeNavLink(yearHref('2021'), '2021 (Combination lock badge)'),
+              ', ',
+              makeNavLink(yearHref('2023'), '2023 ("Incidents")'),
+              ', ',
+              makeNavLink(yearHref('2024'), '2024 ("Tower Battle")'),
+              ', ',
+              makeNavLink(yearHref('2025'), '2025 ("The Wrench")'),
+              ', and ',
+              makeNavLink(yearHref('2026'), '2026 ("Orion Trail")'),
+              '. Visit the ',
+              makeNavLink(museumHref(), 'Badge Museum'),
+              '.'
+            );
           }
-        } catch (err) {
-          comingSoonBanner.classList.add('visible', 'error');
-          comingSoonBanner.textContent = 'Could not load badge profile (badge.json).';
-          throw err;
+          currentYear = '2025';
         }
 
         const effectiveBaseDir = `badges/${currentYear}`;
+        const metaUrl = `${effectiveBaseDir}/badge.json`;
+        try {
+          const metaResp = await fetch(metaUrl);
+          if (!metaResp.ok) {
+            throw new Error(`HTTP ${metaResp.status} while downloading ${metaUrl}`);
+          }
+          meta = await metaResp.json();
+        } catch (metaErr) {
+          console.error('[badge-emu] Badge metadata failed to load:', metaErr);
+          showAssetLoadError(
+            `Could not load the ${currentYear} badge profile (${metaUrl}).`,
+            metaErr && metaErr.message ? String(metaErr.message) : 'Download failed'
+          );
+          return;
+        }
         if (Array.isArray(meta.modes_available) && meta.modes_available.length > 0) {
           if (!explicitQueryMode || !meta.modes_available.includes(currentMode)) {
             currentMode = meta.default_mode || meta.modes_available[0];
@@ -5707,11 +6946,32 @@ EMAIL:visitor@example.invalid</textarea>
         // Set board image and load layout.json from badges/<year>/
         const boardFile = (meta.files && meta.files.board) || 'board.png';
         const layoutFile = (meta.files && meta.files.layout) || 'layout.json';
-        boardImg.src = `${effectiveBaseDir}/${boardFile}`;
+        const boardUrl = `${effectiveBaseDir}/${boardFile}`;
+        const layoutUrl = `${effectiveBaseDir}/${layoutFile}`;
+        boardImg.onerror = () => {
+          showAssetLoadError(
+            `Could not load the ${currentYear} badge board image (${boardUrl}).`,
+            `Failed to download ${boardUrl}`,
+            'IMAGE LOAD ERROR'
+          );
+        };
+        boardImg.src = boardUrl;
 
-        const layoutResp = await fetch(`${effectiveBaseDir}/${layoutFile}`);
-        const layoutData = await layoutResp.json();
-        applyLayout(layoutData);
+        try {
+          const layoutResp = await fetch(layoutUrl);
+          if (!layoutResp.ok) {
+            throw new Error(`HTTP ${layoutResp.status} while downloading ${layoutUrl}`);
+          }
+          const layoutData = await layoutResp.json();
+          applyLayout(layoutData);
+        } catch (layoutErr) {
+          console.error('[badge-emu] Layout file failed to load:', layoutErr);
+          showAssetLoadError(
+            `Could not load the ${currentYear} badge layout (${layoutUrl}).`,
+            layoutErr && layoutErr.message ? String(layoutErr.message) : 'Download failed'
+          );
+          return;
+        }
         if (badgeColumn) {
           badgeColumn.classList.remove('badge-loading');
         }
@@ -5720,17 +6980,29 @@ EMAIL:visitor@example.invalid</textarea>
           core = await loadCoreInstance(effectiveBaseDir, meta);
         } catch (wasmErr) {
           console.error('[badge-emu] WebAssembly core failed to load:', wasmErr);
-          coreModePill.textContent = 'WASM REQUIRED';
-          eepromStatus.textContent = 'Untouched';
-          telEeprom.textContent = WASM_MISSING_MSG;
-          comingSoonBanner.classList.add('visible', 'error');
-          const stMsg = document.createElement('strong');
-          stMsg.textContent = WASM_MISSING_MSG;
-          comingSoonBanner.replaceChildren(
-            stMsg,
-            document.createElement('br'),
-            'Your saved badge data was not modified.'
-          );
+          const errMsg = wasmErr && wasmErr.message ? String(wasmErr.message) : '';
+          if (errMsg === WASM_MISSING_MSG) {
+            coreModePill.textContent = 'WASM REQUIRED';
+            eepromStatus.textContent = 'Untouched';
+            telEeprom.textContent = WASM_MISSING_MSG;
+            comingSoonBanner.classList.add('visible', 'error');
+            const stMsg = document.createElement('strong');
+            stMsg.textContent = WASM_MISSING_MSG;
+            comingSoonBanner.replaceChildren(
+              stMsg,
+              document.createElement('br'),
+              'Your saved badge data was not modified.'
+            );
+          } else {
+            const modeObj = meta && meta.modes && meta.modes[currentMode];
+            const coreJsRel = (modeObj && modeObj.core_js) || (meta && meta.files && meta.files.core_js) || 'core.js';
+            const coreWasmRel = (modeObj && modeObj.core_wasm) || (meta && meta.files && meta.files.core_wasm) || 'core.wasm';
+            showAssetLoadError(
+              `Could not load the ${currentYear} badge firmware (${effectiveBaseDir}/${coreJsRel} / ${coreWasmRel}).`,
+              errMsg || 'Download failed',
+              'FIRMWARE LOAD ERROR'
+            );
+          }
           return;
         }
 
@@ -5847,6 +7119,15 @@ EMAIL:visitor@example.invalid</textarea>
           sc21PanelCard.style.display = showSc21Controls ? '' : 'none';
         }
 
+        const showSc19Controls = Boolean(
+          ((activeModeObj && activeModeObj.has_2019_companion) || meta.has_2019_companion) &&
+          !core.isMock &&
+          !isMockRequested
+        );
+        if (sc19PanelCard) {
+          sc19PanelCard.style.display = showSc19Controls ? '' : 'none';
+        }
+
         // Sync framebuffer dimensions, LED count, and EEPROM size from the Generalized Core ABI
         const coreW = core.emu_fb_width() | 0;
         const coreH = core.emu_fb_height() | 0;
@@ -5894,6 +7175,11 @@ EMAIL:visitor@example.invalid</textarea>
           telEeprom.textContent = (hadSaved || hadVcard21 || hadMb21)
             ? 'saintcon_2021_stock_* (Loaded)'
             : 'saintcon_2021_stock_* (Fresh)';
+        } else if (currentYear === '2019' && currentMode === 'stock' && !core.isMock && !isMockRequested) {
+          const hadPlug19 = loadSc19PlugboardFromStorage();
+          telEeprom.textContent = (hadSaved || hadPlug19)
+            ? 'saintcon_2019_stock_* (Loaded)'
+            : 'saintcon_2019_stock_* (Fresh)';
         } else if (currentYear === '2018' && currentMode === 'stock' && !core.isMock && !isMockRequested) {
           let hadMb18 = false;
           let hadScore18 = false;
@@ -5908,7 +7194,7 @@ EMAIL:visitor@example.invalid</textarea>
           telEeprom.textContent = hadSaved ? `${eepromKey} (Loaded)` : `${eepromKey} (Fresh)`;
         }
 
-        core.emu_init((Date.now() & 0xffffffff) >>> 0);
+        core.emu_init(getFreshRandomSeed());
         if (showIncidentsControls) {
           applySc23MinibadgesToCore();
         }
@@ -5917,6 +7203,9 @@ EMAIL:visitor@example.invalid</textarea>
         }
         if (showSc21Controls) {
           initSc21CompanionUi();
+        }
+        if (showSc19Controls) {
+          initSc19PlugboardUi();
         }
         core.emu_set_speed(currentSpeed);
         if (core.emu_eeprom_dirty()) {
@@ -5932,20 +7221,28 @@ EMAIL:visitor@example.invalid</textarea>
         // Main animation loop (pauses when tab is hidden; caps dt per step at 100 ms)
         let lastFrameTime = performance.now();
         let fpsFrames = 0;
+        let totalSteps = 0;
         let fpsWindowStart = lastFrameTime;
         let lastSc18PollMs = lastFrameTime;
         let lastSc21PollMs = lastFrameTime;
+        let lastSc19PollMs = lastFrameTime;
 
         document.addEventListener('visibilitychange', () => {
           if (document.hidden) {
             tabHidden = true;
             hiddenSinceMs = performance.now();
             kbMask = 0;
+            sc19KbAzMask = 0;
+            sc19ActiveKbByCode.clear();
             sw2Mask = 0;
             boardBtnMask = 0;
+            sc19BoardAzMask = 0;
             activeBoardBtnPointers.clear();
+            activeBoardAzPointers.clear();
             padMask = 0;
+            sc19PadAzMask = 0;
             activePadPointers.clear();
+            activeSc19PadPointers.clear();
             releaseActiveTouch();
             updateInputVisuals();
             if (!loopStopped) {
@@ -5983,9 +7280,52 @@ EMAIL:visitor@example.invalid</textarea>
           if (dt > maxStepDtSeen) maxStepDtSeen = dt;
 
           if (!paused) {
-            const stepMask = getButtonsMask() | sc21PausedPendingMask;
+            let queued19Btn = 0;
+            if (currentYear === '2019' && typeof core.sc19SetKeys === 'function') {
+              if (!sc19PausedActiveItem && sc19PausedQueue.length > 0) {
+                const nextItem = sc19PausedQueue.shift();
+                sc19PausedActiveItem = {
+                  azMask: nextItem.azMask >>> 0,
+                  btnMask: nextItem.btnMask >>> 0,
+                  phase: 'hold',
+                  remainingMs: 50,
+                  steps: 0,
+                };
+              }
+              if (sc19PausedActiveItem) {
+                if (sc19PausedActiveItem.phase === 'hold') {
+                  queued19Btn = sc19PausedActiveItem.btnMask;
+                  core.sc19SetKeys(sc19EffectiveAzMask() | sc19PausedActiveItem.azMask);
+                } else {
+                  core.sc19SetKeys(sc19EffectiveAzMask());
+                }
+              } else {
+                core.sc19SetKeys(sc19EffectiveAzMask());
+              }
+            }
+            const stepMask = getButtonsMask() | sc21PausedPendingMask | queued19Btn;
             sc21PausedPendingMask = 0;
             core.emu_step(dt, stepMask);
+            totalSteps++;
+            if (currentYear === '2019' && sc19PausedActiveItem) {
+              sc19PausedActiveItem.remainingMs -= dt;
+              sc19PausedActiveItem.steps += 1;
+              if (sc19PausedActiveItem.phase === 'hold') {
+                if (sc19PausedActiveItem.remainingMs <= 0 && sc19PausedActiveItem.steps >= 2) {
+                  sc19PausedActiveItem.phase = 'gap';
+                  sc19PausedActiveItem.remainingMs = 40;
+                  sc19PausedActiveItem.steps = 0;
+                  if (typeof core.sc19SetKeys === 'function') {
+                    core.sc19SetKeys(sc19EffectiveAzMask());
+                  }
+                }
+              } else if (sc19PausedActiveItem.remainingMs <= 0 && sc19PausedActiveItem.steps >= 2) {
+                sc19PausedActiveItem = null;
+                if (typeof core.sc19SetKeys === 'function') {
+                  core.sc19SetKeys(sc19EffectiveAzMask());
+                }
+              }
+            }
             if (core.emu_eeprom_dirty()) {
               eepromPendingSave = true;
               eepromStatus.textContent = 'Dirty';
@@ -6003,6 +7343,10 @@ EMAIL:visitor@example.invalid</textarea>
             if (showSc21Controls && now - lastSc21PollMs >= 100) {
               lastSc21PollMs = now;
               updateSc21BotTradePoll();
+            }
+            if (showSc19Controls && now - lastSc19PollMs >= 50) {
+              lastSc19PollMs = now;
+              updateSc19Poll();
             }
           }
 
@@ -6034,6 +7378,8 @@ EMAIL:visitor@example.invalid</textarea>
           get year() { return currentYear; },
           get mode() { return currentMode; },
           get speed() { return currentSpeed; },
+          get paused() { return paused; },
+          get totalSteps() { return totalSteps; },
           get bigScreenEnabled() { return bigScreenEnabled; },
           get bigScreenScale() { return bigScreenScale; },
           get maxStepDtSeen() { return maxStepDtSeen; },
@@ -6092,6 +7438,39 @@ EMAIL:visitor@example.invalid</textarea>
           },
           sc18GetMinibadgeInfo(slot) {
             return core && typeof core.sc18MbGetInfo === 'function' ? core.sc18MbGetInfo(slot | 0) : null;
+          },
+          sc19SetKeys(mask26) {
+            sc19TestAzMask = (mask26 >>> 0) & 0x03ffffff;
+            updateInputVisuals();
+          },
+          sc19GetKeys() {
+            return core && typeof core.sc19GetKeys === 'function' ? core.sc19GetKeys() : 0;
+          },
+          sc19ConnectPlug(a, b) {
+            const la = typeof a === 'number' ? String.fromCharCode(65 + a) : String(a || '').toUpperCase();
+            const lb = typeof b === 'number' ? String.fromCharCode(65 + b) : String(b || '').toUpperCase();
+            handleSc19PlugClick(la);
+            handleSc19PlugClick(lb);
+          },
+          sc19ClearPlugs() {
+            sc19SelectedPlugLetter = null;
+            sc19PlugPairs = [];
+            const saved = saveSc19PlugboardToStorage();
+            applySc19PlugboardToCore();
+            renderSc19PlugboardWires();
+            setSc19Status(`Cleared all plugboard jumper wires${saved ? '.' : ' (wires not saved — browser storage unavailable).'}`);
+          },
+          sc19GetPlugPairs() {
+            return sc19PlugPairs.slice();
+          },
+          sc19GetBadgeLevel() {
+            return core && typeof core.sc19GetBadgeLevel === 'function' ? core.sc19GetBadgeLevel() : 0;
+          },
+          sc19GetMenuState() {
+            return core && typeof core.sc19GetMenuState === 'function' ? core.sc19GetMenuState() : 0;
+          },
+          sc19StartFactoryTest() {
+            if (btnSc19FactoryTest) btnSc19FactoryTest.click();
           },
           sc21SetWheel(touched, deg) {
             if (core && typeof core.sc21SetWheel === 'function') {

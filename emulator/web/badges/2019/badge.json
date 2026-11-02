@@ -1,0 +1,152 @@
+{
+  "year": 2019,
+  "name": "Enigma badge",
+  "name_is_description": true,
+  "title": "SAINTCON 2019 Enigma badge",
+  "mcu": "STM32L433VCTx + ICE40HX1K-TQ144",
+  "screen_size": {
+    "width": 384,
+    "height": 96,
+    "shape": "rect",
+    "controller": "ICE40HX1K-TQ144"
+  },
+  "has_touch": false,
+  "has_2019_companion": true,
+  "led_count": 26,
+  "led_label": "LAMPBOARD (IS31FL3736 I2C1 0x50)",
+  "led_summary": "26 RGB Lamps (D1→D26)",
+  "eeprom_bytes": 512,
+  "has_nfc": false,
+  "has_speed_control": false,
+  "buttons": [
+    {
+      "id": "up",
+      "name": "W",
+      "bit": 1,
+      "keys": [
+        "ArrowUp"
+      ],
+      "hint": "W / ↑",
+      "ref": "SW2",
+      "kind": "dpad_up"
+    },
+    {
+      "id": "down",
+      "name": "S",
+      "bit": 2,
+      "keys": [
+        "ArrowDown"
+      ],
+      "hint": "S / ↓",
+      "ref": "SW11",
+      "kind": "dpad_down"
+    },
+    {
+      "id": "left",
+      "name": "A",
+      "bit": 4,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "hint": "A / ←",
+      "ref": "SW10",
+      "kind": "dpad_left"
+    },
+    {
+      "id": "right",
+      "name": "D",
+      "bit": 8,
+      "keys": [
+        "ArrowRight"
+      ],
+      "hint": "D / →",
+      "ref": "SW12",
+      "kind": "dpad_right"
+    },
+    {
+      "id": "center",
+      "name": "K",
+      "bit": 16,
+      "keys": [
+        "Enter",
+        "Space",
+        " "
+      ],
+      "hint": "K / Enter",
+      "ref": "SW17",
+      "kind": "dpad_center"
+    },
+    {
+      "id": "b",
+      "name": "O",
+      "bit": 32,
+      "keys": [
+        "Escape",
+        "Backspace"
+      ],
+      "hint": "O / Esc",
+      "ref": "SW9",
+      "kind": "push"
+    }
+  ],
+  "files": {
+    "layout": "layout.json",
+    "board": "board.png",
+    "core_js": "core.js",
+    "core_wasm": "core.wasm"
+  },
+  "default_mode": "stock",
+  "modes_available": [
+    "stock"
+  ],
+  "modes_coming_soon": [],
+  "modes": {
+    "stock": {
+      "id": "stock",
+      "name": "Original Firmware",
+      "label": "Original Firmware",
+      "status": "available",
+      "core_js": "core.js",
+      "core_wasm": "core.wasm",
+      "has_speed_control": false,
+      "has_nut_tap": false,
+      "has_2019_companion": true,
+      "description": "Original SAINTCON 2019 Enigma badge firmware"
+    }
+  },
+  "credits": {
+    "badge_by": "compukidmike",
+    "author_url": "https://github.com/compukidmike",
+    "repo_url": "https://github.com/compukidmike/Saintcon2019",
+    "source_url": "https://github.com/compukidmike/Saintcon2019/tree/4ec59a1626dca09a0c75969f449a0ed3cca18bac/Firmware/Saintcon2019",
+    "commit": "4ec59a1",
+    "license": "Licence not stated (Enigma library & IS31FL3736 driver: Apache-2.0; STM32 main template: BSD-3-Clause)",
+    "third_party_licenses_url": "badges/2019/THIRD_PARTY_LICENSES.txt",
+    "other_credits": [
+      {
+        "name": "compukidmike",
+        "role": "animations.c, custommessage.c, images.c, keyboard.c, lampboard.c, matrix.c, plugboard.c, testmode.c",
+        "url": "https://github.com/compukidmike"
+      },
+      {
+        "name": "@_bashNinja (bashNinja)",
+        "role": "enigma.c/h modifications for badge library, snake.c/h, screen_animations.c/h, user_profile.c/h"
+      },
+      {
+        "name": "Cory Lutton",
+        "role": "enigma-c, Copyright 2013, Apache-2.0 in Inc/enigma.h & Src/enigma.c",
+        "url": "http://corylutton.com/enigma-c.html"
+      },
+      {
+        "name": "AND!XOR LLC (@andnxor, @zappbrandnxor, @hyr0n1, @exc3ls1or, @lacosteaef, @bitstr3m)",
+        "role": "IS31FL3736 driver, Copyright 2017-2018, Apache-2.0 in Drivers/IS31FL3736/drv_is31fl.c/h",
+        "url": "http://andnxor.com/"
+      },
+      {
+        "name": "bikefrivolously/led_matrix",
+        "role": "mapf(), plasma(), bound(), LED_waveEffect() in Src/screen_animations.c",
+        "url": "https://github.com/bikefrivolously/led_matrix"
+      }
+    ]
+  }
+}

@@ -71,6 +71,24 @@ def find_2018_pcb_default() -> Path:
   return candidates[0]
 
 
+def find_2019_pcbs_default():
+  roots = [
+      ROOT / "emulator" / "cores" / "2019" / "upstream" / "Hardware" / "KiCad Files",
+      ROOT / "upstream" / "Saintcon2019" / "Hardware" / "KiCad Files",
+      Path.home() / "Projects" / "saintcon-museum-research" / "Saintcon2019" / "Hardware" / "KiCad Files",
+  ]
+  for r in roots:
+    top = r / "Saintcon2019TopBoard" / "Saintcon2019TopBoard.kicad_pcb"
+    main = r / "Saintcon2019" / "Saintcon2019.kicad_pcb"
+    if top.exists() and main.exists():
+      return top, main
+  r0 = roots[0]
+  return (
+      r0 / "Saintcon2019TopBoard" / "Saintcon2019TopBoard.kicad_pcb",
+      r0 / "Saintcon2019" / "Saintcon2019.kicad_pcb",
+  )
+
+
 def find_2021_pcbs_default():
   roots = [
       ROOT / "emulator" / "cores" / "2021" / "upstream" / "Hardware",
@@ -3906,14 +3924,631 @@ def build_2021(pcb_override: Path = None):
   print(f"[2021] Wrote {layout_path}, {board_png_path} ({img_meta['width_px']}x{img_meta['height_px']}), {overlay_path}")
 
 
+# ============================================================================
+# 2019 (Enigma badge: Saintcon2019TopBoard + Saintcon2019 MainBoard)
+# ============================================================================
+
+# lamp_order[26] from Firmware/Saintcon2019/Src/lampboard.c:12
+LAMP_ORDER_2019 = [9, 22, 20, 11, 2, 12, 13, 14, 7, 15, 16, 25, 24, 23, 8, 17, 0, 3, 10, 4, 6, 21, 1, 19, 18, 5]
+
+
+def extract_geometry_2019(top_tree, main_tree):
+  top_fps, _, _, _ = parse_footprints_and_graphics(top_tree)
+  main_fps, _, _, _ = parse_footprints_and_graphics(main_tree)
+
+  top_art = None
+  for fp in top_fps.values():
+    if "Saintcon2019TopBoardArtworkFinal" in fp["lib"]:
+      top_art = fp
+      break
+  if not top_art:
+    raise RuntimeError("Could not find Saintcon2019TopBoardArtworkFinal in Saintcon2019TopBoard.kicad_pcb")
+
+  main_art = None
+  for fp in main_fps.values():
+    if "Saintcon2019TopBoardArtwork2" in fp["lib"]:
+      main_art = fp
+      break
+  if not main_art:
+    raise RuntimeError("Could not find Saintcon2019TopBoardArtwork2 in Saintcon2019.kicad_pcb")
+
+  # Offset from TopBoard board coords to MainBoard board coords (verified by J1@(94.92,23.0) <-> J2@(0.0,-68.61))
+  off_x = round(top_art["x"] - main_art["x"], 4)  # 94.92 mm
+  off_y = round(top_art["y"] - main_art["y"], 4)  # 91.61 mm
+
+  top_local_loops, top_board_loops = _trace_dedup_fp_edge_loops(top_art)
+  main_local_loops, main_board_loops = _trace_dedup_fp_edge_loops(main_art)
+  if len(top_board_loops) < 30:
+    raise RuntimeError(f"Expected 30 Edge.Cuts loops in Saintcon2019TopBoard, found {len(top_board_loops)}")
+
+  # Outer contour in MainBoard coordinate frame (centered at 0,0)
+  lp0 = top_board_loops[0][:-1] if top_board_loops[0][0] == top_board_loops[0][-1] else top_board_loops[0]
+  outer_loop_main = [(round(px - off_x, 4), round(py - off_y, 4)) for px, py in lp0]
+  outer_loop_top = [(round(px, 4), round(py, 4)) for px, py in lp0]
+
+  # Interior cutouts on TopBoard in MainBoard coordinate frame:
+  # loops 1..3 are J5, J3, J4 rectangular cutouts; loops 4..29 are 26 circular switch cutouts
+  cutout_loops_main = []
+  for lp in top_board_loops[1:30]:
+    pts = lp[:-1] if lp[0] == lp[-1] else lp
+    cutout_loops_main.append([(round(px - off_x, 4), round(py - off_y, 4)) for px, py in pts])
+
+  # 64x16 RGB LED matrix (D1..D1024 on TopBoard, row-major 16 rows x 64 cols)
+  matrix_dots = []
+  col_x_mm = [0.0] * 64
+  col_y_top_mm = [0.0] * 64
+  col_y_bot_mm = [0.0] * 64
+  for r in range(16):
+    for c in range(64):
+      ref = f"D{r * 64 + c + 1}"
+      fp = top_fps[ref]
+      mx = round(fp["x"] - off_x, 4)
+      my = round(fp["y"] - off_y, 4)
+      matrix_dots.append({
+          "row": r,
+          "col": c,
+          "ref": ref,
+          "x_mm": mx,
+          "y_mm": my,
+          "rot_deg": round(fp["rot"], 2),
+      })
+      if r == 0:
+        col_x_mm[c] = mx
+        col_y_top_mm[c] = my
+      elif r == 15:
+        col_y_bot_mm[c] = my
+
+  mxs = [d["x_mm"] for d in matrix_dots]
+  mys = [d["y_mm"] for d in matrix_dots]
+  dot_pad_x = 1.15
+  dot_pad_y = 1.15
+  mat_x = min(mxs) - dot_pad_x
+  mat_y = min(mys) - dot_pad_y
+  mat_w = (max(mxs) - min(mxs)) + 2.0 * dot_pad_x
+  mat_h = (max(mys) - min(mys)) + 2.0 * dot_pad_y
+  min_top_y = min(col_y_top_mm)
+  col_arch_dy_mm = [round(y_top - min_top_y, 4) for y_top in col_y_top_mm]
+  col_span_h_mm = round(sum(col_y_bot_mm[c] - col_y_top_mm[c] for c in range(64)) / 64.0 + 2.0 * dot_pad_y, 4)
+
+  # 26 RGB lamps D1..D26 on MainBoard (ordered by slot 0..25 matching lamp_matrix[0..25] in lampboard.c)
+  slot_to_az = {}
+  for az_idx, slot in enumerate(LAMP_ORDER_2019):
+    slot_to_az[slot] = az_idx
+
+  # Standard 6-button navigation bit mapping for W/S/A/D/K/O
+  nav_bit_for_letter = {"W": 1, "S": 2, "A": 4, "D": 8, "K": 16, "O": 32}
+
+  leds = []
+  keyboard_buttons = []
+  for slot in range(26):
+    az_idx = slot_to_az[slot]
+    letter = chr(ord("A") + az_idx)
+    d_ref = f"D{slot + 1}"
+    d_fp = main_fps[d_ref]
+    leds.append({
+        "index": slot,
+        "ref": d_ref,
+        "letter": letter,
+        "az_index": az_idx,
+        "part": d_fp["val"] or "RGB_LED",
+        "x_mm": round(d_fp["x"], 4),
+        "y_mm": round(d_fp["y"], 4),
+        "rot_deg": round(d_fp["rot"], 2),
+        "radius_mm": 2.45,
+    })
+
+    sw_ref = f"SW{slot + 1}"
+    sw_fp = main_fps[sw_ref]
+    sw_nets = [p["net_name"] for p in sw_fp["pads"] if p["net_name"] and p["net_name"] != "GND"]
+    sw_net = sw_nets[0] if sw_nets else f"KBD_{letter}"
+    keyboard_buttons.append({
+        "index": slot,
+        "ref": sw_ref,
+        "kind": "push",
+        "name": letter,
+        "letter": letter,
+        "label": f"Key {letter} ({sw_ref})",
+        "az_bit": az_idx,
+        "bit": nav_bit_for_letter.get(letter, 0),
+        "net": sw_net,
+        "x_mm": round(sw_fp["x"], 4),
+        "y_mm": round(sw_fp["y"], 4),
+        "rot_deg": round(sw_fp["rot"], 2),
+        "radius_mm": 4.15,
+    })
+
+  # 26 Plugboard header pins (A..Z) on J3 (left 2x07: A..N) and J4 (right 2x07: O..Z + TEST1/TEST2)
+  plug_by_letter = {}
+  test_pins = []
+  for j_ref in ("J3", "J4"):
+    j_fp = main_fps[j_ref]
+    for p in j_fp["pads"]:
+      net = p["net_name"] or ""
+      bx, by = kicad_local_to_board(j_fp["x"], j_fp["y"], j_fp["rot"], j_fp["layer"], p["lx"], p["ly"])
+      if len(net) == 1 and "A" <= net <= "Z":
+        az_i = ord(net) - ord("A")
+        plug_by_letter[net] = {
+            "index": az_i,
+            "letter": net,
+            "header_ref": j_ref,
+            "pad_num": str(p["num"]),
+            "x_mm": round(bx, 4),
+            "y_mm": round(by, 4),
+        }
+      elif net.startswith("TEST"):
+        test_pins.append({
+            "name": net,
+            "header_ref": j_ref,
+            "pad_num": str(p["num"]),
+            "x_mm": round(bx, 4),
+            "y_mm": round(by, 4),
+        })
+
+  plugboard_pins = [plug_by_letter[chr(ord("A") + i)] for i in range(26) if chr(ord("A") + i) in plug_by_letter]
+  if len(plugboard_pins) != 26:
+    raise RuntimeError(f"Expected 26 plugboard pins A..Z on J3/J4, found {len(plugboard_pins)}")
+
+  # Minibadge 2x10 header J5 in bottom center
+  j5_fp = main_fps["J5"]
+  j5_pads = []
+  for p in j5_fp["pads"]:
+    bx, by = kicad_local_to_board(j5_fp["x"], j5_fp["y"], j5_fp["rot"], j5_fp["layer"], p["lx"], p["ly"])
+    j5_pads.append({"pad_num": str(p["num"]), "net": p["net_name"] or "", "x_mm": round(bx, 4), "y_mm": round(by, 4)})
+
+  sw27 = main_fps["SW27"]
+  d27 = main_fps["D27"]
+
+  return {
+      "top_off_mm": (off_x, off_y),
+      "top_local_loops": top_local_loops,
+      "main_local_loops": main_local_loops,
+      "outer_loop_main": outer_loop_main,
+      "outer_loop_top": outer_loop_top,
+      "cutout_loops_main": cutout_loops_main,
+      "matrix_bbox_mm": (round(mat_x, 4), round(mat_y, 4), round(mat_w, 4), round(mat_h, 4)),
+      "matrix_col_x_mm": col_x_mm,
+      "matrix_col_y_top_mm": col_y_top_mm,
+      "matrix_col_y_bot_mm": col_y_bot_mm,
+      "matrix_col_arch_dy_mm": col_arch_dy_mm,
+      "matrix_col_span_h_mm": col_span_h_mm,
+      "matrix_dots": matrix_dots,
+      "leds": leds,
+      "keyboard_buttons": keyboard_buttons,
+      "plugboard_pins": plugboard_pins,
+      "test_pins": test_pins,
+      "j5_pads": j5_pads,
+      "sw27": {"ref": "SW27", "x_mm": round(sw27["x"], 4), "y_mm": round(sw27["y"], 4), "rot_deg": round(sw27["rot"], 2)},
+      "d27": {"ref": "D27", "x_mm": round(d27["x"], 4), "y_mm": round(d27["y"], 4)},
+  }
+
+
+def ensure_kicad_renders_2019(top_pcb: Path, main_pcb: Path, geom, out_board_png: Path):
+  work_dir = BUILD_DIR / "kicad-2019"
+  work_dir.mkdir(parents=True, exist_ok=True)
+
+  top_clean = work_dir / "Saintcon2019Top_render.kicad_pcb"
+  top_3d = work_dir / "top-render-3d.png"
+  top_fmask_svg = work_dir / "top-layer-fmask.svg"
+  top_fsilks_svg = work_dir / "top-layer-fsilks.svg"
+  top_fcu_svg = work_dir / "top-layer-fcu.svg"
+
+  main_clean = work_dir / "Saintcon2019Main_render.kicad_pcb"
+  main_3d = work_dir / "main-render-3d.png"
+  main_fmask_svg = work_dir / "main-layer-fmask.svg"
+  main_fsilks_svg = work_dir / "main-layer-fsilks.svg"
+  main_fcu_svg = work_dir / "main-layer-fcu.svg"
+
+  need_top = not (
+      top_3d.exists()
+      and top_fmask_svg.exists()
+      and top_fsilks_svg.exists()
+      and top_fcu_svg.exists()
+  )
+  need_main = not (
+      main_3d.exists()
+      and main_fmask_svg.exists()
+      and main_fsilks_svg.exists()
+      and main_fcu_svg.exists()
+  )
+
+  if need_top or need_main:
+    cmds = []
+    rel_work = work_dir.relative_to(ROOT)
+    if need_top:
+      _write_clean_edge_pcb(top_pcb, top_clean, "(module Saintcon2019TopBoardArtworkFinal", geom["top_local_loops"][:30])
+      cmds.extend([
+          f"kicad-cli pcb render --side top --background transparent --quality basic -w 2000 -h 2000"
+          f" -o {rel_work}/top-render-3d.png {rel_work}/Saintcon2019Top_render.kicad_pcb",
+          f"kicad-cli pcb export svg --layers F.Mask --black-and-white --page-size-mode 0"
+          f" --exclude-drawing-sheet -o {rel_work}/top-layer-fmask.svg {rel_work}/Saintcon2019Top_render.kicad_pcb",
+          f"kicad-cli pcb export svg --layers F.SilkS --black-and-white --page-size-mode 0"
+          f" --exclude-drawing-sheet -o {rel_work}/top-layer-fsilks.svg {rel_work}/Saintcon2019Top_render.kicad_pcb",
+          f"kicad-cli pcb export svg --layers F.Cu --black-and-white --page-size-mode 0"
+          f" --exclude-drawing-sheet -o {rel_work}/top-layer-fcu.svg {rel_work}/Saintcon2019Top_render.kicad_pcb",
+      ])
+    if need_main:
+      _write_clean_edge_pcb(main_pcb, main_clean, "(module Saintcon2019TopBoardArtwork2", geom["main_local_loops"][:1])
+      cmds.extend([
+          f"kicad-cli pcb render --side top --background transparent --quality basic -w 2000 -h 2000"
+          f" -o {rel_work}/main-render-3d.png {rel_work}/Saintcon2019Main_render.kicad_pcb",
+          f"kicad-cli pcb export svg --layers F.Mask --black-and-white --page-size-mode 0"
+          f" --exclude-drawing-sheet -o {rel_work}/main-layer-fmask.svg {rel_work}/Saintcon2019Main_render.kicad_pcb",
+          f"kicad-cli pcb export svg --layers F.SilkS --black-and-white --page-size-mode 0"
+          f" --exclude-drawing-sheet -o {rel_work}/main-layer-fsilks.svg {rel_work}/Saintcon2019Main_render.kicad_pcb",
+          f"kicad-cli pcb export svg --layers F.Cu --black-and-white --page-size-mode 0"
+          f" --exclude-drawing-sheet -o {rel_work}/main-layer-fcu.svg {rel_work}/Saintcon2019Main_render.kicad_pcb",
+      ])
+
+    uid_gid = f"{os.getuid()}:{os.getgid()}"
+    subprocess.run(
+        [
+            "docker",
+            "run",
+            "--rm",
+            "-u",
+            uid_gid,
+            "-v",
+            f"{ROOT}:/w",
+            "-w",
+            "/w",
+            "kicad/kicad:9.0",
+            "sh",
+            "-c",
+            " && ".join(cmds),
+        ],
+        check=True,
+    )
+
+  # 1. Align and tint TopBoard (in TopBoard mm coordinates, then shift by -off_x, -off_y)
+  t_im3d = Image.open(top_3d).convert("RGBA")
+  tW, tH = t_im3d.size
+  t_arr3d = np.array(t_im3d, dtype=np.float32)
+  tys, txs = np.where(t_arr3d[:, :, 3] > 0)
+  t_xmin_px, t_xmax_px = int(txs.min()), int(txs.max())
+  t_ymin_px, t_ymax_px = int(tys.min()), int(tys.max())
+
+  toxs = [p[0] for p in geom["outer_loop_top"]]
+  toys = [p[1] for p in geom["outer_loop_top"]]
+  t_xmin_mm, t_xmax_mm = min(toxs), max(toxs)
+  t_ymin_mm, t_ymax_mm = min(toys), max(toys)
+
+  t_scale = (
+      (t_xmax_px - t_xmin_px) / (t_xmax_mm - t_xmin_mm)
+      + (t_ymax_px - t_ymin_px) / (t_ymax_mm - t_ymin_mm)
+  ) / 2.0
+  t_x0_mm = t_xmin_mm - t_xmin_px / t_scale
+  t_y0_mm = t_ymin_mm - t_ymin_px / t_scale
+
+  align_svg_layers(
+      work_dir,
+      ("top-layer-fmask", "top-layer-fsilks", "top-layer-fcu"),
+      tW,
+      tH,
+      t_x0_mm,
+      t_y0_mm,
+      tW / t_scale,
+      tH / t_scale,
+  )
+
+  t_alpha = t_arr3d[:, :, 3] / 255.0
+  t_mask = np.array(Image.open(work_dir / "top-layer-fmask-aligned.png").convert("RGBA"), dtype=np.float32)[:, :, 3] / 255.0
+  t_silks = np.array(Image.open(work_dir / "top-layer-fsilks-aligned.png").convert("RGBA"), dtype=np.float32)[:, :, 3] / 255.0
+  t_cu = np.array(Image.open(work_dir / "top-layer-fcu-aligned.png").convert("RGBA"), dtype=np.float32)[:, :, 3] / 255.0
+  t_lum = (0.299 * t_arr3d[:, :, 0] + 0.587 * t_arr3d[:, :, 1] + 0.114 * t_arr3d[:, :, 2]) / 255.0
+
+  # Matte black solder mask with subtle copper relief, warm amber FR4 diffuser windows on the
+  # 26 lamp letters & SAINTCON shield, ENIG gold pads, and crisp white silkscreen.
+  t_rgba = np.zeros((tH, tW, 4), dtype=np.float32)
+  mask_over_cu = t_cu * (1.0 - t_mask)
+  yy, xx = np.mgrid[0:tH, 0:tW]
+  tex = np.sin(xx * 0.06 + yy * 0.05) * 1.8 + np.cos(xx * 0.03 - yy * 0.08) * 1.8
+
+  base_r = 22.0 + mask_over_cu * 9.0 + (t_lum - 0.25) * 16.0
+  base_g = 24.0 + mask_over_cu * 10.0 + (t_lum - 0.25) * 16.0
+  base_b = 28.0 + mask_over_cu * 11.0 + (t_lum - 0.25) * 18.0
+
+  fr4_r = 188.0 + tex
+  fr4_g = 152.0 + tex * 0.8
+  fr4_b = 86.0 + tex * 0.5
+
+  enig_r = 224.0 + tex * 0.7 + (t_lum - 0.5) * 18.0
+  enig_g = 186.0 + tex * 0.6 + (t_lum - 0.5) * 15.0
+  enig_b = 82.0 + tex * 0.3 + (t_lum - 0.5) * 10.0
+
+  exp_r = fr4_r * (1.0 - t_cu) + enig_r * t_cu
+  exp_g = fr4_g * (1.0 - t_cu) + enig_g * t_cu
+  exp_b = fr4_b * (1.0 - t_cu) + enig_b * t_cu
+
+  t_rgba[:, :, 0] = base_r * (1.0 - t_mask) + exp_r * t_mask
+  t_rgba[:, :, 1] = base_g * (1.0 - t_mask) + exp_g * t_mask
+  t_rgba[:, :, 2] = base_b * (1.0 - t_mask) + exp_b * t_mask
+
+  silk_r, silk_g, silk_b = 242.0, 245.0, 250.0
+  t_rgba[:, :, 0] = t_rgba[:, :, 0] * (1.0 - t_silks) + silk_r * t_silks
+  t_rgba[:, :, 1] = t_rgba[:, :, 1] * (1.0 - t_silks) + silk_g * t_silks
+  t_rgba[:, :, 2] = t_rgba[:, :, 2] * (1.0 - t_silks) + silk_b * t_silks
+  t_rgba[:, :, 3] = t_alpha * 255.0
+  top_img_full = Image.fromarray(np.clip(t_rgba, 0, 255).astype(np.uint8), mode="RGBA")
+
+  # 2. Align and tint MainBoard (in MainBoard mm coordinates)
+  m_im3d = Image.open(main_3d).convert("RGBA")
+  mW, mH = m_im3d.size
+  m_arr3d = np.array(m_im3d, dtype=np.float32)
+  mys_px, mxs_px = np.where(m_arr3d[:, :, 3] > 0)
+  m_xmin_px, m_xmax_px = int(mxs_px.min()), int(mxs_px.max())
+  m_ymin_px, m_ymax_px = int(mys_px.min()), int(mys_px.max())
+
+  moxs = [p[0] for p in geom["outer_loop_main"]]
+  moys = [p[1] for p in geom["outer_loop_main"]]
+  m_xmin_mm, m_xmax_mm = min(moxs), max(moxs)
+  m_ymin_mm, m_ymax_mm = min(moys), max(moys)
+
+  m_scale = (
+      (m_xmax_px - m_xmin_px) / (m_xmax_mm - m_xmin_mm)
+      + (m_ymax_px - m_ymin_px) / (m_ymax_mm - m_ymin_mm)
+  ) / 2.0
+  m_x0_mm = m_xmin_mm - m_xmin_px / m_scale
+  m_y0_mm = m_ymin_mm - m_ymin_px / m_scale
+
+  align_svg_layers(
+      work_dir,
+      ("main-layer-fmask", "main-layer-fsilks", "main-layer-fcu"),
+      mW,
+      mH,
+      m_x0_mm,
+      m_y0_mm,
+      mW / m_scale,
+      mH / m_scale,
+  )
+
+  m_alpha = m_arr3d[:, :, 3] / 255.0
+  m_mask = np.array(Image.open(work_dir / "main-layer-fmask-aligned.png").convert("RGBA"), dtype=np.float32)[:, :, 3] / 255.0
+  m_silks = np.array(Image.open(work_dir / "main-layer-fsilks-aligned.png").convert("RGBA"), dtype=np.float32)[:, :, 3] / 255.0
+  m_cu = np.array(Image.open(work_dir / "main-layer-fcu-aligned.png").convert("RGBA"), dtype=np.float32)[:, :, 3] / 255.0
+  m_lum = (0.299 * m_arr3d[:, :, 0] + 0.587 * m_arr3d[:, :, 1] + 0.114 * m_arr3d[:, :, 2]) / 255.0
+
+  m_rgba = np.zeros((mH, mW, 4), dtype=np.float32)
+  m_mask_cu = m_cu * (1.0 - m_mask)
+  m_base_r = 26.0 + m_mask_cu * 8.0 + (m_lum - 0.25) * 16.0
+  m_base_g = 29.0 + m_mask_cu * 9.0 + (m_lum - 0.25) * 16.0
+  m_base_b = 34.0 + m_mask_cu * 10.0 + (m_lum - 0.25) * 18.0
+  m_exp_r = 124.0 * (1.0 - m_cu) + 218.0 * m_cu
+  m_exp_g = 108.0 * (1.0 - m_cu) + 182.0 * m_cu
+  m_exp_b = 68.0 * (1.0 - m_cu) + 76.0 * m_cu
+
+  m_rgba[:, :, 0] = m_base_r * (1.0 - m_mask) + m_exp_r * m_mask
+  m_rgba[:, :, 1] = m_base_g * (1.0 - m_mask) + m_exp_g * m_mask
+  m_rgba[:, :, 2] = m_base_b * (1.0 - m_mask) + m_exp_b * m_mask
+  m_rgba[:, :, 0] = m_rgba[:, :, 0] * (1.0 - m_silks) + 235.0 * m_silks
+  m_rgba[:, :, 1] = m_rgba[:, :, 1] * (1.0 - m_silks) + 238.0 * m_silks
+  m_rgba[:, :, 2] = m_rgba[:, :, 2] * (1.0 - m_silks) + 244.0 * m_silks
+  m_rgba[:, :, 3] = m_alpha * 255.0
+  main_img_full = Image.fromarray(np.clip(m_rgba, 0, 255).astype(np.uint8), mode="RGBA")
+
+  # Output canvas in MainBoard coordinate frame
+  margin_mm = 2.6
+  xmin_mm = m_xmin_mm - margin_mm
+  xmax_mm = m_xmax_mm + margin_mm
+  ymin_mm = m_ymin_mm - margin_mm
+  ymax_mm = m_ymax_mm + margin_mm
+
+  scale_out = round(t_scale / 2.0, 6)
+  W_out = int(round((xmax_mm - xmin_mm) * scale_out))
+  H_out = int(round((ymax_mm - ymin_mm) * scale_out))
+  if W_out % 2 == 1:
+    W_out += 1
+  if H_out % 2 == 1:
+    H_out += 1
+
+  def mm_to_px(xmm, ymm):
+    return (xmm - xmin_mm) * scale_out, (ymm - ymin_mm) * scale_out
+
+  def paste_pcb_layer(src_img: Image.Image, src_x0_mm: float, src_y0_mm: float, src_scale: float):
+    dst_w = max(1, int(round(src_img.width * (scale_out / src_scale))))
+    dst_h = max(1, int(round(src_img.height * (scale_out / src_scale))))
+    resized = src_img.resize((dst_w, dst_h), Image.Resampling.LANCZOS)
+    dx = int(round((src_x0_mm - xmin_mm) * scale_out))
+    dy = int(round((src_y0_mm - ymin_mm) * scale_out))
+    layer = Image.new("RGBA", (W_out, H_out), (0, 0, 0, 0))
+    layer.paste(resized, (dx, dy))
+    return layer
+
+  off_x, off_y = geom["top_off_mm"]
+  canvas = paste_pcb_layer(main_img_full, m_x0_mm, m_y0_mm, m_scale)
+  top_layer = paste_pcb_layer(top_img_full, t_x0_mm - off_x, t_y0_mm - off_y, t_scale)
+  res_out = Image.alpha_composite(canvas, top_layer)
+  over = ImageDraw.Draw(res_out)
+
+  # Cutout rim outlines on TopBoard (3 header cutouts + 26 circular switch cutouts)
+  for clp in geom["cutout_loops_main"]:
+    cpts = [mm_to_px(x, y) for x, y in clp]
+    if cpts:
+      over.line(cpts + [cpts[0]], fill=(12, 14, 18, 225), width=2)
+
+  # Draw the 26 tactile switches SW1..SW26 (6x6 mm SMD square body + round black button actuator) inside the circular cutouts
+  for sw in geom["keyboard_buttons"]:
+    sx, sy = mm_to_px(sw["x_mm"], sw["y_mm"])
+    half_body = 2.85 * scale_out
+    cap_r = 1.95 * scale_out
+    over.rounded_rectangle(
+        [sx - half_body, sy - half_body, sx + half_body, sy + half_body],
+        radius=max(2, int(0.55 * scale_out)),
+        fill=(196, 202, 210, 255),
+        outline=(84, 90, 100, 255),
+        width=1,
+    )
+    over.ellipse(
+        [sx - cap_r, sy - cap_r, sx + cap_r, sy + cap_r],
+        fill=(34, 38, 44, 255),
+        outline=(72, 78, 88, 255),
+        width=1,
+    )
+
+  # Draw gold 2.54 mm header pins inside J3 (A..N), J4 (O..Z + TEST1/2), and J5 (Minibadge 2x10)
+  pin_half = max(1.5, 0.48 * scale_out)
+  for pin in geom["plugboard_pins"] + geom["test_pins"] + geom["j5_pads"]:
+    px, py = mm_to_px(pin["x_mm"], pin["y_mm"])
+    shroud = max(3.0, 1.15 * scale_out)
+    over.rectangle([px - shroud, py - shroud, px + shroud, py + shroud], fill=(22, 25, 30, 245), outline=(48, 52, 60, 220), width=1)
+    over.rectangle([px - pin_half, py - pin_half, px + pin_half, py + pin_half], fill=(238, 198, 78, 255), outline=(142, 108, 28, 255), width=1)
+
+  # Outer contour subtle bevel line
+  outer_pts = [mm_to_px(x, y) for x, y in geom["outer_loop_main"]]
+  if outer_pts:
+    over.line(outer_pts + [outer_pts[0]], fill=(54, 58, 66, 210), width=2)
+
+  out_board_png.parent.mkdir(parents=True, exist_ok=True)
+  res_out.save(out_board_png, optimize=True)
+
+  return {
+      "width_px": W_out,
+      "height_px": H_out,
+      "scale_px_per_mm": round(scale_out, 6),
+      "origin_x_mm": round(xmin_mm, 6),
+      "origin_y_mm": round(ymin_mm, 6),
+  }, res_out
+
+
+def build_2019(pcb_override: Path = None):
+  def_top, def_main = find_2019_pcbs_default()
+  top_pcb = pcb_override if pcb_override else def_top
+  main_pcb = def_main
+  if not top_pcb.exists():
+    raise FileNotFoundError(f"2019 TopBoard KiCad PCB not found: {top_pcb}")
+  if not main_pcb.exists():
+    raise FileNotFoundError(f"2019 MainBoard KiCad PCB not found: {main_pcb}")
+
+  out_dir = BADGES_DIR / "2019"
+  layout_path = out_dir / "layout.json"
+  board_png_path = out_dir / "board.png"
+  overlay_path = BUILD_DIR / "check-overlay-2019.png"
+
+  top_tree = parse_sexp(top_pcb.read_text(encoding="utf-8", errors="replace"))
+  main_tree = parse_sexp(main_pcb.read_text(encoding="utf-8", errors="replace"))
+
+  geom = extract_geometry_2019(top_tree, main_tree)
+  img_meta, board_img = ensure_kicad_renders_2019(top_pcb, main_pcb, geom, board_png_path)
+
+  scale = img_meta["scale_px_per_mm"]
+  x0 = img_meta["origin_x_mm"]
+  y0 = img_meta["origin_y_mm"]
+
+  def to_px(xmm, ymm):
+    return round((xmm - x0) * scale, 2), round((ymm - y0) * scale, 2)
+
+  outer_mm = [[round(x, 4), round(y, 4)] for x, y in geom["outer_loop_main"]]
+  outer_px = [list(to_px(x, y)) for x, y in geom["outer_loop_main"]]
+  oxs = [p[0] for p in outer_mm]
+  oys = [p[1] for p in outer_mm]
+  pxs = [p[0] for p in outer_px]
+  pys = [p[1] for p in outer_px]
+
+  mx, my, mw, mh = geom["matrix_bbox_mm"]
+  mx_px, my_px = to_px(mx, my)
+  mw_px = round(mw * scale, 2)
+  mh_px = round(mh * scale, 2)
+
+  screen_obj = {
+      "ref": "D1..D1024",
+      "part": "64x16 RGB LED Matrix (ICE40HX1K-TQ144 SPI)",
+      "shape": "rect",
+      "touch": False,
+      "width_dots": 64,
+      "height_dots": 16,
+      "x_mm": mx,
+      "y_mm": my,
+      "w_mm": mw,
+      "h_mm": mh,
+      "x_px": mx_px,
+      "y_px": my_px,
+      "w_px": mw_px,
+      "h_px": mh_px,
+      "col_arch_dy_mm": geom["matrix_col_arch_dy_mm"],
+      "col_span_h_mm": geom["matrix_col_span_h_mm"],
+  }
+
+  leds = []
+  for led in geom["leds"]:
+    lcopy = dict(led)
+    lcopy["x_px"], lcopy["y_px"] = to_px(led["x_mm"], led["y_mm"])
+    lcopy["radius_px"] = round(led["radius_mm"] * scale, 2)
+    leds.append(lcopy)
+
+  keyboard_buttons = []
+  for btn in geom["keyboard_buttons"]:
+    bcopy = dict(btn)
+    bcopy["x_px"], bcopy["y_px"] = to_px(btn["x_mm"], btn["y_mm"])
+    bcopy["radius_px"] = round(btn["radius_mm"] * scale, 2)
+    keyboard_buttons.append(bcopy)
+
+  plugboard_pins = []
+  for pin in geom["plugboard_pins"]:
+    pcopy = dict(pin)
+    pcopy["x_px"], pcopy["y_px"] = to_px(pin["x_mm"], pin["y_mm"])
+    plugboard_pins.append(pcopy)
+
+  layout = {
+      "board_image": {"file": "board.png", **img_meta},
+      "outline": {
+          "bbox_mm": {"x": round(min(oxs), 4), "y": round(min(oys), 4), "w": round(max(oxs) - min(oxs), 4), "h": round(max(oys) - min(oys), 4)},
+          "bbox_px": {"x": round(min(pxs), 2), "y": round(min(pys), 2), "w": round(max(pxs) - min(pxs), 2), "h": round(max(pys) - min(pys), 2)},
+          "polygon_mm": outer_mm,
+          "polygon_px": outer_px,
+      },
+      "screen": screen_obj,
+      "nav_switch": None,
+      "action_buttons": keyboard_buttons,
+      "keyboard_buttons": keyboard_buttons,
+      "plugboard_pins": plugboard_pins,
+      "sw27": geom["sw27"],
+      "d27": geom["d27"],
+      "minibadges": [],
+      "leds": leds,
+  }
+
+  out_dir.mkdir(parents=True, exist_ok=True)
+  layout_path.write_text(json.dumps(layout, indent=2) + "\n", encoding="utf-8")
+
+  overlay = board_img.copy()
+  draw = ImageDraw.Draw(overlay)
+  draw.line([tuple(p) for p in outer_px] + [tuple(outer_px[0])], fill=(0, 200, 255, 220), width=2)
+  draw.rectangle([mx_px, my_px, mx_px + mw_px, my_px + mh_px], outline=(0, 255, 110, 240), width=2)
+  for d in geom["matrix_dots"]:
+    dx_px, dy_px = to_px(d["x_mm"], d["y_mm"])
+    draw.ellipse([dx_px - 2, dy_px - 2, dx_px + 2, dy_px + 2], fill=(0, 255, 120, 185))
+  draw.text((mx_px + 12, my_px + 8), "64x16 RGB LED Matrix (D1..D1024 on TopBoard)", fill=(0, 255, 110, 255))
+
+  for led in leds:
+    lx, ly = led["x_px"], led["y_px"]
+    lr = led["radius_px"]
+    draw.ellipse([lx - lr, ly - lr, lx + lr, ly + lr], outline=(255, 220, 40, 255), width=2)
+    draw.text((lx - 4, ly - 5), led["letter"], fill=(255, 240, 120, 255))
+
+  for btn in keyboard_buttons:
+    bx, by = btn["x_px"], btn["y_px"]
+    br = btn["radius_px"]
+    draw.ellipse([bx - br, by - br, bx + br, by + br], outline=(40, 200, 255, 255), width=2)
+    draw.text((bx - 4, by - 5), btn["letter"], fill=(160, 235, 255, 255))
+
+  for pin in plugboard_pins:
+    px, py = pin["x_px"], pin["y_px"]
+    draw.ellipse([px - 5, py - 5, px + 5, py + 5], outline=(255, 90, 160, 255), width=2)
+
+  overlay_path.parent.mkdir(parents=True, exist_ok=True)
+  overlay.save(overlay_path)
+  print(f"[2019] Wrote {layout_path}, {board_png_path} ({img_meta['width_px']}x{img_meta['height_px']}), {overlay_path}")
+
+
 def build_layout_and_overlay():
   parser = argparse.ArgumentParser(description="Extract KiCad badge geometry and render board.png + layout.json")
-  parser.add_argument("--year", choices=["2018", "2021", "2023", "2024", "2025", "2026", "all"], default="2026", help="Badge year to process")
+  parser.add_argument("--year", choices=["2018", "2019", "2021", "2023", "2024", "2025", "2026", "all"], default="2026", help="Badge year to process")
   parser.add_argument("--pcb", type=Path, default=None, help="Path to .kicad_pcb (optional override)")
   args = parser.parse_args()
 
   if args.year in ("2018", "all"):
     build_2018(args.pcb if args.year == "2018" else None)
+  if args.year in ("2019", "all"):
+    build_2019(args.pcb if args.year == "2019" else None)
   if args.year in ("2021", "all"):
     build_2021(args.pcb if args.year == "2021" else None)
   if args.year in ("2023", "all"):

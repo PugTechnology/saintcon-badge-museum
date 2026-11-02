@@ -16,6 +16,7 @@
   "routes": [
     { "pattern": "sc.pug.technology", "custom_domain": true },
     { "pattern": "18.sc.pug.technology", "custom_domain": true },
+    { "pattern": "19.sc.pug.technology", "custom_domain": true },
     { "pattern": "21.sc.pug.technology", "custom_domain": true },
     { "pattern": "23.sc.pug.technology", "custom_domain": true },
     { "pattern": "24.sc.pug.technology", "custom_domain": true },

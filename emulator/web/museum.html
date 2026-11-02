@@ -6,7 +6,7 @@
   <title>SAINTCON Badge Museum</title>
   <script>
     (function () {
-      var LIVE_YEARS = ['2018', '2021', '2023', '2024', '2025', '2026'];
+      var LIVE_YEARS = ['2018', '2019', '2021', '2023', '2024', '2025', '2026'];
       var PROD = 'sc.pug.technology';
       var host = (window.location.hostname || '').toLowerCase();
       var isProdDomain = host === PROD || host.endsWith('.' + PROD);
@@ -410,6 +410,7 @@
       <a class="card-cta secondary" style="padding: 8px 14px; width: auto;" href="?year=2024">Play 2024 Badge →</a>
       <a class="card-cta secondary" style="padding: 8px 14px; width: auto;" href="?year=2023">Play 2023 Badge →</a>
       <a class="card-cta secondary" style="padding: 8px 14px; width: auto;" href="?year=2021">Play 2021 Badge →</a>
+      <a class="card-cta secondary" style="padding: 8px 14px; width: auto;" href="?year=2019">Play 2019 Badge →</a>
       <a class="card-cta secondary" style="padding: 8px 14px; width: auto;" href="?year=2018">Play 2018 Badge →</a>
     </div>
   </header>
@@ -452,6 +453,45 @@
 
         <div class="card-actions">
           <a class="card-cta" href="?year=2018">Play Original Firmware →</a>
+        </div>
+      </article>
+
+      <!-- 2019 Badge Card (LIVE) -->
+      <article class="year-card" id="card-2019">
+        <div class="card-top">
+          <a class="card-thumb landscape" href="?year=2019" title="Launch SAINTCON 2019 Enigma Badge Emulator">
+            <img src="badges/2019/board.png" alt="SAINTCON 2019 Enigma badge PCB" />
+          </a>
+          <div class="card-head-info">
+            <div class="status-row">
+              <span class="year-badge">2019</span>
+              <span class="status-pill live">● Live</span>
+            </div>
+            <h2><a href="?year=2019" style="color: inherit;">Enigma badge</a></h2>
+            <p class="hw-summary">
+              STM32L433VCTx • ICE40HX1K-TQ144 + 64×16 arched RGB LED matrix • 26 RGB lampboard LEDs (IS31FL3736 @ 0x50) • 26 tactile QWERTZ keys (SW1–SW26) • 26-pin A–Z jumper plugboard • I2C minibadge bus.
+            </p>
+          </div>
+        </div>
+
+        <div class="modes-row">
+          <a class="mode-chip" href="?year=2019" style="color: inherit;">🚀 <strong>Original Firmware</strong></a>
+        </div>
+
+        <div class="credits-box">
+          <div class="main-credit">
+            <strong>Badge by <a href="https://github.com/compukidmike" target="_blank" rel="noopener">compukidmike</a></strong>
+            • Repo: <a href="https://github.com/compukidmike/Saintcon2019" target="_blank" rel="noopener">github.com/compukidmike/Saintcon2019</a>
+            (<a href="https://github.com/compukidmike/Saintcon2019/tree/4ec59a1626dca09a0c75969f449a0ed3cca18bac/Firmware/Saintcon2019" target="_blank" rel="noopener"><code>4ec59a1</code></a>)
+            • <a href="badges/2019/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">Third-party licenses</a>
+          </div>
+          <div class="sub-credit">
+            Original badge firmware from <a href="https://github.com/compukidmike/Saintcon2019" target="_blank" rel="noopener"><strong>compukidmike/Saintcon2019</strong></a> • Enigma machine code copied from <a href="http://corylutton.com/enigma-c.html" target="_blank" rel="noopener">Cory Lutton's enigma-c</a> (Apache 2.0) and heavily modified by @_bashNinja; Snake, Screen Animations &amp; User Profile by bashNinja • IS31FL3736 driver by <a href="http://andnxor.com/" target="_blank" rel="noopener">AND!XOR LLC</a> (@andnxor, @zappbrandnxor, @hyr0n1, @exc3ls1or, @lacosteaef, @bitstr3m, Apache 2.0) • Matrix effects (<code>mapf</code>, <code>plasma</code>, <code>bound</code>, <code>LED_waveEffect</code>) from <a href="https://github.com/bikefrivolously/led_matrix" target="_blank" rel="noopener">bikefrivolously/led_matrix</a>
+          </div>
+        </div>
+
+        <div class="card-actions">
+          <a class="card-cta" href="?year=2019">Play Original Firmware →</a>
         </div>
       </article>
 
@@ -665,7 +705,7 @@
         <strong><a href="https://saintcon.org" target="_blank" rel="noopener">SAINTCON</a></strong> is Utah's annual cybersecurity and hackers conference, organized by the UtahSAINT community and known for its custom electronic badges.
       </p>
       <p>
-        2018, 2023, 2024, and 2025 are built from <a href="https://github.com/compukidmike" target="_blank" rel="noopener">compukidmike</a>'s source (<a href="badges/2018/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2018 third-party licenses</a>, <a href="badges/2023/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2023 third-party licenses</a>, <a href="badges/2024/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2024 third-party licenses</a>, <a href="badges/2025/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2025 third-party licenses</a>); 2021 is built from the badge created by <a href="https://github.com/compukidmike" target="_blank" rel="noopener">compukidmike</a>, <a href="https://github.com/Professor-plum" target="_blank" rel="noopener">Professor_Plum</a>, and <a href="https://github.com/Sodium-Hydrogen" target="_blank" rel="noopener">Sodium_Hydrogen</a> (<a href="badges/2021/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2021 third-party licenses</a>); 2026 is built from <a href="https://github.com/Professor-plum" target="_blank" rel="noopener">Professor-plum</a>'s <a href="badges/2026/LICENSE.txt" target="_blank" rel="noopener">MIT-licensed</a> source (<a href="badges/2026/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2026 third-party licenses</a>).
+        2018, 2019, 2023, 2024, and 2025 are built from <a href="https://github.com/compukidmike" target="_blank" rel="noopener">compukidmike</a>'s source (<a href="badges/2018/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2018 third-party licenses</a>, <a href="badges/2019/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2019 third-party licenses</a>, <a href="badges/2023/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2023 third-party licenses</a>, <a href="badges/2024/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2024 third-party licenses</a>, <a href="badges/2025/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2025 third-party licenses</a>); 2021 is built from the badge created by <a href="https://github.com/compukidmike" target="_blank" rel="noopener">compukidmike</a>, <a href="https://github.com/Professor-plum" target="_blank" rel="noopener">Professor_Plum</a>, and <a href="https://github.com/Sodium-Hydrogen" target="_blank" rel="noopener">Sodium_Hydrogen</a> (<a href="badges/2021/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2021 third-party licenses</a>); 2026 is built from <a href="https://github.com/Professor-plum" target="_blank" rel="noopener">Professor-plum</a>'s <a href="badges/2026/LICENSE.txt" target="_blank" rel="noopener">MIT-licensed</a> source (<a href="badges/2026/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2026 third-party licenses</a>).
       </p>
       <p>
         <strong>Browser-Only Storage:</strong> Each badge's simulated EEPROM/flash is stored locally in your browser's <code>localStorage</code> (isolated per year and mode). No external CDNs, no analytics, and no cookies are used.
