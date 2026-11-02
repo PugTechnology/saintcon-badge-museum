@@ -9,6 +9,7 @@ emulator/build/check-overlay-<year>.png.
 
 Supports:
   --year 2018  (Saintcon2018.kicad_pcb — 8x32 LED matrix badge)
+  --year 2021  (Saintcon2020Front + Saintcon2020Shackle + Saintcon2020 — combination lock badge)
   --year 2023  (Saintcon2023.kicad_pcb — "Incidents" Dungeon RPG)
   --year 2024  (Saintcon2024MainBoard + Saintcon2024TopBoard — "Wrist Communicator" / Tower Battle)
   --year 2025  (Saintcon2025.kicad_pcb — "The Wrench")
@@ -68,6 +69,26 @@ def find_2018_pcb_default() -> Path:
     if c.exists():
       return c
   return candidates[0]
+
+
+def find_2021_pcbs_default():
+  roots = [
+      ROOT / "emulator" / "cores" / "2021" / "upstream" / "Hardware",
+      ROOT / "upstream" / "Saintcon2021" / "Hardware",
+      Path.home() / "Projects" / "saintcon-museum-research" / "Saintcon2021" / "Hardware",
+  ]
+  for r in roots:
+    front = r / "Saintcon2021Front" / "Saintcon2020Front.kicad_pcb"
+    shackle = r / "Saintcon2021Shackle" / "Saintcon2020Shackle.kicad_pcb"
+    main = r / "Saintcon2021" / "Saintcon2020.kicad_pcb"
+    if front.exists() and main.exists():
+      return front, shackle, main
+  r0 = roots[0]
+  return (
+      r0 / "Saintcon2021Front" / "Saintcon2020Front.kicad_pcb",
+      r0 / "Saintcon2021Shackle" / "Saintcon2020Shackle.kicad_pcb",
+      r0 / "Saintcon2021" / "Saintcon2020.kicad_pcb",
+  )
 
 
 def find_2023_kicad_zip_default() -> Path:
@@ -3250,14 +3271,651 @@ def build_2018(pcb_override: Path = None):
   print(f"[2018] Verified 256 matrix LEDs ({geom['leds'][0]['ref']}..{geom['leds'][-1]['ref']}) across U2 (0x60) & U3 (0x61)")
 
 
+# ============================================================================
+# 2021 (Combination lock badge: Saintcon2021Front + Saintcon2021Shackle + Main)
+# ============================================================================
+
+def _trace_dedup_fp_edge_loops(fp):
+  """Snap svg2mod Edge.Cuts fp_line endpoints to 0.001 mm and trace closed loops."""
+  raw_local = [
+      (l["local_start"], l["local_end"])
+      for l in fp["lines"]
+      if l["layer"] == "Edge.Cuts"
+  ]
+  seen = set()
+  segs = []
+  for p1, p2 in raw_local:
+    a = (round(p1[0], 3), round(p1[1], 3))
+    b = (round(p2[0], 3), round(p2[1], 3))
+    if a == b:
+      continue
+    key = (a, b) if a < b else (b, a)
+    if key not in seen:
+      seen.add(key)
+      segs.append((a, b))
+
+  adj = defaultdict(list)
+  for idx, (a, b) in enumerate(segs):
+    adj[a].append((idx, b))
+    adj[b].append((idx, a))
+
+  used = set()
+  local_loops = []
+  for idx, (a, b) in enumerate(segs):
+    if idx in used:
+      continue
+    used.add(idx)
+    loop = [a, b]
+    cur = b
+    while True:
+      nxt = None
+      for eidx, nb in adj[cur]:
+        if eidx not in used:
+          used.add(eidx)
+          nxt = nb
+          break
+      if nxt is None:
+        break
+      loop.append(nxt)
+      cur = nxt
+      if cur == loop[0]:
+        break
+    if len(loop) >= 4:
+      local_loops.append(loop)
+
+  def _bbox_area(lp):
+    xs = [p[0] for p in lp]
+    ys = [p[1] for p in lp]
+    return (max(xs) - min(xs)) * (max(ys) - min(ys))
+
+  local_loops.sort(key=_bbox_area, reverse=True)
+  board_loops = [
+      [kicad_local_to_board(fp["x"], fp["y"], fp["rot"], fp["layer"], px, py) for px, py in lp]
+      for lp in local_loops
+  ]
+  return local_loops, board_loops
+
+
+def _write_clean_edge_pcb(src_pcb: Path, dst_pcb: Path, fp_token: str, local_loops):
+  txt = src_pcb.read_text(encoding="utf-8", errors="replace")
+  new_lines = []
+  for lp in local_loops:
+    pts = lp if lp[0] == lp[-1] else (lp + [lp[0]])
+    for a, b in zip(pts[:-1], pts[1:]):
+      new_lines.append(
+          f"    (fp_line (start {a[0]:.3f} {a[1]:.3f}) (end {b[0]:.3f} {b[1]:.3f}) (layer Edge.Cuts) (width 0.15))"
+      )
+  txt_clean = re.sub(
+      r"\s*\(fp_line\s+\(start[^)]+\)\s+\(end[^)]+\)\s+\(layer\s+Edge\.Cuts\)\s+\(width[^)]+\)\)",
+      "",
+      txt,
+  )
+  mod_idx = txt_clean.find(fp_token)
+  if mod_idx < 0:
+    raise RuntimeError(f"Could not locate {fp_token!r} in {src_pcb}")
+  insert_at = txt_clean.find("\n", txt_clean.find("(at ", mod_idx)) + 1
+  txt_clean = txt_clean[:insert_at] + "\n".join(new_lines) + "\n" + txt_clean[insert_at:]
+  dst_pcb.write_text(txt_clean, encoding="utf-8")
+
+
+def extract_geometry_2021(front_tree, shackle_tree, main_tree):
+  front_fps, _, _, _ = parse_footprints_and_graphics(front_tree)
+  front_fp = None
+  for fp in front_fps.values():
+    if "BoardFront" in fp["lib"]:
+      front_fp = fp
+      break
+  if not front_fp:
+    raise RuntimeError("Could not find BoardFront3-Yellow footprint in Saintcon2020Front.kicad_pcb")
+
+  front_local_loops, front_board_loops = _trace_dedup_fp_edge_loops(front_fp)
+  if len(front_board_loops) < 2:
+    raise RuntimeError("Expected outer circle and inner LCD cutout loops on Saintcon2020Front.kicad_pcb")
+
+  front_outer_loop = front_board_loops[0][:-1] if front_board_loops[0][0] == front_board_loops[0][-1] else front_board_loops[0]
+  lcd_cutout_loop = front_board_loops[1][:-1] if front_board_loops[1][0] == front_board_loops[1][-1] else front_board_loops[1]
+
+  cxs = [p[0] for p in lcd_cutout_loop]
+  cys = [p[1] for p in lcd_cutout_loop]
+  cut_cx = (min(cxs) + max(cxs)) / 2.0
+  cut_cy = (min(cys) + max(cys)) / 2.0
+  cut_r = ((max(cxs) - min(cxs)) + (max(cys) - min(cys))) / 4.0
+  # Round 240x240 ILI9331 display sits directly behind the 39.116 mm (r=19.558 mm) circular cutout
+  act_r = round(cut_r - 0.65, 4)
+
+  shackle_local_loops = []
+  shackle_outer_loop = []
+  if shackle_tree is not None:
+    shackle_fps, _, _, _ = parse_footprints_and_graphics(shackle_tree)
+    shackle_fp = None
+    for fp in shackle_fps.values():
+      if "BoardShackle" in fp["lib"]:
+        shackle_fp = fp
+        break
+    if shackle_fp:
+      shackle_local_loops, shackle_board_loops = _trace_dedup_fp_edge_loops(shackle_fp)
+      if shackle_board_loops:
+        lp0 = shackle_board_loops[0]
+        shackle_outer_loop = lp0[:-1] if lp0[0] == lp0[-1] else lp0
+
+  main_fps, _, _, _ = parse_footprints_and_graphics(main_tree)
+  d1 = main_fps["D1"]      # 19-337C/RSBHGHC-A88/4T RGB LED on PA21/PA22/PA23 (TCC0)
+  sw3 = main_fps["SW3"]    # KMS231GFLS edge push button ("SELECT", PIN_PA27 back_event)
+  sw2 = main_fps["SW2"]    # CUS-12B SPDT power switch
+  j2 = main_fps["J2"]      # Micro-USB receptacle
+  lcd1 = main_fps["LCD1"]  # RoundLCD-36P
+
+  leds = [{
+      "index": 0,
+      "ref": "D1",
+      "part": d1["val"] or "RGB_LED",
+      "x_mm": round(d1["x"], 4),
+      "y_mm": round(d1["y"], 4),
+      "rot_deg": round(d1["rot"], 2),
+  }]
+
+  sw3_info = {
+      "ref": "SW3",
+      "kind": "push",
+      "name": "B",
+      "label": "Back (PA27)",
+      "bit": 32,
+      "pin": "PA27",
+      "x_mm": round(sw3["x"], 4),
+      "y_mm": round(sw3["y"], 4),
+      "rot_deg": round(sw3["rot"], 2),
+      "radius_mm": 4.0,
+  }
+
+  return {
+      "front_local_loops": front_local_loops,
+      "front_outer_loop": front_outer_loop,
+      "lcd_cutout_loop": lcd_cutout_loop,
+      "shackle_local_loops": shackle_local_loops,
+      "shackle_outer_loop": shackle_outer_loop,
+      "cutout_circle_mm": (round(cut_cx, 4), round(cut_cy, 4), round(cut_r, 4)),
+      "active_circle_mm": (round(cut_cx, 4), round(cut_cy, 4), act_r),
+      "touch_wheel_mm": {
+          "cx_mm": round(cut_cx, 4),
+          "cy_mm": round(cut_cy, 4),
+          "inner_r_mm": round(cut_r, 4),
+          "outer_r_mm": 25.0,
+      },
+      "lcd1_origin_mm": (round(lcd1["x"], 4), round(lcd1["y"], 4)),
+      "leds": leds,
+      "sw3": sw3_info,
+      "sw2": {"ref": "SW2", "x_mm": round(sw2["x"], 4), "y_mm": round(sw2["y"], 4), "rot_deg": round(sw2["rot"], 2)},
+      "usb_j2": {"ref": "J2", "x_mm": round(j2["x"], 4), "y_mm": round(j2["y"], 4), "rot_deg": round(j2["rot"], 2)},
+  }
+
+
+def ensure_kicad_renders_2021(front_pcb: Path, shackle_pcb: Path, geom, out_board_png: Path):
+  work_dir = BUILD_DIR / "kicad-2021"
+  work_dir.mkdir(parents=True, exist_ok=True)
+
+  front_clean = work_dir / "Saintcon2021Front_render.kicad_pcb"
+  front_3d = work_dir / "front-render-3d.png"
+  front_fmask_svg = work_dir / "front-layer-fmask.svg"
+  front_fsilks_svg = work_dir / "front-layer-fsilks.svg"
+  front_fcu_svg = work_dir / "front-layer-fcu.svg"
+
+  has_shackle = bool(shackle_pcb and shackle_pcb.exists() and geom["shackle_local_loops"])
+  shackle_clean = work_dir / "Saintcon2021Shackle_render.kicad_pcb"
+  shackle_3d = work_dir / "shackle-render-3d.png"
+  shackle_fmask_svg = work_dir / "shackle-layer-fmask.svg"
+  shackle_fcu_svg = work_dir / "shackle-layer-fcu.svg"
+
+  need_front = not (
+      front_3d.exists()
+      and front_fmask_svg.exists()
+      and front_fsilks_svg.exists()
+      and front_fcu_svg.exists()
+  )
+  need_shackle = has_shackle and not (
+      shackle_3d.exists()
+      and shackle_fmask_svg.exists()
+      and shackle_fcu_svg.exists()
+  )
+
+  if need_front or need_shackle:
+    cmds = []
+    rel_work = work_dir.relative_to(ROOT)
+    if need_front:
+      _write_clean_edge_pcb(front_pcb, front_clean, "(module BoardFront3-Yellow", geom["front_local_loops"][:2])
+      cmds.extend([
+          f"kicad-cli pcb render --side top --background transparent --quality basic -w 2000 -h 2000"
+          f" -o {rel_work}/front-render-3d.png {rel_work}/Saintcon2021Front_render.kicad_pcb",
+          f"kicad-cli pcb export svg --layers F.Mask --black-and-white --page-size-mode 0"
+          f" --exclude-drawing-sheet -o {rel_work}/front-layer-fmask.svg {rel_work}/Saintcon2021Front_render.kicad_pcb",
+          f"kicad-cli pcb export svg --layers F.SilkS --black-and-white"
+          f" --page-size-mode 0 --exclude-drawing-sheet -o {rel_work}/front-layer-fsilks.svg {rel_work}/Saintcon2021Front_render.kicad_pcb",
+          f"kicad-cli pcb export svg --layers F.Cu --black-and-white --page-size-mode 0"
+          f" --exclude-drawing-sheet -o {rel_work}/front-layer-fcu.svg {rel_work}/Saintcon2021Front_render.kicad_pcb",
+      ])
+    if need_shackle:
+      _write_clean_edge_pcb(shackle_pcb, shackle_clean, "(module BoardShackle", geom["shackle_local_loops"][:3])
+      cmds.extend([
+          f"kicad-cli pcb render --side top --background transparent --quality basic -w 1600 -h 2400"
+          f" -o {rel_work}/shackle-render-3d.png {rel_work}/Saintcon2021Shackle_render.kicad_pcb",
+          f"kicad-cli pcb export svg --layers F.Mask --black-and-white --page-size-mode 0"
+          f" --exclude-drawing-sheet -o {rel_work}/shackle-layer-fmask.svg {rel_work}/Saintcon2021Shackle_render.kicad_pcb",
+          f"kicad-cli pcb export svg --layers F.Cu --black-and-white --page-size-mode 0"
+          f" --exclude-drawing-sheet -o {rel_work}/shackle-layer-fcu.svg {rel_work}/Saintcon2021Shackle_render.kicad_pcb",
+      ])
+
+    uid_gid = f"{os.getuid()}:{os.getgid()}"
+    subprocess.run(
+        [
+            "docker",
+            "run",
+            "--rm",
+            "-u",
+            uid_gid,
+            "-v",
+            f"{ROOT}:/w",
+            "-w",
+            "/w",
+            "kicad/kicad:9.0",
+            "sh",
+            "-c",
+            " && ".join(cmds),
+        ],
+        check=True,
+    )
+
+  # Map Front 3D render and SVG layers
+  f_im3d = Image.open(front_3d).convert("RGBA")
+  fW, fH = f_im3d.size
+  f_arr3d = np.array(f_im3d, dtype=np.float32)
+  fys, fxs = np.where(f_arr3d[:, :, 3] > 0)
+  f_xmin_px, f_xmax_px = int(fxs.min()), int(fxs.max())
+  f_ymin_px, f_ymax_px = int(fys.min()), int(fys.max())
+
+  foxs = [p[0] for p in geom["front_outer_loop"]]
+  foys = [p[1] for p in geom["front_outer_loop"]]
+  f_xmin_mm, f_xmax_mm = min(foxs), max(foxs)
+  f_ymin_mm, f_ymax_mm = min(foys), max(foys)
+
+  f_scale = (
+      (f_xmax_px - f_xmin_px) / (f_xmax_mm - f_xmin_mm)
+      + (f_ymax_px - f_ymin_px) / (f_ymax_mm - f_ymin_mm)
+  ) / 2.0
+  f_x0_mm = f_xmin_mm - f_xmin_px / f_scale
+  f_y0_mm = f_ymin_mm - f_ymin_px / f_scale
+
+  align_svg_layers(
+      work_dir,
+      ("front-layer-fmask", "front-layer-fsilks", "front-layer-fcu"),
+      fW,
+      fH,
+      f_x0_mm,
+      f_y0_mm,
+      fW / f_scale,
+      fH / f_scale,
+  )
+
+  f_alpha = f_arr3d[:, :, 3] / 255.0
+  f_mask = np.array(Image.open(work_dir / "front-layer-fmask-aligned.png").convert("RGBA"), dtype=np.float32)[:, :, 3] / 255.0
+  f_silks = np.array(Image.open(work_dir / "front-layer-fsilks-aligned.png").convert("RGBA"), dtype=np.float32)[:, :, 3] / 255.0
+  f_cu = np.array(Image.open(work_dir / "front-layer-fcu-aligned.png").convert("RGBA"), dtype=np.float32)[:, :, 3] / 255.0
+  f_lum = (0.299 * f_arr3d[:, :, 0] + 0.587 * f_arr3d[:, :, 1] + 0.114 * f_arr3d[:, :, 2]) / 255.0
+
+  # BoardFront3-Yellow: Yellow solder mask (two-tone amber over bare FR4 vs brighter yellow
+  # over copper-backed isometric lock body), warm FR4 diffuser at D1 light-pipe, ENIG gold
+  # exposed copper on the 3-electrode QTouch wheel & 3-turn NFC coil, and crisp white silkscreen.
+  f_rgba = np.zeros((fH, fW, 4), dtype=np.float32)
+  mask_over_cu = f_cu * (1.0 - f_mask)
+  yy, xx = np.mgrid[0:fH, 0:fW]
+  tex = np.sin(xx * 0.06 + yy * 0.05) * 2.0 + np.cos(xx * 0.03 - yy * 0.08) * 2.0
+
+  base_r = 166.0 + mask_over_cu * 48.0 + (f_lum - 0.25) * 14.0
+  base_g = 118.0 + mask_over_cu * 46.0 + (f_lum - 0.25) * 12.0
+  base_b = 18.0 + mask_over_cu * 14.0 + (f_lum - 0.25) * 8.0
+
+  fr4_r = 148.0 + tex
+  fr4_g = 124.0 + tex * 0.8
+  fr4_b = 78.0 + tex * 0.5
+
+  enig_r = 238.0 + tex * 0.7 + (f_lum - 0.5) * 16.0
+  enig_g = 198.0 + tex * 0.6 + (f_lum - 0.5) * 14.0
+  enig_b = 76.0 + tex * 0.3 + (f_lum - 0.5) * 8.0
+
+  exp_r = fr4_r * (1.0 - f_cu) + enig_r * f_cu
+  exp_g = fr4_g * (1.0 - f_cu) + enig_g * f_cu
+  exp_b = fr4_b * (1.0 - f_cu) + enig_b * f_cu
+
+  f_rgba[:, :, 0] = base_r * (1.0 - f_mask) + exp_r * f_mask
+  f_rgba[:, :, 1] = base_g * (1.0 - f_mask) + exp_g * f_mask
+  f_rgba[:, :, 2] = base_b * (1.0 - f_mask) + exp_b * f_mask
+
+  silk_r, silk_g, silk_b = 245.0, 247.0, 250.0
+  f_rgba[:, :, 0] = f_rgba[:, :, 0] * (1.0 - f_silks) + silk_r * f_silks
+  f_rgba[:, :, 1] = f_rgba[:, :, 1] * (1.0 - f_silks) + silk_g * f_silks
+  f_rgba[:, :, 2] = f_rgba[:, :, 2] * (1.0 - f_silks) + silk_b * f_silks
+  f_rgba[:, :, 3] = f_alpha * 255.0
+  front_img_full = Image.fromarray(np.clip(f_rgba, 0, 255).astype(np.uint8), mode="RGBA")
+
+  # Unified assembly bounding box in mm (Front + protruding Shackle arch)
+  all_xs = list(foxs)
+  all_ys = list(foys)
+  shackle_img_full = None
+  s_x0_mm = s_y0_mm = 0.0
+  s_scale = f_scale
+
+  if has_shackle:
+    sxs = [p[0] for p in geom["shackle_outer_loop"]]
+    sys_mm = [p[1] for p in geom["shackle_outer_loop"]]
+    all_xs.extend(sxs)
+    all_ys.extend(sys_mm)
+
+    s_im3d = Image.open(shackle_3d).convert("RGBA")
+    sW, sH = s_im3d.size
+    s_arr3d = np.array(s_im3d, dtype=np.float32)
+    sys_px, sxs_px = np.where(s_arr3d[:, :, 3] > 0)
+    s_xmin_px, s_xmax_px = int(sxs_px.min()), int(sxs_px.max())
+    s_ymin_px, s_ymax_px = int(sys_px.min()), int(sys_px.max())
+    s_xmin_mm, s_xmax_mm = min(sxs), max(sxs)
+    s_ymin_mm, s_ymax_mm = min(sys_mm), max(sys_mm)
+
+    s_scale = (
+        (s_xmax_px - s_xmin_px) / (s_xmax_mm - s_xmin_mm)
+        + (s_ymax_px - s_ymin_px) / (s_ymax_mm - s_ymin_mm)
+    ) / 2.0
+    s_x0_mm = s_xmin_mm - s_xmin_px / s_scale
+    s_y0_mm = s_ymin_mm - s_ymin_px / s_scale
+
+    align_svg_layers(
+        work_dir,
+        ("shackle-layer-fmask", "shackle-layer-fcu"),
+        sW,
+        sH,
+        s_x0_mm,
+        s_y0_mm,
+        sW / s_scale,
+        sH / s_scale,
+    )
+    s_alpha = s_arr3d[:, :, 3] / 255.0
+    s_mask = np.array(Image.open(work_dir / "shackle-layer-fmask-aligned.png").convert("RGBA"), dtype=np.float32)[:, :, 3] / 255.0
+    s_cu = np.array(Image.open(work_dir / "shackle-layer-fcu-aligned.png").convert("RGBA"), dtype=np.float32)[:, :, 3] / 255.0
+    s_lum = (0.299 * s_arr3d[:, :, 0] + 0.587 * s_arr3d[:, :, 1] + 0.114 * s_arr3d[:, :, 2]) / 255.0
+
+    syy, sxx = np.mgrid[0:sH, 0:sW]
+    stex = np.sin(sxx * 0.06 + syy * 0.05) * 2.0
+    s_rgba = np.zeros((sH, sW, 4), dtype=np.float32)
+    s_base_r = 32.0 + (s_lum - 0.3) * 14.0
+    s_base_g = 36.0 + (s_lum - 0.3) * 14.0
+    s_base_b = 42.0 + (s_lum - 0.3) * 14.0
+    s_fr4_r, s_fr4_g, s_fr4_b = 58.0 + stex, 50.0 + stex, 34.0
+    s_gold_r = 230.0 + stex + (s_lum - 0.5) * 22.0
+    s_gold_g = 190.0 + stex * 0.8 + (s_lum - 0.5) * 18.0
+    s_gold_b = 72.0 + (s_lum - 0.5) * 10.0
+
+    s_exp_r = s_fr4_r * (1.0 - s_cu) + s_gold_r * s_cu
+    s_exp_g = s_fr4_g * (1.0 - s_cu) + s_gold_g * s_cu
+    s_exp_b = s_fr4_b * (1.0 - s_cu) + s_gold_b * s_cu
+
+    s_rgba[:, :, 0] = s_base_r * (1.0 - s_mask) + s_exp_r * s_mask
+    s_rgba[:, :, 1] = s_base_g * (1.0 - s_mask) + s_exp_g * s_mask
+    s_rgba[:, :, 2] = s_base_b * (1.0 - s_mask) + s_exp_b * s_mask
+    s_rgba[:, :, 3] = s_alpha * 255.0
+    shackle_img_full = Image.fromarray(np.clip(s_rgba, 0, 255).astype(np.uint8), mode="RGBA")
+
+  margin_mm = 2.4
+  xmin_mm = min(all_xs) - margin_mm
+  xmax_mm = max(all_xs) + margin_mm
+  ymin_mm = min(all_ys) - margin_mm
+  ymax_mm = max(all_ys) + margin_mm
+
+  scale_out = round(f_scale / 2.0, 6)
+  W_out = int(round((xmax_mm - xmin_mm) * scale_out))
+  H_out = int(round((ymax_mm - ymin_mm) * scale_out))
+  if W_out % 2 == 1:
+    W_out += 1
+  if H_out % 2 == 1:
+    H_out += 1
+
+  canvas = Image.new("RGBA", (W_out, H_out), (0, 0, 0, 0))
+
+  def mm_to_px(xmm, ymm):
+    return (xmm - xmin_mm) * scale_out, (ymm - ymin_mm) * scale_out
+
+  def paste_pcb_layer(src_img: Image.Image, src_x0_mm: float, src_y0_mm: float, src_scale: float):
+    dst_w = max(1, int(round(src_img.width * (scale_out / src_scale))))
+    dst_h = max(1, int(round(src_img.height * (scale_out / src_scale))))
+    resized = src_img.resize((dst_w, dst_h), Image.Resampling.LANCZOS)
+    dx = int(round((src_x0_mm - xmin_mm) * scale_out))
+    dy = int(round((src_y0_mm - ymin_mm) * scale_out))
+    layer = Image.new("RGBA", (W_out, H_out), (0, 0, 0, 0))
+    layer.paste(resized, (dx, dy))
+    return layer
+
+  # 1. Shackle PCB behind Front faceplate (only top gold U-shackle protrudes above y = -21.75 mm)
+  if shackle_img_full is not None:
+    shackle_layer = paste_pcb_layer(shackle_img_full, s_x0_mm, s_y0_mm, s_scale)
+    canvas = Image.alpha_composite(canvas, shackle_layer)
+
+  # 2. Main PCB edge actuators & round 240x240 ILI9331 LCD glass behind Front faceplate cutout
+  under = ImageDraw.Draw(canvas)
+  sw3 = geom["sw3"]
+  bx0, by0 = mm_to_px(sw3["x_mm"], sw3["y_mm"] - 2.1)
+  bx1, by1 = mm_to_px(sw3["x_mm"] + 2.35, sw3["y_mm"] + 2.1)
+  under.rounded_rectangle([bx0, by0, bx1, by1], radius=2, fill=(182, 188, 196, 255), outline=(78, 84, 94, 255), width=1)
+
+  cut_cx, cut_cy, cut_r = geom["cutout_circle_mm"]
+  _, _, act_r = geom["active_circle_mm"]
+  ccx, ccy = mm_to_px(cut_cx, cut_cy)
+  bezel_r_px = (cut_r + 0.5) * scale_out
+  act_r_px = act_r * scale_out
+  under.ellipse(
+      [ccx - bezel_r_px, ccy - bezel_r_px, ccx + bezel_r_px, ccy + bezel_r_px],
+      fill=(16, 19, 24, 255),
+  )
+  under.ellipse(
+      [ccx - act_r_px, ccy - act_r_px, ccx + act_r_px, ccy + act_r_px],
+      fill=(7, 9, 13, 255),
+      outline=(34, 39, 46, 255),
+      width=1,
+  )
+
+  # 3. Front yellow combination-lock faceplate composited on top
+  front_layer = paste_pcb_layer(front_img_full, f_x0_mm, f_y0_mm, f_scale)
+  res_out = Image.alpha_composite(canvas, front_layer)
+  over = ImageDraw.Draw(res_out)
+
+  # Subtle cutout rim shadow & outer rim definition
+  cut_r_px = cut_r * scale_out
+  over.ellipse(
+      [ccx - cut_r_px, ccy - cut_r_px, ccx + cut_r_px, ccy + cut_r_px],
+      outline=(26, 22, 12, 220),
+      width=2,
+  )
+  front_edge_pts = [mm_to_px(x, y) for x, y in geom["front_outer_loop"]]
+  if front_edge_pts:
+    over.line(front_edge_pts + [front_edge_pts[0]], fill=(120, 92, 22, 190), width=2)
+
+  # Subtle translucent LED diffuser hint at D1 light-pipe window (1.07, -18.23 mm)
+  d1 = geom["leds"][0]
+  lx, ly = mm_to_px(d1["x_mm"], d1["y_mm"])
+  lp_r = 1.35 * scale_out
+  over.ellipse(
+      [lx - lp_r, ly - lp_r, lx + lp_r, ly + lp_r],
+      fill=(218, 212, 192, 135),
+      outline=(118, 98, 52, 180),
+      width=1,
+  )
+
+  out_board_png.parent.mkdir(parents=True, exist_ok=True)
+  res_out.save(out_board_png, optimize=True)
+
+  return {
+      "width_px": W_out,
+      "height_px": H_out,
+      "scale_px_per_mm": round(scale_out, 6),
+      "origin_x_mm": round(xmin_mm, 6),
+      "origin_y_mm": round(ymin_mm, 6),
+  }, res_out
+
+
+def build_2021(pcb_override: Path = None):
+  def_front, def_shackle, def_main = find_2021_pcbs_default()
+  front_pcb = pcb_override if pcb_override else def_front
+  if not front_pcb.exists():
+    raise FileNotFoundError(f"2021 Front KiCad PCB not found: {front_pcb}")
+
+  hw_root = front_pcb.parent.parent
+  shackle_cand = hw_root / "Saintcon2021Shackle" / "Saintcon2020Shackle.kicad_pcb"
+  main_cand = hw_root / "Saintcon2021" / "Saintcon2020.kicad_pcb"
+  shackle_pcb = shackle_cand if shackle_cand.exists() else def_shackle
+  main_pcb = main_cand if main_cand.exists() else def_main
+  if not main_pcb.exists():
+    raise FileNotFoundError(f"2021 Main KiCad PCB not found: {main_pcb}")
+
+  out_dir = BADGES_DIR / "2021"
+  layout_path = out_dir / "layout.json"
+  board_png_path = out_dir / "board.png"
+  overlay_path = BUILD_DIR / "check-overlay-2021.png"
+
+  front_tree = parse_sexp(front_pcb.read_text(encoding="utf-8", errors="replace"))
+  shackle_tree = (
+      parse_sexp(shackle_pcb.read_text(encoding="utf-8", errors="replace"))
+      if (shackle_pcb and shackle_pcb.exists())
+      else None
+  )
+  main_tree = parse_sexp(main_pcb.read_text(encoding="utf-8", errors="replace"))
+
+  geom = extract_geometry_2021(front_tree, shackle_tree, main_tree)
+  img_meta, board_img = ensure_kicad_renders_2021(front_pcb, shackle_pcb, geom, board_png_path)
+
+  scale = img_meta["scale_px_per_mm"]
+  x0 = img_meta["origin_x_mm"]
+  y0 = img_meta["origin_y_mm"]
+
+  def to_px(xmm, ymm):
+    return round((xmm - x0) * scale, 2), round((ymm - y0) * scale, 2)
+
+  front_mm = [[round(x, 4), round(y, 4)] for x, y in geom["front_outer_loop"]]
+  front_px = [list(to_px(x, y)) for x, y in geom["front_outer_loop"]]
+  shackle_mm = [[round(x, 4), round(y, 4)] for x, y in geom["shackle_outer_loop"]]
+  shackle_px = [list(to_px(x, y)) for x, y in geom["shackle_outer_loop"]]
+
+  all_mm = front_mm + shackle_mm
+  all_px = front_px + shackle_px
+  oxs = [p[0] for p in all_mm]
+  oys = [p[1] for p in all_mm]
+  pxs = [p[0] for p in all_px]
+  pys = [p[1] for p in all_px]
+
+  cut_cx, cut_cy, cut_r = geom["cutout_circle_mm"]
+  act_cx, act_cy, act_r = geom["active_circle_mm"]
+  cx_px, cy_px = to_px(act_cx, act_cy)
+  act_r_px = round(act_r * scale, 2)
+  cut_r_px = round(cut_r * scale, 2)
+  act_d = act_r * 2.0
+  cut_d = cut_r * 2.0
+  act_px_x, act_px_y = to_px(act_cx - act_r, act_cy - act_r)
+  cut_px_x, cut_px_y = to_px(cut_cx - cut_r, cut_cy - cut_r)
+  act_px_d = round(act_d * scale, 2)
+  cut_px_d = round(cut_d * scale, 2)
+
+  tw = dict(geom["touch_wheel_mm"])
+  tw["cx_px"], tw["cy_px"] = cx_px, cy_px
+  tw["inner_r_px"] = cut_r_px
+  tw["outer_r_px"] = round(tw["outer_r_mm"] * scale, 2)
+
+  screen_obj = {
+      "ref": "LCD1",
+      "part": "RoundLCD (240x240 ILI9331)",
+      "shape": "round",
+      "touch": True,
+      "width_dots": 240,
+      "height_dots": 240,
+      "cx_mm": act_cx,
+      "cy_mm": act_cy,
+      "r_mm": act_r,
+      "cx_px": cx_px,
+      "cy_px": cy_px,
+      "r_px": act_r_px,
+      "x_mm": round(act_cx - act_r, 4),
+      "y_mm": round(act_cy - act_r, 4),
+      "w_mm": round(act_d, 4),
+      "h_mm": round(act_d, 4),
+      "x_px": act_px_x,
+      "y_px": act_px_y,
+      "w_px": act_px_d,
+      "h_px": act_px_d,
+      "module_mm": {"x": round(cut_cx - cut_r, 4), "y": round(cut_cy - cut_r, 4), "w": round(cut_d, 4), "h": round(cut_d, 4), "r": cut_r},
+      "module_px": {"x": cut_px_x, "y": cut_px_y, "w": cut_px_d, "h": cut_px_d, "r": cut_r_px},
+  }
+
+  sw3 = dict(geom["sw3"])
+  sw3["x_px"], sw3["y_px"] = to_px(sw3["x_mm"], sw3["y_mm"])
+  sw3["radius_px"] = round(sw3["radius_mm"] * scale, 2)
+
+  leds = []
+  for led in geom["leds"]:
+    lcopy = dict(led)
+    lcopy["x_px"], lcopy["y_px"] = to_px(lcopy["x_mm"], lcopy["y_mm"])
+    lcopy["radius_px"] = round(1.55 * scale, 2)
+    leds.append(lcopy)
+
+  layout = {
+      "board_image": {"file": "board.png", **img_meta},
+      "outline": {
+          "bbox_mm": {"x": round(min(oxs), 4), "y": round(min(oys), 4), "w": round(max(oxs) - min(oxs), 4), "h": round(max(oys) - min(oys), 4)},
+          "bbox_px": {"x": round(min(pxs), 2), "y": round(min(pys), 2), "w": round(max(pxs) - min(pxs), 2), "h": round(max(pys) - min(pys), 2)},
+          "polygon_mm": front_mm,
+          "polygon_px": front_px,
+          "shackle_polygon_mm": shackle_mm,
+          "shackle_polygon_px": shackle_px,
+      },
+      "screen": screen_obj,
+      "touch_wheel": tw,
+      "nav_switch": None,
+      "action_buttons": [sw3],
+      "sw3": sw3,
+      "sw2": geom["sw2"],
+      "usb_j2": geom["usb_j2"],
+      "minibadges": [],
+      "leds": leds,
+  }
+
+  out_dir.mkdir(parents=True, exist_ok=True)
+  layout_path.write_text(json.dumps(layout, indent=2) + "\n", encoding="utf-8")
+
+  overlay = board_img.copy()
+  draw = ImageDraw.Draw(overlay)
+  draw.line([tuple(p) for p in front_px] + [tuple(front_px[0])], fill=(0, 200, 255, 220), width=2)
+  if shackle_px:
+    draw.line([tuple(p) for p in shackle_px] + [tuple(shackle_px[0])], fill=(255, 180, 0, 200), width=2)
+  draw.ellipse([cx_px - tw["outer_r_px"], cy_px - tw["outer_r_px"], cx_px + tw["outer_r_px"], cy_px + tw["outer_r_px"]], outline=(255, 210, 0, 230), width=2)
+  draw.ellipse([cx_px - act_r_px, cy_px - act_r_px, cx_px + act_r_px, cy_px + act_r_px], outline=(0, 245, 110, 255), width=3)
+  draw.text((cx_px - 68, cy_px - 6), "ILI9331 Round (240x240)", fill=(0, 255, 110, 255))
+
+  for led in leds:
+    lx, ly = led["x_px"], led["y_px"]
+    lr = led["radius_px"]
+    draw.ellipse([lx - lr, ly - lr, lx + lr, ly + lr], fill=(255, 40, 80, 210), outline=(255, 255, 255, 255), width=2)
+    draw.text((lx + lr + 6, ly - 6), f"{led['ref']} (RGB)", fill=(255, 255, 120, 255))
+
+  r3 = sw3["radius_px"]
+  draw.ellipse([sw3["x_px"] - r3, sw3["y_px"] - r3, sw3["x_px"] + r3, sw3["y_px"] + r3], outline=(40, 200, 255, 255), width=3)
+  draw.text((sw3["x_px"] - 56, sw3["y_px"] - r3 - 15), "SW3 (PA27 Back)", fill=(40, 200, 255, 255))
+
+  overlay_path.parent.mkdir(parents=True, exist_ok=True)
+  overlay.save(overlay_path)
+  print(f"[2021] Wrote {layout_path}, {board_png_path} ({img_meta['width_px']}x{img_meta['height_px']}), {overlay_path}")
+
+
 def build_layout_and_overlay():
   parser = argparse.ArgumentParser(description="Extract KiCad badge geometry and render board.png + layout.json")
-  parser.add_argument("--year", choices=["2018", "2023", "2024", "2025", "2026", "all"], default="2026", help="Badge year to process")
+  parser.add_argument("--year", choices=["2018", "2021", "2023", "2024", "2025", "2026", "all"], default="2026", help="Badge year to process")
   parser.add_argument("--pcb", type=Path, default=None, help="Path to .kicad_pcb (optional override)")
   args = parser.parse_args()
 
   if args.year in ("2018", "all"):
     build_2018(args.pcb if args.year == "2018" else None)
+  if args.year in ("2021", "all"):
+    build_2021(args.pcb if args.year == "2021" else None)
   if args.year in ("2023", "all"):
     build_2023(args.pcb if args.year == "2023" else None)
   if args.year in ("2024", "all"):

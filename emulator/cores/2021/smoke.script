@@ -1,0 +1,125 @@
+# SAINTCON 2021 Combination Lock Badge - End-to-End Headless Smoke Script
+# Exercises all 12 firmware scenes (TEST, MENU, COMBO, REWARD, MESSAGE,
+# NFCREADER, RICK, TRADING, GAME, INVENTORY, BUILD, MACHINE) using flash.bin.
+
+# 1. Unregistered boot -> TEST scene ("Ready for VCard Programming" + bouncing shield)
+wait 400
+snap emulator/build/2021-smoke/01-boot.png
+snap-badge emulator/build/2021-smoke/01-boot-badge.png
+
+# 2. Program registration vCard via virtual ST25R95 -> NVIC_SystemReset() -> MENU
+vcard-program
+wait 250
+snap emulator/build/2021-smoke/02-menu.png
+snap-badge emulator/build/2021-smoke/02-menu-badge.png
+
+# 3. Open COMBO (index 3), dial 20-10-0, and pull shackle to unlock -> REWARD
+menu-open 3
+wait 120
+dial-combo 20 10 0
+snap emulator/build/2021-smoke/03-combo-dial.png
+pull-shackle
+wait 200
+snap emulator/build/2021-smoke/04-combo-unlock.png
+snap-badge emulator/build/2021-smoke/04-combo-unlock-badge.png
+press back 60
+wait 150
+
+# 3b. Re-enter 20-10-0 to verify MESSAGE scene ("You already redeemed that code")
+menu-open 3
+wait 120
+dial-combo 20 10 0
+pull-shackle
+wait 150
+snap emulator/build/2021-smoke/04b-message.png
+press back 60
+wait 150
+
+# 4. Open GAME (index 4) - 3D octagon tunnel flight
+menu-open 4
+wait 250
+wheel 1 40
+wait 150
+wheel 1 80
+wait 150
+wheel 0 0
+wait 150
+snap emulator/build/2021-smoke/05-game.png
+press back 60
+wait 150
+
+# 5. Open NFCREADER (index 7), capture radar, then tap virtual quote tag #0 -> REWARD
+nfc-clear
+menu-open 7
+wait 240
+snap emulator/build/2021-smoke/07-nfc-reader.png
+nfc-quote 0
+wait 600
+snap emulator/build/2021-smoke/07b-nfc-tap.png
+nfc-clear
+press back 60
+wait 150
+
+# 5b. Tap virtual quote tag #20 ("Never gonna give you up!") -> RICK easter-egg scene
+menu-open 7
+wait 120
+nfc-quote 20
+wait 600
+snap emulator/build/2021-smoke/07c-rick.png
+nfc-clear
+press back 60
+wait 150
+
+# 6. Solo trade with built-in Museum Bot (open Trading, offer 1 owned part, then arm bot offering 4 Wire + 3 Scrap)
+menu-open 2
+wait 150
+# Tap top of wheel (0 deg) to add 1 owned part to outgoing trade offer
+wheel 1 0
+wait 50
+wheel 0 0
+wait 100
+bot-trade 0 4 2 3
+# Step through ~110 frames so trade_frame % 100 == 0 runs attempt_trade()
+wait 2400
+bot-status
+snap emulator/build/2021-smoke/08-trade.png
+snap-badge emulator/build/2021-smoke/08-trade-badge.png
+# Back out of completed trade -> triggers UNLOCK_TRADE reward crate!
+press back 60
+wait 150
+press back 60
+wait 150
+
+# Second quick bot trade offering 2 Gears so Broadband Fulcrum (3 Wire, 2 Scrap, 1 Gear) is guaranteed buildable
+bot-trade 1 2 3 1
+menu-open 2
+wait 200
+wheel 1 0
+wait 50
+wheel 0 0
+wait 2400
+press back 60
+wait 150
+
+# 7. Open INVENTORY (index 6) - verify collected & traded parts
+menu-open 6
+wait 200
+snap emulator/build/2021-smoke/06-inventory.png
+press back 60
+wait 150
+
+# 8. Open BUILD (index 1) - inspect Broadband Fulcrum & pull shackle to build it
+menu-open 1
+wait 200
+snap emulator/build/2021-smoke/09-build.png
+pull-shackle
+wait 200
+press back 60
+wait 150
+
+# 9. Open MACHINE (index 5) - verify Broadband Fulcrum rendered on The Machine
+menu-open 5
+wait 200
+snap emulator/build/2021-smoke/10-machine.png
+press back 60
+wait 150

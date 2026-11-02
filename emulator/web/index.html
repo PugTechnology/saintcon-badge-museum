@@ -6,7 +6,7 @@
   <title>SAINTCON Badge Emulator</title>
   <script>
     (function () {
-      var LIVE_YEARS = ['2018', '2023', '2024', '2025', '2026'];
+      var LIVE_YEARS = ['2018', '2021', '2023', '2024', '2025', '2026'];
       var PROD = 'sc.pug.technology';
       var host = (window.location.hostname || '').toLowerCase();
       var isProdDomain = host === PROD || host.endsWith('.' + PROD);
@@ -1237,6 +1237,83 @@
     }
     .site-footer a { color: #58a6ff; text-decoration: none; }
     .site-footer a:hover { text-decoration: underline; }
+
+    /* 2021 QTouch Capacitive Dial Wheel Overlay & Companion Panel */
+    .touch-wheel-overlay {
+      position: absolute;
+      border-radius: 50%;
+      cursor: grab;
+      touch-action: none;
+    }
+    .touch-wheel-overlay:active {
+      cursor: grabbing;
+    }
+    .sc21-section {
+      border-top: 1px solid #21262d;
+      padding-top: 7px;
+      margin-top: 7px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .sc21-section:first-of-type {
+      border-top: none;
+      padding-top: 0;
+      margin-top: 0;
+    }
+    .sc21-subhead {
+      font-size: 0.69rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #d4a72c;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+    .sc21-textarea {
+      width: 100%;
+      min-height: 54px;
+      max-height: 96px;
+      resize: vertical;
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      color: var(--text-main);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.72rem;
+      line-height: 1.35;
+      padding: 5px 7px;
+      user-select: text;
+      -webkit-user-select: text;
+    }
+    .sc21-chk-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.73rem;
+      color: var(--text-main);
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .sc21-trade-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 58px;
+      align-items: center;
+      gap: 6px;
+    }
+    .sc21-qty-input {
+      width: 100%;
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      color: var(--text-main);
+      font-size: 0.75rem;
+      padding: 4px 6px;
+      user-select: text;
+      -webkit-user-select: text;
+    }
   </style>
 </head>
 <body>
@@ -1286,6 +1363,7 @@
       <div class="board-stage-wrap">
         <div id="board-stage" class="board-stage">
           <img id="board-img" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="SAINTCON Badge PCB" draggable="false" />
+          <div id="touch-wheel-overlay" class="touch-wheel-overlay" style="display: none;" title="QTouch Capacitive Dial Wheel: Drag around dial ring, then release to open selected menu item"></div>
           <div id="screen-holder" class="screen-holder">
             <canvas id="screen-canvas" width="240" height="320"></canvas>
           </div>
@@ -1485,6 +1563,121 @@
         </div>
       </div>
 
+      <!-- 2021 Combination Lock, Virtual ST25R95 NFC & Solo Museum Bot Trade Companion -->
+      <div class="panel-card" id="sc21-panel-card" style="display: none;" aria-label="2021 Combination Lock and NFC Companion">
+        <h2>Lock, NFC &amp; Solo Trade</h2>
+        <p class="towers-hint">
+          <strong>Menu:</strong> spin the dial (drag ring or <kbd>A</kbd>/<kbd>D</kbd>) and <strong>let go</strong> to open a scene.
+          <strong>Combo / Build:</strong> pull shackle (<kbd>Z</kbd>/<kbd>Space</kbd>) to check a dialed code or build a ready module.
+          <strong>Trading:</strong> <kbd>A</kbd>/<kbd>D</kbd> picks a part, <kbd>W</kbd>/<kbd>S</kbd> sets count; trades run automatically.
+          <strong>Game:</strong> steer with the dial.
+          Press <strong>Back</strong> (<kbd>SW3</kbd>, <kbd>X</kbd>/<kbd>Esc</kbd>) to return to Menu.
+        </p>
+
+        <div class="sc21-section">
+          <div class="sc21-subhead">
+            <span>Lock Shackle &amp; Shim Sensors</span>
+            <label class="sc21-chk-label" title="Keep shackle open (in Menu, holding shackle open shares your vCard over NFC instead of the schedule URL)">
+              <input type="checkbox" id="chk-sc21-hold-shackle" />
+              <span>Hold Open</span>
+            </label>
+          </div>
+          <div class="btn-row">
+            <button type="button" class="ctrl-btn gold" id="btn-sc21-pull-shackle" title="Pull shackle open briefly (tests dialed code in Combo Lock or builds a ready module in Build)">🔓 Pull Shackle</button>
+            <button type="button" class="ctrl-btn" id="btn-sc21-shim" title="Pulse QTouch shim sensor 6 once (grants UNLOCK_SHIM reward once, shows 'Shim already unlocked' once per power cycle, then does nothing)">🗡️ Insert Shim</button>
+          </div>
+        </div>
+
+        <div class="sc21-section">
+          <div class="sc21-subhead">
+            <span>Registration &amp; vCard (ST25R95 Tag)</span>
+            <span id="sc21-vcard-byte-count" style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 0.66rem; color: var(--text-muted); text-transform: none;">72 / 159 bytes</span>
+          </div>
+          <textarea id="sc21-vcard-input" class="sc21-textarea" rows="3" aria-label="Registration vCard Fields">FN:Badge Visitor
+ORG:SAINTCON Badge Museum
+EMAIL:visitor@example.invalid</textarea>
+          <div class="btn-row">
+            <button type="button" class="ctrl-btn gold" id="btn-sc21-write-vcard" title="Write NDEF text/vcard with saintcon_2021_magic over NFC when badge is listening (up to 159 bytes of fields / 223 bytes total vCard) to save vCard and reboot into Menu">📲 Write Registration vCard</button>
+            <button type="button" class="ctrl-btn" id="btn-sc21-read-tag" title="Read the badge's emulated NFC tag when in tag mode (unlocks UNLOCK_CONTACT in Menu; hold shackle open to read your vCard)">📖 Read Badge Tag</button>
+          </div>
+        </div>
+
+        <div class="sc21-section">
+          <div class="sc21-subhead">
+            <span>Virtual NFC Unlock Tags (Read Tag Scene)</span>
+          </div>
+          <div class="btn-row">
+            <select id="sc21-quote-select" class="nut-select" aria-label="Upstream NFC Quote Tag"></select>
+          </div>
+          <div class="btn-row">
+            <button type="button" class="ctrl-btn gold" id="btn-sc21-present-tag" title="Hold selected NFC quote tag against ST25R95 reader (open Read Tag on the badge to scan; press Back to return to Menu)">🏷️ Present Tag</button>
+            <button type="button" class="ctrl-btn" id="btn-sc21-clear-tag" title="Remove virtual NFC tag from reader field">✕ Remove Tag</button>
+          </div>
+        </div>
+
+        <div class="sc21-section">
+          <div class="sc21-subhead">
+            <span>Solo "Museum Bot" Trade (Trading Scene)</span>
+          </div>
+          <p class="towers-hint" style="margin: 0;">Trading needs at least 1 part — earn parts from rewards (e.g. <strong>Insert Shim</strong>, a combo, or a tag).</p>
+          <div class="sc21-trade-row">
+            <select id="sc21-bot-part0" class="nut-select" aria-label="Museum Bot Offer Part 1">
+              <option value="0">Wire</option>
+              <option value="1">Gears</option>
+              <option value="2">Scrap</option>
+              <option value="3" selected>Circuit B.</option>
+              <option value="4">LCD Screen</option>
+              <option value="5">Neosteal</option>
+              <option value="6">Hololens</option>
+              <option value="7">Eitr Fluid</option>
+              <option value="8">Ion Engine</option>
+              <option value="9">Flux Cap.</option>
+              <option value="10">Tesla Coil</option>
+              <option value="11">Ray Fuse</option>
+            </select>
+            <input id="sc21-bot-qty0" class="sc21-qty-input" type="number" min="1" max="20" value="3" aria-label="Museum Bot Part 1 Quantity" />
+            <select id="sc21-bot-part1" class="nut-select" aria-label="Museum Bot Offer Part 2">
+              <option value="-1">(None)</option>
+              <option value="0" selected>Wire</option>
+              <option value="1">Gears</option>
+              <option value="2">Scrap</option>
+              <option value="3">Circuit B.</option>
+              <option value="4">LCD Screen</option>
+              <option value="5">Neosteal</option>
+              <option value="6">Hololens</option>
+              <option value="7">Eitr Fluid</option>
+              <option value="8">Ion Engine</option>
+              <option value="9">Flux Cap.</option>
+              <option value="10">Tesla Coil</option>
+              <option value="11">Ray Fuse</option>
+            </select>
+            <input id="sc21-bot-qty1" class="sc21-qty-input" type="number" min="0" max="20" value="4" aria-label="Museum Bot Part 2 Quantity" />
+          </div>
+          <div class="btn-row">
+            <button type="button" class="ctrl-btn gold" id="btn-sc21-bot-trade" title="Arm Museum Bot NFC trade partner — once you have at least 1 part from a reward (e.g. Insert Shim), open Trading first to pick an offer, or arm it first and open Trading to get the bot's parts without giving any; press Back when done">🤝 Arm Museum Bot Trade</button>
+          </div>
+        </div>
+
+        <div class="sc21-section">
+          <div class="sc21-subhead">
+            <span>Virtual I2C Minibadge (0x28)</span>
+            <label class="sc21-chk-label" title="Plug virtual minibadge at 0x28 on I2C_0 (triggers UNLOCK_MINI reward in MENU)">
+              <input type="checkbox" id="chk-sc21-mb-present" />
+              <span>Plugged</span>
+            </label>
+          </div>
+          <div class="btn-row">
+            <input id="sc21-mb-text" class="sc18-text-input" type="text" maxlength="64" value="HELLO MUSEUM" style="flex: 1 1 110px; min-width: 0;" aria-label="2021 Minibadge Message" />
+            <button type="button" class="ctrl-btn" id="btn-sc21-mb-send" style="flex: 0 0 auto;" title="Send scrolling text message from minibadge 0x28 in MENU">💬 Text</button>
+            <button type="button" class="ctrl-btn" id="btn-sc21-mb-btn" style="flex: 0 0 auto;" title="Trigger minibadge 0x01 button event (WHAMMY animation in MENU)">🔘 Btn</button>
+          </div>
+        </div>
+
+        <div class="nut-status-box" id="sc21-status-box">
+          Unregistered badges boot to <code>Ready for VCard Programming</code> — click <strong>Write Registration vCard</strong> above to unlock the main menu.
+        </div>
+      </div>
+
       <!-- Emulator Controls Panel -->
       <div class="panel-card">
         <h2>Emulator Controls</h2>
@@ -1626,7 +1819,7 @@
       const DESKTOP_BREAKPOINT_PX = 820;
       const MAX_STEP_DT_MS = 100;
       const MAX_HIDDEN_CATCHUP_MS = 300000; // Bound catch-up at 5 min of real time in 100 ms steps
-      const LIVE_YEARS = ['2018', '2023', '2024', '2025', '2026'];
+      const LIVE_YEARS = ['2018', '2021', '2023', '2024', '2025', '2026'];
       const COMING_SOON_YEARS = []; // Only years explicitly listed as coming soon
       const WASM_MISSING_MSG = 'This emulator needs WebAssembly; it may be turned off, e.g. iPhone Lockdown Mode';
 
@@ -1786,6 +1979,7 @@
 
       const boardStage = document.getElementById('board-stage');
       const boardImg = document.getElementById('board-img');
+      const touchWheelOverlay = document.getElementById('touch-wheel-overlay');
       const screenHolder = document.getElementById('screen-holder');
       const screenCanvas = document.getElementById('screen-canvas');
       const screenCtx = screenCanvas.getContext('2d', { alpha: false });
@@ -1867,6 +2061,27 @@
       const sc18ModalTitle = document.getElementById('sc18-modal-title');
       const btnSc18ModalClose = document.getElementById('btn-sc18-modal-close');
       const sc18ModalFrame = document.getElementById('sc18-modal-frame');
+      const sc21PanelCard = document.getElementById('sc21-panel-card');
+      const chkSc21HoldShackle = document.getElementById('chk-sc21-hold-shackle');
+      const btnSc21PullShackle = document.getElementById('btn-sc21-pull-shackle');
+      const btnSc21Shim = document.getElementById('btn-sc21-shim');
+      const sc21VcardInput = document.getElementById('sc21-vcard-input');
+      const sc21VcardByteCount = document.getElementById('sc21-vcard-byte-count');
+      const btnSc21WriteVcard = document.getElementById('btn-sc21-write-vcard');
+      const btnSc21ReadTag = document.getElementById('btn-sc21-read-tag');
+      const sc21QuoteSelect = document.getElementById('sc21-quote-select');
+      const btnSc21PresentTag = document.getElementById('btn-sc21-present-tag');
+      const btnSc21ClearTag = document.getElementById('btn-sc21-clear-tag');
+      const sc21BotPart0 = document.getElementById('sc21-bot-part0');
+      const sc21BotQty0 = document.getElementById('sc21-bot-qty0');
+      const sc21BotPart1 = document.getElementById('sc21-bot-part1');
+      const sc21BotQty1 = document.getElementById('sc21-bot-qty1');
+      const btnSc21BotTrade = document.getElementById('btn-sc21-bot-trade');
+      const chkSc21MbPresent = document.getElementById('chk-sc21-mb-present');
+      const sc21MbText = document.getElementById('sc21-mb-text');
+      const btnSc21MbSend = document.getElementById('btn-sc21-mb-send');
+      const btnSc21MbBtn = document.getElementById('btn-sc21-mb-btn');
+      const sc21StatusBox = document.getElementById('sc21-status-box');
       const nfcCaptureLabel = document.getElementById('nfc-capture-label');
       const btnPhoneTap = document.getElementById('btn-phone-tap');
 
@@ -2024,8 +2239,30 @@
         return names.length ? names.join('+') : 'IDLE';
       }
 
+      let lastInputMask = 0;
+      let sc21PausedPendingMask = 0;
+
       function updateInputVisuals() {
         const mask = getButtonsMask();
+        const rising = mask & ~lastInputMask;
+        lastInputMask = mask;
+        if (paused && currentYear === '2021' && core && !core.isMock) {
+          if (rising & 64) {
+            if (typeof core.sc21SetShackle === 'function') {
+              const keepOpen = Boolean(chkSc21HoldShackle && chkSc21HoldShackle.checked);
+              core.sc21SetShackle(1);
+              core.sc21SetShackle(keepOpen ? 1 : 0);
+            }
+            if (typeof setSc21Status === 'function') {
+              setSc21Status('Badge is paused — queued Shackle pull for next sensor read on Resume (click Resume to run).');
+            }
+          } else if (rising & 32) {
+            sc21PausedPendingMask |= 32;
+            if (typeof setSc21Status === 'function') {
+              setSc21Status('Badge is paused — Back (SW3) will take effect on Resume (click Resume to run).');
+            }
+          }
+        }
         if (hasTouchInput && validButtonsMask === 0) {
           if (telButtonsLabel) {
             telButtonsLabel.textContent = 'TOUCH INPUT (GT911)';
@@ -2071,6 +2308,9 @@
         );
         screenCanvas.classList.toggle('touch-enabled', hasTouchInput);
         bigScreenCanvas.classList.toggle('touch-enabled', hasTouchInput);
+        if (touchWheelOverlay) {
+          touchWheelOverlay.classList.toggle('touch-enabled', hasTouchInput);
+        }
         updateInputVisuals();
       }
 
@@ -2090,6 +2330,20 @@
         boardStage.classList.toggle('landscape', W > H);
         boardStage.classList.toggle('wide-portrait', W <= H && (W / H) > 0.58);
         syncTouchUiState();
+
+        if (touchWheelOverlay) {
+          const tw = data.touch_wheel;
+          if (tw && typeof tw.cx_px === 'number' && typeof tw.outer_r_px === 'number') {
+            const diamPx = tw.outer_r_px * 2;
+            touchWheelOverlay.style.display = '';
+            touchWheelOverlay.style.left = `${((tw.cx_px - tw.outer_r_px) / W) * 100}%`;
+            touchWheelOverlay.style.top = `${((tw.cy_px - tw.outer_r_px) / H) * 100}%`;
+            touchWheelOverlay.style.width = `${(diamPx / W) * 100}%`;
+            touchWheelOverlay.style.height = `${(diamPx / H) * 100}%`;
+          } else {
+            touchWheelOverlay.style.display = 'none';
+          }
+        }
 
         const scr = data.screen;
         const isRound = (scr.shape || screenShape) === 'round';
@@ -2117,12 +2371,17 @@
           }
           el.dataset.index = led.index;
           el.dataset.ref = led.ref;
-          el.title = `Chain #${led.index} (${led.ref}, DIN: ${led.din_net})`;
+          el.title = led.din_net
+            ? `Chain #${led.index} (${led.ref}, DIN: ${led.din_net})`
+            : `LED #${led.index} (${led.ref}${led.part ? ', ' + led.part : ''})`;
           ledLayer.appendChild(el);
           ledElements.push(el);
         }
 
-        const navSw = data.nav_switch || data.sw4 || data.sw2;
+        const rawNavSw = data.nav_switch !== undefined ? data.nav_switch : (data.sw4 || data.sw2);
+        const navSw = (rawNavSw && typeof rawNavSw.x_px === 'number' && typeof rawNavSw.radius_px === 'number')
+          ? rawNavSw
+          : null;
         if (navSw) {
           const diamPx = navSw.radius_px * 2;
           sw2Overlay.style.display = 'flex';
@@ -2225,6 +2484,59 @@
           console.warn('Failed to write EEPROM to localStorage:', err);
           eepromPendingSave = false;
           lastEepromSaveMs = now;
+          showStorageUnavailableNote();
+          return false;
+        }
+      }
+
+      // 2021 512-byte registration vCard sector (0x7F8000 in QSPI flash; erased state = 0xFF)
+      let sc21VcardPendingSave = false;
+
+      function loadSc21VcardFromStorage() {
+        if (!core || typeof core.sc21GetVcardView !== 'function') return false;
+        const view = core.sc21GetVcardView();
+        if (!view || !view.length) return false;
+        const key = getStorageKey('vcard');
+        try {
+          const b64 = localStorage.getItem(key);
+          if (!b64) {
+            view.fill(0xff);
+            return false;
+          }
+          const bin = atob(b64);
+          view.fill(0xff);
+          const len = Math.min(view.length, bin.length);
+          for (let i = 0; i < len; i++) {
+            view[i] = bin.charCodeAt(i) & 0xff;
+          }
+          return true;
+        } catch (err) {
+          console.warn('Failed to load 2021 vCard flash from localStorage:', err);
+          view.fill(0xff);
+          return false;
+        }
+      }
+
+      function flushSc21VcardToStorage(force) {
+        if (!core || typeof core.sc21GetVcardView !== 'function') return true;
+        if (!force && !sc21VcardPendingSave) return true;
+        const view = core.sc21GetVcardView();
+        if (!view || !view.length) return true;
+        const key = getStorageKey('vcard');
+        try {
+          let bin = '';
+          for (let i = 0; i < view.length; i++) {
+            bin += String.fromCharCode(view[i]);
+          }
+          localStorage.setItem(key, btoa(bin));
+          sc21VcardPendingSave = false;
+          eepromWriteCount++;
+          eepromStatus.textContent = 'Saved';
+          telEeprom.textContent = `${key} (#${eepromWriteCount})`;
+          return true;
+        } catch (err) {
+          console.warn('Failed to write 2021 vCard flash to localStorage:', err);
+          sc21VcardPendingSave = false;
           showStorageUnavailableNote();
           return false;
         }
@@ -2519,7 +2831,10 @@
             ctx.restore();
           }
 
-          const navSw = layout.nav_switch || layout.sw4 || layout.sw2;
+          const rawNavSw = layout.nav_switch !== undefined ? layout.nav_switch : (layout.sw4 || layout.sw2);
+          const navSw = (rawNavSw && typeof rawNavSw.x_px === 'number' && typeof rawNavSw.radius_px === 'number')
+            ? rawNavSw
+            : null;
           const mask = getButtonsMask();
           if (navSw) {
             let jx = navSw.x_px;
@@ -2662,6 +2977,7 @@
 
       bindTouchScreenCanvas(screenCanvas);
       bindTouchScreenCanvas(bigScreenCanvas);
+      bindTouchScreenCanvas(touchWheelOverlay);
 
       window.addEventListener('blur', () => {
         kbMask = 0;
@@ -2691,6 +3007,10 @@
           eepromPendingSave = true;
           eepromStatus.textContent = 'Dirty';
           flushEepromToStorage(true);
+        }
+        if (typeof core.sc21VcardDirty === 'function' && core.sc21VcardDirty()) {
+          sc21VcardPendingSave = true;
+          flushSc21VcardToStorage(true);
         }
         renderOutputs();
         return steps;
@@ -2827,7 +3147,11 @@
         e.currentTarget.blur();
         if (!core) return;
         flushEepromToStorage(true);
-        if ((currentYear === '2025' || currentYear === '2024' || currentYear === '2023' || currentYear === '2018') && currentMode === 'stock' && !core.isMock && !isMockRequested) {
+        if (sc21VcardPendingSave || (typeof core.sc21VcardDirty === 'function' && core.sc21VcardDirty())) {
+          sc21VcardPendingSave = true;
+          flushSc21VcardToStorage(true);
+        }
+        if ((currentYear === '2025' || currentYear === '2024' || currentYear === '2023' || currentYear === '2021' || currentYear === '2018') && currentMode === 'stock' && !core.isMock && !isMockRequested) {
           window.location.reload();
           return;
         }
@@ -2868,6 +3192,25 @@
             wipe18Ok = false;
           }
           if (wipe18Ok) {
+            window.location.reload();
+          } else {
+            showStorageUnavailableNote();
+          }
+          return;
+        }
+        if (currentYear === '2021' && currentMode === 'stock' && !core.isMock && !isMockRequested) {
+          let wipe21Ok = true;
+          try {
+            localStorage.removeItem(getStorageKey('vcard'));
+            localStorage.removeItem(getStorageKey('minibadge'));
+            if (typeof core.sc21EraseVcard === 'function') {
+              core.sc21EraseVcard();
+            }
+          } catch (err) {
+            console.warn('Failed to wipe 2021 vCard/minibadge keys from localStorage:', err);
+            wipe21Ok = false;
+          }
+          if (wipe21Ok) {
             window.location.reload();
           } else {
             showStorageUnavailableNote();
@@ -4079,6 +4422,284 @@
         });
       }
 
+      // 2021 Combination Lock, Virtual ST25R95 NFC & Solo Museum Bot Trade Companion
+      let sc21ShacklePulseTimer = null;
+      let sc21LastBotState = 0;
+      let sc21LastBotText = '';
+      const SC21_VCARD_WRAPPER_BYTES = 64;
+      const SC21_VCARD_MAX_TOTAL_BYTES = 223;
+      const SC21_VCARD_MAX_FIELD_BYTES = SC21_VCARD_MAX_TOTAL_BYTES - SC21_VCARD_WRAPPER_BYTES; // 159
+
+      function measureSc21VcardBytes(rawText) {
+        const lines = String(rawText || '')
+          .split(/[\r\n]+/)
+          .filter((l) => l.length > 0 && !/^(BEGIN:VCARD|END:VCARD|VERSION:|PRODID:)/.test(l));
+        const joined = lines.length > 0 ? lines.join('\n') : 'FN:Badge Visitor\nORG:SAINTCON Badge Museum\nEMAIL:visitor@example.invalid';
+        const fieldBytes = new TextEncoder().encode(joined).length;
+        return {
+          fieldBytes,
+          totalBytes: fieldBytes + SC21_VCARD_WRAPPER_BYTES,
+          maxFieldBytes: SC21_VCARD_MAX_FIELD_BYTES,
+          maxTotalBytes: SC21_VCARD_MAX_TOTAL_BYTES,
+        };
+      }
+
+      function updateSc21VcardByteCount() {
+        if (!sc21VcardByteCount || !sc21VcardInput) return;
+        const m = measureSc21VcardBytes(sc21VcardInput.value);
+        sc21VcardByteCount.textContent = `${m.fieldBytes} / ${m.maxFieldBytes} bytes`;
+        sc21VcardByteCount.style.color = m.fieldBytes > m.maxFieldBytes ? '#f85149' : 'var(--text-muted)';
+      }
+
+      if (sc21VcardInput) {
+        sc21VcardInput.addEventListener('input', updateSc21VcardByteCount);
+      }
+
+      function setSc21Status(msg) {
+        if (sc21StatusBox) {
+          sc21StatusBox.textContent = String(msg || '');
+        }
+      }
+
+      function initSc21CompanionUi() {
+        updateSc21VcardByteCount();
+        if (!core || core.isMock || isMockRequested) return;
+        // The core's idle text is not news: keep the first instruction set below until something changes.
+        const sc21InitialBot = typeof core.sc21GetBotTradeStatus === 'function' ? core.sc21GetBotTradeStatus() : null;
+        sc21LastBotState = 0;
+        sc21LastBotText = (sc21InitialBot && sc21InitialBot.text) || '';
+        if (sc21QuoteSelect && typeof core.sc21GetQuoteCount === 'function') {
+          sc21QuoteSelect.replaceChildren();
+          const count = core.sc21GetQuoteCount() | 0;
+          for (let i = 0; i < count; i++) {
+            const label = core.sc21GetQuoteLabel(i) || `Tag #${i}`;
+            const opt = document.createElement('option');
+            opt.value = String(i);
+            const prefix = i === 20 ? `#${i} (Rickroll) • ` : `#${i} • `;
+            const shortLabel = label.length > 52 ? `${label.slice(0, 50)}…` : label;
+            opt.textContent = `${prefix}${shortLabel}`;
+            opt.title = label;
+            sc21QuoteSelect.appendChild(opt);
+          }
+        }
+        let mbSaved = false;
+        try {
+          mbSaved = localStorage.getItem(getStorageKey('minibadge')) === '1';
+        } catch (_) {}
+        if (chkSc21MbPresent) {
+          chkSc21MbPresent.checked = mbSaved;
+        }
+        if (typeof core.sc21MbSetPresent === 'function') {
+          core.sc21MbSetPresent(mbSaved);
+        }
+        const vcardView = typeof core.sc21GetVcardView === 'function' ? core.sc21GetVcardView() : null;
+        if (vcardView && vcardView.length > 0 && vcardView[0] !== 0xff) {
+          setSc21Status('Registered badge loaded — spin the dial (drag or A/D) and let go to open a scene; press Back (SW3, X/Esc) to return to Menu.');
+        } else {
+          setSc21Status('Unregistered badge (Ready for VCard Programming) — click "Write Registration vCard" above to register and enter Menu.');
+        }
+      }
+
+      function updateSc21BotTradePoll() {
+        if (!core || typeof core.sc21GetBotTradeStatus !== 'function') return;
+        const st = core.sc21GetBotTradeStatus();
+        if (!st) return;
+        if (!st.state) {
+          sc21LastBotState = 0;
+          if (st.text && st.text !== sc21LastBotText) {
+            sc21LastBotText = st.text;
+            setSc21Status(st.text);
+          }
+          return;
+        }
+        if (st.state !== sc21LastBotState || st.text !== sc21LastBotText || st.state >= 2) {
+          sc21LastBotState = st.state;
+          if (st.text) {
+            sc21LastBotText = st.text;
+            setSc21Status(st.text);
+          }
+          if (st.state === 3) {
+            sc21LastBotState = 0;
+          }
+        }
+      }
+
+      if (chkSc21HoldShackle) {
+        chkSc21HoldShackle.addEventListener('change', () => {
+          if (!core || typeof core.sc21SetShackle !== 'function') return;
+          if (sc21ShacklePulseTimer) {
+            clearTimeout(sc21ShacklePulseTimer);
+            sc21ShacklePulseTimer = null;
+          }
+          const open = Boolean(chkSc21HoldShackle.checked);
+          core.sc21SetShackle(open ? 1 : -1);
+          if (paused) {
+            setSc21Status(open
+              ? 'Badge is paused — Shackle held OPEN will apply on Resume.'
+              : 'Badge is paused — Shackle CLOSED will apply on Resume.');
+          } else {
+            setSc21Status(open
+              ? 'Shackle held OPEN — in MENU, badge now emulates your vCard over NFC.'
+              : 'Shackle CLOSED — in MENU, badge emulates https://saintcon2021.sched.com.');
+          }
+        });
+      }
+
+      if (btnSc21PullShackle) {
+        btnSc21PullShackle.addEventListener('click', (e) => {
+          e.currentTarget.blur();
+          if (!core || typeof core.sc21SetShackle !== 'function') return;
+          if (sc21ShacklePulseTimer) {
+            clearTimeout(sc21ShacklePulseTimer);
+          }
+          core.sc21SetShackle(1);
+          sc21ShacklePulseTimer = setTimeout(() => {
+            sc21ShacklePulseTimer = null;
+            const keepOpen = Boolean(chkSc21HoldShackle && chkSc21HoldShackle.checked);
+            if (core && typeof core.sc21SetShackle === 'function') {
+              core.sc21SetShackle(keepOpen ? 1 : 0);
+            }
+          }, 160);
+          if (paused) {
+            setSc21Status('Badge is paused — queued shackle pull for next sensor read on Resume (click Resume to run).');
+          } else {
+            setSc21Status('Pulled shackle open (160 ms pulse — tests code in Combo Lock or builds a ready module in Build).');
+          }
+        });
+      }
+
+      if (btnSc21Shim) {
+        btnSc21Shim.addEventListener('click', (e) => {
+          e.currentTarget.blur();
+          if (!core || typeof core.sc21PulseShim !== 'function') return;
+          core.sc21PulseShim();
+          if (paused) {
+            setSc21Status('Badge is paused — queued padlock shim pulse (QTouch sensor 6) for Resume.');
+          } else {
+            setSc21Status('Pulsed padlock shim sensor once (QTouch sensor 6 — grants UNLOCK_SHIM once, shows "Shim already unlocked" once per power cycle, then does nothing).');
+          }
+        });
+      }
+
+      if (btnSc21WriteVcard) {
+        btnSc21WriteVcard.addEventListener('click', (e) => {
+          e.currentTarget.blur();
+          if (!core || typeof core.sc21ProgramVcard !== 'function') return;
+          const body = sc21VcardInput ? String(sc21VcardInput.value || '') : '';
+          const rc = core.sc21ProgramVcard(body);
+          if (core.emu_eeprom_dirty()) {
+            eepromPendingSave = true;
+            flushEepromToStorage(true);
+          }
+          if (typeof core.sc21VcardDirty === 'function' && core.sc21VcardDirty()) {
+            sc21VcardPendingSave = true;
+            flushSc21VcardToStorage(true);
+          }
+          renderOutputs();
+          const m = measureSc21VcardBytes(body);
+          if (rc === 0) {
+            setSc21Status(`Wrote registration vCard (${m.fieldBytes}/${m.maxFieldBytes} field bytes, ${m.totalBytes}/${m.maxTotalBytes} total bytes) over ST25R95 NFC → saved to QSPI flash (0x7F8000) and reset into Menu.`);
+          } else if (rc === -2) {
+            setSc21Status('Nothing written — badge is in NFC reader mode (in Read Tag or after a finished Trade). To re-enable NFC tag mode, open Read Tag and press Back, or use Reset Badge.');
+          } else {
+            setSc21Status(`Nothing written — vCard is ${m.fieldBytes} bytes of fields (${m.totalBytes} bytes with header/footer), over the ${m.maxFieldBytes}-byte field limit (${m.maxTotalBytes} bytes total). Shorten by ${Math.max(1, m.fieldBytes - m.maxFieldBytes)} byte(s) and try again.`);
+          }
+        });
+      }
+
+      if (btnSc21ReadTag) {
+        btnSc21ReadTag.addEventListener('click', (e) => {
+          e.currentTarget.blur();
+          if (!core || typeof core.sc21ReadEmulatedTag !== 'function') return;
+          const text = core.sc21ReadEmulatedTag();
+          if (core.emu_eeprom_dirty()) {
+            eepromPendingSave = true;
+            flushEepromToStorage(true);
+          }
+          renderOutputs();
+          setSc21Status(`NFC Tag Readout: ${text}`);
+        });
+      }
+
+      if (btnSc21PresentTag) {
+        btnSc21PresentTag.addEventListener('click', (e) => {
+          e.currentTarget.blur();
+          if (!core || typeof core.sc21PresentQuoteTag !== 'function') return;
+          const idx = sc21QuoteSelect ? Number(sc21QuoteSelect.value) || 0 : 0;
+          core.sc21PresentQuoteTag(idx);
+          const label = typeof core.sc21GetQuoteLabel === 'function' ? core.sc21GetQuoteLabel(idx) : '';
+          setSc21Status(`Presenting NFC quote tag #${idx} ("${label}") — open Read Tag on the badge to scan.`);
+        });
+      }
+
+      if (btnSc21ClearTag) {
+        btnSc21ClearTag.addEventListener('click', (e) => {
+          e.currentTarget.blur();
+          if (!core || typeof core.sc21ClearTag !== 'function') return;
+          core.sc21ClearTag();
+          setSc21Status('Removed virtual NFC tag from reader field.');
+        });
+      }
+
+      if (btnSc21BotTrade) {
+        btnSc21BotTrade.addEventListener('click', (e) => {
+          e.currentTarget.blur();
+          if (!core || typeof core.sc21StartBotTrade !== 'function') return;
+          const p0 = sc21BotPart0 ? Number(sc21BotPart0.value) : 3;
+          const q0 = sc21BotQty0 ? Math.max(1, Math.min(20, Number(sc21BotQty0.value) || 1)) : 3;
+          const p1 = sc21BotPart1 ? Number(sc21BotPart1.value) : -1;
+          const q1 = sc21BotQty1 ? Math.max(0, Math.min(20, Number(sc21BotQty1.value) || 0)) : 0;
+          core.sc21StartBotTrade(p0, q0, p1, p1 >= 0 ? q1 : 0);
+          const st = core.sc21GetBotTradeStatus();
+          sc21LastBotState = st ? st.state : 1;
+          sc21LastBotText = (st && st.text) || '';
+          setSc21Status((st && st.text) || 'Museum Bot trade tag armed — Trading runs automatically every 100 frames (no shackle pull needed); press Back when done.');
+        });
+      }
+
+      if (chkSc21MbPresent) {
+        chkSc21MbPresent.addEventListener('change', () => {
+          if (!core || typeof core.sc21MbSetPresent !== 'function') return;
+          const present = Boolean(chkSc21MbPresent.checked);
+          try {
+            localStorage.setItem(getStorageKey('minibadge'), present ? '1' : '0');
+          } catch (_) {
+            showStorageUnavailableNote();
+          }
+          core.sc21MbSetPresent(present);
+          setSc21Status(present
+            ? 'Virtual minibadge plugged at I2C_0 0x28 (unlocks UNLOCK_MINI in MENU).'
+            : 'Virtual minibadge unplugged from I2C_0.');
+        });
+      }
+
+      if (btnSc21MbSend) {
+        btnSc21MbSend.addEventListener('click', (e) => {
+          e.currentTarget.blur();
+          if (!core || typeof core.sc21MbSendText !== 'function') return;
+          const msg = sc21MbText ? String(sc21MbText.value || 'HELLO MUSEUM').trim() : 'HELLO MUSEUM';
+          if (chkSc21MbPresent && !chkSc21MbPresent.checked) {
+            chkSc21MbPresent.checked = true;
+            try { localStorage.setItem(getStorageKey('minibadge'), '1'); } catch (_) {}
+          }
+          core.sc21MbSendText(msg || 'HELLO MUSEUM');
+          setSc21Status(`Queued minibadge 0x28 text "${msg || 'HELLO MUSEUM'}" (scrolls across MENU on next I2C poll).`);
+        });
+      }
+
+      if (btnSc21MbBtn) {
+        btnSc21MbBtn.addEventListener('click', (e) => {
+          e.currentTarget.blur();
+          if (!core || typeof core.sc21MbPressButton !== 'function') return;
+          if (chkSc21MbPresent && !chkSc21MbPresent.checked) {
+            chkSc21MbPresent.checked = true;
+            try { localStorage.setItem(getStorageKey('minibadge'), '1'); } catch (_) {}
+          }
+          core.sc21MbPressButton();
+          setSc21Status('Queued minibadge 0x28 button press (shows WHAMMY animation in MENU).');
+        });
+      }
+
       document.getElementById('btn-phone-tap').addEventListener('click', (e) => {
         e.currentTarget.blur();
         if (!core) return;
@@ -4115,6 +4736,10 @@
       window.addEventListener('beforeunload', () => {
         if (!loopStopped) {
           flushEepromToStorage(true);
+          if (sc21VcardPendingSave || (core && typeof core.sc21VcardDirty === 'function' && core.sc21VcardDirty())) {
+            sc21VcardPendingSave = true;
+            flushSc21VcardToStorage(true);
+          }
         }
       });
 
@@ -4163,12 +4788,66 @@
         const c2018MbQueuePixels = fn('emu_2018_mb_queue_pixels', () => {});
         const c2018MbQueueButton = fn('emu_2018_mb_queue_button', () => {});
         const c2018MbGetInfo = fn('emu_2018_mb_get_info', () => 0);
+        const c2021LoadFlash = fn('emu_2021_load_flash', () => {});
+        const c2021VcardPtr = fn('emu_2021_vcard_ptr', () => 0);
+        const c2021VcardSize = fn('emu_2021_vcard_size', () => 0);
+        const c2021VcardDirty = fn('emu_2021_vcard_dirty', () => 0);
+        const c2021EraseVcard = fn('emu_2021_erase_vcard', () => {});
+        const c2021SetShackle = fn('emu_2021_set_shackle', () => {});
+        const c2021GetShackle = fn('emu_2021_get_shackle', () => 0);
+        const c2021PulseShim = fn('emu_2021_pulse_shim', () => {});
+        const c2021SetWheel = fn('emu_2021_set_wheel', () => {});
+        const c2021NfcQuoteCount = fn('emu_2021_nfc_quote_count', () => 0);
+        const c2021NfcQuoteLabel = fn('emu_2021_nfc_quote_label', () => 0);
+        const c2021NfcPresentQuoteTag = fn('emu_2021_nfc_present_quote_tag', () => -1);
+        const c2021NfcPresentTextTag = fn('emu_2021_nfc_present_text_tag', () => -1);
+        const c2021NfcClearTag = fn('emu_2021_nfc_clear_tag', () => {});
+        const c2021NfcProgramVcard = fn('emu_2021_nfc_program_vcard', () => -1);
+        const c2021NfcLastVcardStatus = fn('emu_2021_nfc_last_vcard_status', () => -999);
+        const c2021NfcReadEmulatedTag = fn('emu_2021_nfc_read_emulated_tag', () => 0);
+        const c2021NfcStartBotTrade = fn('emu_2021_nfc_start_bot_trade', () => -1);
+        const c2021NfcBotTradeStatus = fn('emu_2021_nfc_bot_trade_status', () => 0);
+        const c2021MbSetPresent = fn('emu_2021_mb_set_present', () => {});
+        const c2021MbGetPresent = fn('emu_2021_mb_get_present', () => 0);
+        const c2021MbPressButton = fn('emu_2021_mb_press_button', () => {});
+        const c2021MbSendText = fn('emu_2021_mb_send_text', () => {});
+
+        const readCString = (ptr, maxBytes = 512) => {
+          const p = ptr >>> 0;
+          if (!p) return '';
+          if (typeof raw.UTF8ToString === 'function') {
+            return raw.UTF8ToString(p, maxBytes);
+          }
+          const u8 = new Uint8Array(getBuffer());
+          let end = p;
+          const lim = Math.min(u8.length, p + maxBytes);
+          while (end < lim && u8[end] !== 0) end++;
+          return new TextDecoder('utf-8', { fatal: false }).decode(u8.subarray(p, end));
+        };
+
+        const withCString = (str, cb) => {
+          const bytes = new TextEncoder().encode(String(str || ''));
+          const ptr = cMalloc(bytes.length + 1) >>> 0;
+          if (!ptr) return -1;
+          try {
+            const dst = new Uint8Array(getBuffer(), ptr, bytes.length + 1);
+            dst.set(bytes);
+            dst[bytes.length] = 0;
+            return cb(ptr);
+          } finally {
+            cFree(ptr);
+          }
+        };
 
         return {
           isMock: Boolean(isMock || raw.isMock),
           raw,
           emu_init,
-          emu_step,
+          emu_step(dt, mask) {
+            const pending = sc21PausedPendingMask;
+            sc21PausedPendingMask = 0;
+            return emu_step(dt, (mask | 0) | pending);
+          },
           emu_framebuffer,
           emu_leds,
           emu_backlight,
@@ -4276,6 +4955,102 @@
             } finally {
               cFree(ptr);
             }
+          },
+          sc21LoadFlash(u8) {
+            if (!u8 || !u8.length) return;
+            const ptr = cMalloc(u8.length) >>> 0;
+            if (!ptr) throw new Error('Failed to allocate WASM buffer for 2021 flash.bin');
+            try {
+              new Uint8Array(getBuffer(), ptr, u8.length).set(u8);
+              c2021LoadFlash(ptr, u8.length >>> 0);
+            } finally {
+              cFree(ptr);
+            }
+          },
+          sc21GetVcardView() {
+            const ptr = c2021VcardPtr() >>> 0;
+            const len = c2021VcardSize() | 0;
+            if (!ptr || len <= 0) return null;
+            return new Uint8Array(getBuffer(), ptr, len);
+          },
+          sc21VcardDirty() {
+            return (c2021VcardDirty() | 0) !== 0;
+          },
+          sc21EraseVcard() {
+            c2021EraseVcard();
+          },
+          sc21SetShackle(open) {
+            c2021SetShackle(typeof open === 'number' ? (open | 0) : (open ? 1 : 0));
+          },
+          sc21GetShackle() {
+            return (c2021GetShackle() | 0) !== 0;
+          },
+          sc21PulseShim() {
+            c2021PulseShim();
+          },
+          sc21SetWheel(touched, deg) {
+            c2021SetWheel(touched ? 1 : 0, deg | 0);
+          },
+          sc21GetQuoteCount() {
+            return c2021NfcQuoteCount() | 0;
+          },
+          sc21GetQuoteLabel(idx) {
+            const ptr = c2021NfcQuoteLabel(idx | 0) >>> 0;
+            return readCString(ptr, 256);
+          },
+          sc21PresentQuoteTag(idx) {
+            return c2021NfcPresentQuoteTag(idx | 0) | 0;
+          },
+          sc21PresentTextTag(text) {
+            return withCString(text, (ptr) => c2021NfcPresentTextTag(ptr) | 0);
+          },
+          sc21ClearTag() {
+            c2021NfcClearTag();
+          },
+          sc21ProgramVcard(vcardBody) {
+            const directRc = withCString(vcardBody, (ptr) => c2021NfcProgramVcard(ptr) | 0);
+            const lastRc = c2021NfcLastVcardStatus() | 0;
+            return lastRc !== -999 ? lastRc : directRc;
+          },
+          sc21ReadEmulatedTag() {
+            const cap = 512;
+            const ptr = cMalloc(cap) >>> 0;
+            if (!ptr) return '';
+            try {
+              c2021NfcReadEmulatedTag(ptr, cap);
+              return readCString(ptr, cap);
+            } finally {
+              cFree(ptr);
+            }
+          },
+          sc21StartBotTrade(part0, count0, part1, count1) {
+            return c2021NfcStartBotTrade(part0 | 0, count0 | 0, part1 | 0, count1 | 0) | 0;
+          },
+          sc21GetBotTradeStatus() {
+            const cap = 256;
+            const ptr = cMalloc(cap) >>> 0;
+            if (!ptr) return { state: 0, text: '' };
+            try {
+              const state = c2021NfcBotTradeStatus(ptr, cap) | 0;
+              return { state, text: readCString(ptr, cap) };
+            } finally {
+              cFree(ptr);
+            }
+          },
+          sc21MbSetPresent(present) {
+            c2021MbSetPresent(present ? 1 : 0);
+          },
+          sc21MbGetPresent() {
+            return (c2021MbGetPresent() | 0) !== 0;
+          },
+          sc21MbPressButton() {
+            c2021MbPressButton();
+          },
+          sc21MbSendText(text) {
+            withCString(text, (ptr) => {
+              c2021MbSendText(ptr);
+              return 0;
+            });
           },
           getFramebufferView() {
             const ptr = emu_framebuffer() >>> 0;
@@ -4390,7 +5165,7 @@
         if (typeof meta.led_count === 'number') {
           numLeds = Math.max(0, Number(meta.led_count) || 0);
           const gpioStr = meta.led_gpio ? ` (GPIO ${meta.led_gpio})` : '';
-          telLedsLabel.textContent = numLeds > 0 ? `LED CHAIN${gpioStr}` : 'ADDRESSABLE LEDS';
+          telLedsLabel.textContent = meta.led_label || (numLeds > 0 ? `LED CHAIN${gpioStr}` : 'ADDRESSABLE LEDS');
           telLeds.textContent = meta.led_summary || (numLeds > 0 ? `${numLeds} WS2812 (0→${numLeds - 1})` : 'None');
         }
 
@@ -4441,6 +5216,19 @@
           const hasRight = (validButtonsMask & BTN_RIGHT) !== 0;
           const hasUp = (validButtonsMask & BTN_UP) !== 0;
           const hasDown = (validButtonsMask & BTN_DOWN) !== 0;
+          const setDirSub = (btnEl, bit, defName, defHint) => {
+            if (!btnEl) return;
+            const subEl = btnEl.querySelector('.sub');
+            if (!subEl) return;
+            const def = buttonDefs.find((b) => b.bit === bit);
+            const nm = (def && def.name) || defName;
+            const ht = (def && def.hint) || defHint;
+            subEl.textContent = `${nm} • ${ht}`;
+          };
+          setDirSub(padUpBtn, BTN_UP, 'UP', 'W / ↑');
+          setDirSub(padDownBtn, BTN_DOWN, 'DOWN', 'S / ↓');
+          setDirSub(padLeftBtn, BTN_LEFT, 'LEFT', 'A / ←');
+          setDirSub(padRightBtn, BTN_RIGHT, 'RIGHT', 'D / →');
           if (padLeftBtn) {
             padLeftBtn.style.visibility = hasLeft ? '' : 'hidden';
             padLeftBtn.disabled = !hasLeft;
@@ -4483,29 +5271,58 @@
             return sp;
           };
 
-          if (pushDefs.length > 0) {
-            const navRef = (centerDef && centerDef.ref) || 'SW4';
-            const pushNames = pushDefs.map((p) => p.name).join(' / ');
-            dpadTitleLabel.textContent = `Controls (${navRef} + ${pushNames})`;
+          const dpadSubtitleEl = dpadTitleLabel && dpadTitleLabel.nextElementSibling;
+          if (dpadSubtitleEl) {
+            dpadSubtitleEl.textContent = Number(yr) === 2021 ? 'Release Dial to Open' : 'Hold or Tap';
+          }
 
-            keyHintsBar.replaceChildren(makeMoveSpan());
-            for (const p of [...pushDefs].reverse()) {
-              keyHintsBar.appendChild(makeDotSpan());
-              const sp = document.createElement('span');
-              sp.append(`${p.name}: `);
-              const kbd = document.createElement('kbd');
-              kbd.textContent = String(p.hint || p.name);
-              sp.appendChild(kbd);
-              keyHintsBar.appendChild(sp);
-            }
-            if (centerDef) {
-              keyHintsBar.appendChild(makeDotSpan());
-              const sp = document.createElement('span');
-              sp.append(`${centerDef.name}: `);
-              const kbd = document.createElement('kbd');
-              kbd.textContent = String(centerDef.hint || centerDef.name);
-              sp.appendChild(kbd);
-              keyHintsBar.appendChild(sp);
+          if (pushDefs.length > 0) {
+            if (Number(yr) === 2021) {
+              dpadTitleLabel.textContent = 'Dial Wheel, Shackle & Back (SW3)';
+              const makeHintItem = (label, keys) => {
+                const sp = document.createElement('span');
+                sp.append(`${label}: `);
+                keys.forEach((k, idx) => {
+                  if (idx > 0) sp.append(' / ');
+                  const kbd = document.createElement('kbd');
+                  kbd.textContent = k;
+                  sp.appendChild(kbd);
+                });
+                return sp;
+              };
+              keyHintsBar.replaceChildren(
+                makeHintItem('Spin (release opens menu)', ['A/D', '←/→']),
+                makeDotSpan(),
+                makeHintItem('Trade +/−', ['W/S', '↑/↓']),
+                makeDotSpan(),
+                makeHintItem('Shackle (Combo/Build)', ['Z', 'Space']),
+                makeDotSpan(),
+                makeHintItem('Back', ['X', 'Esc'])
+              );
+            } else {
+              const navRef = (centerDef && centerDef.ref) || 'SW4';
+              const pushNames = pushDefs.map((p) => p.name).join(' / ');
+              dpadTitleLabel.textContent = `Controls (${navRef} + ${pushNames})`;
+
+              keyHintsBar.replaceChildren(makeMoveSpan());
+              for (const p of [...pushDefs].reverse()) {
+                keyHintsBar.appendChild(makeDotSpan());
+                const sp = document.createElement('span');
+                sp.append(`${p.name}: `);
+                const kbd = document.createElement('kbd');
+                kbd.textContent = String(p.hint || p.name);
+                sp.appendChild(kbd);
+                keyHintsBar.appendChild(sp);
+              }
+              if (centerDef) {
+                keyHintsBar.appendChild(makeDotSpan());
+                const sp = document.createElement('span');
+                sp.append(`${centerDef.name}: `);
+                const kbd = document.createElement('kbd');
+                kbd.textContent = String(centerDef.hint || centerDef.name);
+                sp.appendChild(kbd);
+                keyHintsBar.appendChild(sp);
+              }
             }
 
             actionPadCol.replaceChildren();
@@ -4607,6 +5424,9 @@
         if (sc18MbCard) {
           sc18MbCard.style.display = 'none';
         }
+        if (sc21PanelCard) {
+          sc21PanelCard.style.display = 'none';
+        }
         syncTouchUiState();
 
         const hasNfc = meta.has_nfc !== false;
@@ -4637,10 +5457,32 @@
           };
 
           creditsPrimaryLine.replaceChildren();
+          const allOtherCredits = Array.isArray(c.other_credits) ? c.other_credits.filter((o) => o && o.name) : [];
+          const coCreators = allOtherCredits.filter((o) => /^badge creator\b/i.test(String(o.role || '')));
+          const extraCredits = coCreators.length > 1
+            ? allOtherCredits.filter((o) => !/^badge creator\b/i.test(String(o.role || '')))
+            : allOtherCredits.filter((o) => !String(o.name).includes(authorHandle));
+
+          const appendCreditNameList = (target, list) => {
+            list.forEach((item, idx) => {
+              if (idx > 0) {
+                if (list.length === 2) target.append(' and ');
+                else if (idx === list.length - 1) target.append(', and ');
+                else target.append(', ');
+              }
+              target.appendChild(createExtLink(item.url || `https://github.com/${item.name}`, item.name, false));
+            });
+          };
+
           const stBadgeBy = document.createElement('strong');
-          stBadgeBy.append('Badge by ', createExtLink(authorUrl, authorHandle, false));
+          stBadgeBy.append('Badge by ');
+          if (coCreators.length > 1) {
+            appendCreditNameList(stBadgeBy, coCreators);
+          } else {
+            stBadgeBy.appendChild(createExtLink(authorUrl, authorHandle, false));
+          }
           creditsPrimaryLine.appendChild(stBadgeBy);
-          if (authorName) {
+          if (authorName && coCreators.length <= 1) {
             creditsPrimaryLine.append(authorName);
           }
           creditsPrimaryLine.append(' • Repo: ', createExtLink(repoUrl, repoShort, false));
@@ -4652,17 +5494,14 @@
             commitLink.appendChild(codeEl);
             creditsPrimaryLine.append(' (', commitLink, ')');
           }
-          if (Array.isArray(c.other_credits)) {
-            const others = c.other_credits.filter((o) => o.name && !String(o.name).includes(authorHandle));
-            for (const o of others) {
-              creditsPrimaryLine.append(' • ');
-              if (o.url) {
-                creditsPrimaryLine.append(createExtLink(o.url, o.name, true), ` (${o.role || ''})`);
-              } else {
-                const stO = document.createElement('strong');
-                stO.textContent = String(o.name);
-                creditsPrimaryLine.append(stO, ` (${o.role || ''})`);
-              }
+          for (const o of extraCredits) {
+            creditsPrimaryLine.append(' • ');
+            if (o.url) {
+              creditsPrimaryLine.append(createExtLink(o.url, o.name, true), ` (${o.role || ''})`);
+            } else {
+              const stO = document.createElement('strong');
+              stO.textContent = String(o.name);
+              creditsPrimaryLine.append(stO, ` (${o.role || ''})`);
             }
           }
 
@@ -4736,8 +5575,18 @@
             aboutAuthorPara.append(
               'This is a ',
               stFan,
-              ' of the badge by ',
-              createExtLink(authorUrl, authorHandle, false),
+              ' of the badge by '
+            );
+            if (coCreators.length > 1) {
+              appendCreditNameList(aboutAuthorPara, coCreators);
+              if (extraCredits.length > 0) {
+                aboutAuthorPara.append(', with firmware contribution from ');
+                appendCreditNameList(aboutAuthorPara, extraCredits);
+              }
+            } else {
+              aboutAuthorPara.appendChild(createExtLink(authorUrl, authorHandle, false));
+            }
+            aboutAuthorPara.append(
               ' (',
               createExtLink(thirdPartyUrl, 'third-party licenses', false),
               ').'
@@ -4751,9 +5600,12 @@
           stBrowser.textContent = 'your browser only';
           const codeLs = document.createElement('code');
           codeLs.textContent = 'localStorage';
+          const storageDesc = Number(yr) === 2021
+            ? `simulated ${eepromBytes}-byte EEPROM & registration vCard flash`
+            : `simulated ${eepromBytes}-byte EEPROM`;
           aboutPrivacyPara.append(
             stPriv,
-            ` All badge progress (simulated ${eepromBytes}-byte EEPROM) is saved in `,
+            ` All badge progress (${storageDesc}) is saved in `,
             stBrowser,
             ' (',
             codeLs,
@@ -4812,6 +5664,8 @@
                 document.createElement('br'),
                 'Available badges: ',
                 makeNavLink(yearHref('2018'), '2018 (LED matrix badge)'),
+                ', ',
+                makeNavLink(yearHref('2021'), '2021 (Combination lock badge)'),
                 ', ',
                 makeNavLink(yearHref('2023'), '2023 ("Incidents")'),
                 ', ',
@@ -4880,6 +5734,62 @@
           return;
         }
 
+        if (currentYear === '2021' && !core.isMock && !isMockRequested && typeof core.sc21LoadFlash === 'function') {
+          const modeObjForFlash = meta && meta.modes && meta.modes[currentMode];
+          const flashRel = (modeObjForFlash && modeObjForFlash.flash_bin) || (meta.files && meta.files.flash_bin) || 'flash.bin';
+          const flashUrl = `${effectiveBaseDir}/${flashRel}`;
+          const expectedFlashBytes = Number(
+            (modeObjForFlash && modeObjForFlash.flash_bin_bytes) ?? (meta && meta.flash_bin_bytes)
+          );
+          try {
+            const flashResp = await fetch(flashUrl);
+            if (!flashResp.ok) {
+              throw new Error(`HTTP ${flashResp.status} while downloading ${flashUrl}`);
+            }
+            const flashBuf = await flashResp.arrayBuffer();
+            if (!Number.isFinite(expectedFlashBytes) || expectedFlashBytes <= 0) {
+              throw new Error(`Missing expected flash_bin_bytes in badge.json for ${flashUrl}`);
+            }
+            if (flashBuf.byteLength !== expectedFlashBytes) {
+              throw new Error(
+                `Size mismatch for ${flashUrl}: expected ${expectedFlashBytes.toLocaleString()} bytes, received ${flashBuf.byteLength.toLocaleString()} bytes`
+              );
+            }
+            core.sc21LoadFlash(new Uint8Array(flashBuf));
+          } catch (flashErr) {
+            console.error('[badge-emu] External flash image failed to load:', flashErr);
+            core = null;
+            const errDetail = (flashErr && flashErr.message) ? String(flashErr.message) : 'Download failed';
+            const flashFailMsg = `Could not load the 2021 badge flash image (${flashUrl}).`;
+            coreModePill.textContent = 'IMAGE LOAD ERROR';
+            eepromStatus.textContent = 'Untouched';
+            telEeprom.textContent = flashFailMsg;
+            comingSoonBanner.classList.add('visible', 'error');
+            const stMsg = document.createElement('strong');
+            stMsg.textContent = flashFailMsg;
+            const detailSpan = document.createElement('span');
+            detailSpan.textContent = `${errDetail}. Your saved badge data was not modified.`;
+            const retryWrap = document.createElement('div');
+            retryWrap.style.marginTop = '10px';
+            const retryBtn = document.createElement('button');
+            retryBtn.type = 'button';
+            retryBtn.id = 'btn-flash-retry';
+            retryBtn.className = 'ctrl-btn gold';
+            retryBtn.style.flex = '0 0 auto';
+            retryBtn.style.display = 'inline-flex';
+            retryBtn.textContent = '↻ Reload to Retry';
+            retryBtn.addEventListener('click', () => window.location.reload());
+            retryWrap.appendChild(retryBtn);
+            comingSoonBanner.replaceChildren(
+              stMsg,
+              document.createElement('br'),
+              detailSpan,
+              retryWrap
+            );
+            return;
+          }
+        }
+
         // Restore per-browser speed setting and stock server state only after core loads
         const savedSpeed = meta.has_speed_control === false ? 1 : loadSavedSpeed();
         applySpeedUi(savedSpeed);
@@ -4928,6 +5838,15 @@
           applySc18MinibadgesToCore();
         }
 
+        const showSc21Controls = Boolean(
+          ((activeModeObj && activeModeObj.has_2021_companion) || meta.has_2021_companion) &&
+          !core.isMock &&
+          !isMockRequested
+        );
+        if (sc21PanelCard) {
+          sc21PanelCard.style.display = showSc21Controls ? '' : 'none';
+        }
+
         // Sync framebuffer dimensions, LED count, and EEPROM size from the Generalized Core ABI
         const coreW = core.emu_fb_width() | 0;
         const coreH = core.emu_fb_height() | 0;
@@ -4963,6 +5882,18 @@
           telEeprom.textContent = (hadSaved || hadSrv23)
             ? 'saintcon_2023_stock_* (Loaded)'
             : 'saintcon_2023_stock_* (Fresh)';
+        } else if (currentYear === '2021' && currentMode === 'stock' && !core.isMock && !isMockRequested) {
+          const hadVcard21 = loadSc21VcardFromStorage();
+          let hadMb21 = false;
+          try {
+            hadMb21 = localStorage.getItem(getStorageKey('minibadge')) === '1';
+          } catch (_) {}
+          if (typeof core.sc21MbSetPresent === 'function') {
+            core.sc21MbSetPresent(hadMb21);
+          }
+          telEeprom.textContent = (hadSaved || hadVcard21 || hadMb21)
+            ? 'saintcon_2021_stock_* (Loaded)'
+            : 'saintcon_2021_stock_* (Fresh)';
         } else if (currentYear === '2018' && currentMode === 'stock' && !core.isMock && !isMockRequested) {
           let hadMb18 = false;
           let hadScore18 = false;
@@ -4984,10 +5915,17 @@
         if (showSc18Controls) {
           updateSc18Panels();
         }
+        if (showSc21Controls) {
+          initSc21CompanionUi();
+        }
         core.emu_set_speed(currentSpeed);
         if (core.emu_eeprom_dirty()) {
           eepromPendingSave = true;
           flushEepromToStorage(true);
+        }
+        if (typeof core.sc21VcardDirty === 'function' && core.sc21VcardDirty()) {
+          sc21VcardPendingSave = true;
+          flushSc21VcardToStorage(true);
         }
         renderOutputs();
 
@@ -4996,6 +5934,7 @@
         let fpsFrames = 0;
         let fpsWindowStart = lastFrameTime;
         let lastSc18PollMs = lastFrameTime;
+        let lastSc21PollMs = lastFrameTime;
 
         document.addEventListener('visibilitychange', () => {
           if (document.hidden) {
@@ -5011,6 +5950,10 @@
             updateInputVisuals();
             if (!loopStopped) {
               flushEepromToStorage(true);
+              if (sc21VcardPendingSave || (typeof core.sc21VcardDirty === 'function' && core.sc21VcardDirty())) {
+                sc21VcardPendingSave = true;
+                flushSc21VcardToStorage(true);
+              }
             }
           } else {
             const now = performance.now();
@@ -5040,16 +5983,26 @@
           if (dt > maxStepDtSeen) maxStepDtSeen = dt;
 
           if (!paused) {
-            core.emu_step(dt, getButtonsMask());
+            const stepMask = getButtonsMask() | sc21PausedPendingMask;
+            sc21PausedPendingMask = 0;
+            core.emu_step(dt, stepMask);
             if (core.emu_eeprom_dirty()) {
               eepromPendingSave = true;
               eepromStatus.textContent = 'Dirty';
+            }
+            if (typeof core.sc21VcardDirty === 'function' && core.sc21VcardDirty()) {
+              sc21VcardPendingSave = true;
+              flushSc21VcardToStorage(true);
             }
             flushEepromToStorage(false);
             renderOutputs();
             if (showSc18Controls && now - lastSc18PollMs >= 250) {
               lastSc18PollMs = now;
               updateSc18Panels();
+            }
+            if (showSc21Controls && now - lastSc21PollMs >= 100) {
+              lastSc21PollMs = now;
+              updateSc21BotTradePoll();
             }
           }
 
@@ -5139,6 +6092,56 @@
           },
           sc18GetMinibadgeInfo(slot) {
             return core && typeof core.sc18MbGetInfo === 'function' ? core.sc18MbGetInfo(slot | 0) : null;
+          },
+          sc21SetWheel(touched, deg) {
+            if (core && typeof core.sc21SetWheel === 'function') {
+              core.sc21SetWheel(touched, deg);
+            }
+          },
+          sc21SetShackle(open) {
+            if (core && typeof core.sc21SetShackle === 'function') {
+              core.sc21SetShackle(open);
+            }
+          },
+          sc21PulseShim() {
+            if (core && typeof core.sc21PulseShim === 'function') {
+              core.sc21PulseShim();
+            }
+          },
+          sc21ProgramVcard(vcardBody) {
+            if (!core || typeof core.sc21ProgramVcard !== 'function') return -1;
+            const rc = core.sc21ProgramVcard(vcardBody);
+            if (typeof core.sc21VcardDirty === 'function' && core.sc21VcardDirty()) {
+              sc21VcardPendingSave = true;
+              flushSc21VcardToStorage(true);
+            }
+            if (core.emu_eeprom_dirty()) {
+              eepromPendingSave = true;
+              flushEepromToStorage(true);
+            }
+            renderOutputs();
+            return rc;
+          },
+          sc21ReadEmulatedTag() {
+            return core && typeof core.sc21ReadEmulatedTag === 'function' ? core.sc21ReadEmulatedTag() : '';
+          },
+          sc21PresentQuoteTag(idx) {
+            return core && typeof core.sc21PresentQuoteTag === 'function' ? core.sc21PresentQuoteTag(idx) : -1;
+          },
+          sc21StartBotTrade(p0, q0, p1, q1) {
+            return core && typeof core.sc21StartBotTrade === 'function' ? core.sc21StartBotTrade(p0, q0, p1, q1) : -1;
+          },
+          sc21GetBotTradeStatus() {
+            if (!core || typeof core.sc21GetBotTradeStatus !== 'function') return null;
+            const st = core.sc21GetBotTradeStatus();
+            if (st && st.text && (st.state >= 2 || st.text !== sc21LastBotText)) {
+              sc21LastBotText = st.text;
+              setSc21Status(st.text);
+              if (st.state === 3) {
+                sc21LastBotState = 0;
+              }
+            }
+            return st;
           },
         };
       }

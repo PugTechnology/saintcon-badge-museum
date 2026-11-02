@@ -1,0 +1,187 @@
+{
+  "year": 2021,
+  "name": "Combination lock badge",
+  "name_is_description": true,
+  "title": "SAINTCON 2021 combination lock badge",
+  "mcu": "ATSAME53J18A",
+  "screen_size": {
+    "width": 240,
+    "height": 240,
+    "shape": "round",
+    "controller": "ILI9331"
+  },
+  "has_touch": true,
+  "has_2021_companion": true,
+  "led_count": 1,
+  "led_label": "RGB LED (PWM TCC0)",
+  "led_summary": "1 RGB LED (D1)",
+  "eeprom_bytes": 512,
+  "flash_bin_bytes": 6422784,
+  "has_nfc": false,
+  "has_speed_control": false,
+  "buttons": [
+    {
+      "id": "up",
+      "name": "TOP / +",
+      "bit": 1,
+      "keys": [
+        "ArrowUp",
+        "KeyW",
+        "w",
+        "W"
+      ],
+      "hint": "W / ↑",
+      "ref": "Wheel",
+      "kind": "dpad_up"
+    },
+    {
+      "id": "down",
+      "name": "BTM / -",
+      "bit": 2,
+      "keys": [
+        "ArrowDown",
+        "KeyS",
+        "s",
+        "S"
+      ],
+      "hint": "S / ↓",
+      "ref": "Wheel",
+      "kind": "dpad_down"
+    },
+    {
+      "id": "left",
+      "name": "CCW",
+      "bit": 4,
+      "keys": [
+        "ArrowLeft",
+        "KeyA",
+        "a",
+        "A"
+      ],
+      "hint": "A / ←",
+      "ref": "Wheel",
+      "kind": "dpad_left"
+    },
+    {
+      "id": "right",
+      "name": "CW",
+      "bit": 8,
+      "keys": [
+        "ArrowRight",
+        "KeyD",
+        "d",
+        "D"
+      ],
+      "hint": "D / →",
+      "ref": "Wheel",
+      "kind": "dpad_right"
+    },
+    {
+      "id": "center",
+      "name": "HOLD",
+      "bit": 16,
+      "keys": [
+        "KeyC",
+        "c",
+        "C",
+        "KeyE",
+        "e",
+        "E"
+      ],
+      "hint": "C / E",
+      "ref": "Wheel",
+      "kind": "dpad_center"
+    },
+    {
+      "id": "b",
+      "name": "BACK",
+      "bit": 32,
+      "keys": [
+        "KeyX",
+        "x",
+        "X",
+        "Escape",
+        "Backspace"
+      ],
+      "hint": "X / Esc",
+      "ref": "SW3",
+      "kind": "push",
+      "x_px": 975.44,
+      "y_px": 917.38,
+      "radius_px": 50.58
+    },
+    {
+      "id": "a",
+      "name": "SHACKLE",
+      "bit": 64,
+      "keys": [
+        "KeyZ",
+        "z",
+        "Z",
+        "Enter",
+        "Space",
+        " "
+      ],
+      "hint": "Z / Space",
+      "ref": "Shackle",
+      "kind": "push"
+    }
+  ],
+  "files": {
+    "layout": "layout.json",
+    "board": "board.png",
+    "core_js": "core.js",
+    "core_wasm": "core.wasm",
+    "flash_bin": "flash.bin"
+  },
+  "default_mode": "stock",
+  "modes_available": [
+    "stock"
+  ],
+  "modes_coming_soon": [],
+  "modes": {
+    "stock": {
+      "id": "stock",
+      "name": "Original Firmware",
+      "label": "Original Firmware",
+      "status": "available",
+      "core_js": "core.js",
+      "core_wasm": "core.wasm",
+      "flash_bin": "flash.bin",
+      "has_speed_control": false,
+      "has_nut_tap": false,
+      "has_2021_companion": true,
+      "description": "Original SAINTCON 2021 combination lock badge firmware"
+    }
+  },
+  "credits": {
+    "badge_by": "compukidmike",
+    "author_url": "https://github.com/compukidmike",
+    "repo_url": "https://github.com/compukidmike/Saintcon2021",
+    "source_url": "https://github.com/compukidmike/Saintcon2021/tree/092bf1c68a90cd5d13794006667fd52c3cbb3efd/Saintcon2021/Saintcon2021",
+    "commit": "092bf1c",
+    "third_party_licenses_url": "badges/2021/THIRD_PARTY_LICENSES.txt",
+    "other_credits": [
+      {
+        "name": "compukidmike",
+        "role": "Badge creator",
+        "url": "https://github.com/compukidmike"
+      },
+      {
+        "name": "Professor_Plum",
+        "role": "Badge creator",
+        "url": "https://github.com/Professor-plum"
+      },
+      {
+        "name": "Sodium_Hydrogen",
+        "role": "Badge creator",
+        "url": "https://github.com/Sodium-Hydrogen"
+      },
+      {
+        "name": "kfeuz",
+        "role": "firmware contributor, commit bfef3ea",
+        "url": "https://github.com/compukidmike/Saintcon2021/commit/bfef3ea"
+      }
+    ]
+  }
+}
