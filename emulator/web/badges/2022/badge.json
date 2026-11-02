@@ -1,0 +1,102 @@
+{
+  "year": 2022,
+  "name": "Clue notepad badge",
+  "name_is_description": true,
+  "title": "SAINTCON 2022 Clue notepad badge",
+  "mcu": "RP2040 Dual Cortex-M0+ (8 MHz emulated CPU / 1 MHz true hardware timer)",
+  "core_badge_label": "RP2040 CORE",
+  "has_screen": false,
+  "screen_size": null,
+  "has_touch": false,
+  "has_2022_companion": true,
+  "led_count": 52,
+  "led_label": "52 Charlieplexed RGB LEDs (GP0..GP14, 156 channels)",
+  "led_summary": "52 RGB LEDs (21 Suspects, 21 Attacks/Exploits, 10 Rooms)",
+  "eeprom_bytes": 8192,
+  "has_nfc": false,
+  "has_speed_control": false,
+  "buttons": [
+    {
+      "id": "up",
+      "name": "UP",
+      "bit": 1,
+      "gpio": 15,
+      "keys": [
+        "ArrowUp",
+        "KeyW",
+        "w",
+        "W"
+      ],
+      "hint": "\u2191 / W",
+      "ref": "GP15",
+      "kind": "dpad_up"
+    },
+    {
+      "id": "down",
+      "name": "DOWN",
+      "bit": 2,
+      "gpio": 16,
+      "keys": [
+        "ArrowDown",
+        "KeyS",
+        "s",
+        "S"
+      ],
+      "hint": "\u2193 / S",
+      "ref": "GP16",
+      "kind": "dpad_down"
+    },
+    {
+      "id": "select",
+      "name": "SELECT",
+      "bit": 16,
+      "gpio": 17,
+      "keys": [
+        "Enter",
+        "Space",
+        " ",
+        "KeyE",
+        "e",
+        "E"
+      ],
+      "hint": "Enter / Space",
+      "ref": "GP17",
+      "kind": "dpad_center"
+    }
+  ],
+  "files": {
+    "layout": "layout.json",
+    "board": "board.png",
+    "core_js": "core.js",
+    "uf2": "Saintcon2022BadgeFirmwareFix.uf2"
+  },
+  "default_mode": "stock",
+  "modes_available": [
+    "stock"
+  ],
+  "modes_coming_soon": [],
+  "modes": {
+    "stock": {
+      "id": "stock",
+      "name": "Original Firmware",
+      "label": "Original Firmware",
+      "status": "available",
+      "core_js": "core.js",
+      "uf2": "Saintcon2022BadgeFirmwareFix.uf2",
+      "has_speed_control": false,
+      "has_2022_companion": true,
+      "description": "Original SAINTCON 2022 RP2040 firmware (Saintcon2022BadgeFirmwareFix.uf2)"
+    }
+  },
+  "credits": {
+    "badge_by": "compukidmike",
+    "repo_only": true,
+    "author_url": "https://github.com/compukidmike",
+    "repo_url": "https://github.com/compukidmike/saintcon2022",
+    "source_url": "https://github.com/compukidmike/saintcon2022/blob/383964e2e0e576dd3c153fc479d37fb429ce2969/Saintcon2022BadgeFirmwareFix.uf2",
+    "commit": "383964e",
+    "license": "Licence not stated",
+    "third_party_licenses_url": "badges/2022/THIRD_PARTY_LICENSES.txt",
+    "other_credits": []
+  }
+}

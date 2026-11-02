@@ -6,7 +6,7 @@
   <title>SAINTCON Badge Emulator</title>
   <script>
     (function () {
-      var LIVE_YEARS = ['2017', '2018', '2019', '2020', '2021', '2023', '2024', '2025', '2026'];
+      var LIVE_YEARS = ['2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
       var PROD = 'sc.pug.technology';
       var host = (window.location.hostname || '').toLowerCase();
       var isProdDomain = host === PROD || host.endsWith('.' + PROD);
@@ -1233,6 +1233,13 @@
         max-width: 82vw;
       }
 
+      .board-stage.led-board:not(.landscape) {
+        width: min(88vw, 350px);
+        height: auto;
+        min-height: 0;
+        max-width: 90vw;
+      }
+
       .badge-credits-strip {
         padding: 5px 10px;
       }
@@ -1513,6 +1520,105 @@
       z-index: 3;
       overflow: visible;
     }
+
+    /* 2022 Clue Notepad Badge — Stand-in Kiosk, Serial Log & Bootloader Banner */
+    .sc22-bootloader-banner {
+      display: none;
+      background: rgba(248, 81, 73, 0.16);
+      border: 1px solid rgba(248, 81, 73, 0.65);
+      border-radius: 8px;
+      padding: 8px 10px;
+      margin-bottom: 8px;
+      font-size: 0.74rem;
+      line-height: 1.4;
+      color: #ffdcd7;
+      user-select: text;
+      -webkit-user-select: text;
+    }
+    .sc22-bootloader-banner.visible {
+      display: block;
+    }
+    .board-push-btn.sc22-overlay-btn {
+      background: rgba(15, 20, 28, 0.08);
+      border: 1.5px solid rgba(240, 198, 84, 0.45);
+      box-shadow: none;
+    }
+    .board-push-btn.sc22-overlay-btn:hover {
+      background: rgba(240, 198, 84, 0.14);
+      border-color: rgba(240, 198, 84, 0.85);
+    }
+    .board-push-btn.sc22-overlay-btn.pressed {
+      background: rgba(240, 198, 84, 0.28);
+      border-color: #f0c654;
+    }
+    .sc22-serial-log {
+      width: 100%;
+      min-height: 74px;
+      max-height: 132px;
+      overflow-y: auto;
+      background: #0d1117;
+      border: 1px solid #2a313a;
+      border-radius: 7px;
+      padding: 6px 8px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.69rem;
+      line-height: 1.38;
+      color: #93c5fd;
+      white-space: pre-wrap;
+      word-break: break-all;
+      user-select: text;
+      -webkit-user-select: text;
+    }
+    .sc22-board-notice {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      width: 100%;
+      max-width: 520px;
+      margin-top: 6px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid rgba(212, 167, 44, 0.55);
+      background: rgba(212, 167, 44, 0.12);
+      color: var(--text-main);
+      font-size: 0.75rem;
+      line-height: 1.35;
+    }
+    .sc22-board-notice.visible {
+      display: flex;
+    }
+    .sc22-board-notice-text {
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+    .sc22-blink-note {
+      margin-top: 6px;
+      font-size: 0.78rem;
+      color: #c9d1d9;
+      line-height: 1.35;
+    }
+    .sc22-blink-note[hidden] { display: none; }
+    button.ctrl-btn.sc22-board-reset-btn {
+      flex: 0 0 auto;
+      white-space: nowrap;
+      padding: 6px 10px;
+      font-size: 0.74rem;
+    }
+    .sc22-kiosk-disabled-note {
+      display: none;
+      margin: 0 0 6px 0;
+      padding: 5px 8px;
+      border-radius: 6px;
+      border: 1px solid rgba(212, 167, 44, 0.45);
+      background: rgba(212, 167, 44, 0.1);
+      color: #f0c654;
+      font-size: 0.71rem;
+      line-height: 1.3;
+    }
+    .sc22-kiosk-disabled-note.visible {
+      display: block;
+    }
   </style>
 </head>
 <body>
@@ -1551,7 +1657,7 @@
       <span>FPS: <strong id="fps-readout">0</strong></span>
       <span id="speed-strip-item">Speed: <strong id="speed-readout">1x</strong></span>
       <span id="backlight-strip-item"><span id="backlight-status-label">Backlight</span>: <strong id="backlight-readout">255</strong></span>
-      <span>EEPROM: <strong id="eeprom-status">Clean</strong></span>
+      <span><span id="eeprom-status-label">EEPROM</span>: <strong id="eeprom-status">Clean</strong></span>
     </div>
   </header>
 
@@ -1576,6 +1682,11 @@
           </div>
           <div id="board-buttons-layer" class="board-buttons-layer"></div>
         </div>
+      </div>
+
+      <div id="sc22-board-notice" class="sc22-board-notice" role="status" aria-live="polite">
+        <span id="sc22-board-notice-text" class="sc22-board-notice-text"></span>
+        <button type="button" class="ctrl-btn gold sc22-board-reset-btn" id="btn-sc22-board-reset" title="Reset the badge and start the Clue notepad">↻ Reset Badge</button>
       </div>
 
       <!-- Credits Strip Directly Under the Badge (Visible on Page) -->
@@ -2039,6 +2150,111 @@ EMAIL:visitor@example.invalid</textarea>
         </div>
       </div>
 
+      <!-- 2022 Clue Notepad Badge — Stand-in Museum Kiosk, Boot-Hold Reset & Firmware Notes -->
+      <div class="panel-card" id="sc22-panel-card" style="display: none;" aria-label="2022 Stand-in Kiosk and Hardware Companion">
+        <h2>Stand-in Kiosk (Museum Companion) <span id="sc22-mode-pill" style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 0.68rem; color: var(--accent-gold); text-transform: none;">Clue Notepad</span></h2>
+
+        <div id="sc22-bootloader-banner" class="sc22-bootloader-banner" role="status">
+          <strong>USB Bootloader Active:</strong> The badge is waiting for a firmware file in the RP2040 ROM USB bootloader and all 52 LEDs are off. Click <strong>Reset Badge</strong> to leave the bootloader and start the notepad.
+        </div>
+
+        <p class="towers-hint" style="margin-top: 0;">
+          <strong>Stand-in Kiosk:</strong> No kiosk software or clue data is published upstream. For each save, this stand-in picks a hidden <strong>Suspect</strong>, <strong>Attack</strong>, and <strong>Room</strong> at random; the <strong>10 clues</strong> and the <strong>Accuse</strong> check belong to this stand-in, while the badge firmware only stores and displays the elimination and win masks it is sent over serial.
+        </p>
+        <p class="towers-hint" style="margin-top: -2px;">
+          <strong>First Boot &amp; Wipe Save:</strong> On a fresh save or after <strong>Wipe Save</strong>, the firmware initializes its save flash and runs its own Red → Green → Blue LED test, which never ends by itself; click <strong>Reset Badge</strong> to start the notepad.
+        </p>
+
+        <div class="sc21-section">
+          <div class="sc21-subhead">
+            <span>Clue Kiosk &amp; Accusation</span>
+            <span id="sc22-clue-progress" style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 0.68rem; color: var(--text-muted); text-transform: none;">0 / 10 clues • 0/21 S, 0/21 A, 0/10 R cleared</span>
+          </div>
+          <div id="sc22-kiosk-disabled-note" class="sc22-kiosk-disabled-note" role="status"></div>
+          <div class="btn-row" style="margin-bottom: 6px;">
+            <button type="button" class="ctrl-btn gold" id="btn-sc22-visit-kiosk" title="Query the badge over serial and send the cumulative elimination masks for all clues collected so far">🔍 Visit a Kiosk (Next Clue)</button>
+            <button type="button" class="ctrl-btn" id="btn-sc22-hi" title="Request the badge's current serial number and cursor state">📋 Read Badge State</button>
+            <button type="button" class="ctrl-btn" id="btn-sc22-ping" title="Send a serial ping to the badge">📡 Ping Badge</button>
+          </div>
+          <div class="btn-row" style="margin-bottom: 6px; flex-wrap: wrap;">
+            <select id="sc22-accuse-suspect" class="nut-select" style="flex: 1 1 130px;" aria-label="Suspect choice for accusation"></select>
+            <select id="sc22-accuse-attack" class="nut-select" style="flex: 1 1 130px;" aria-label="Attack choice for accusation"></select>
+          </div>
+          <div class="btn-row" style="margin-bottom: 6px;">
+            <select id="sc22-accuse-room" class="nut-select" aria-label="Room choice for accusation"></select>
+            <button type="button" class="ctrl-btn gold" id="btn-sc22-accuse" style="flex: 0 0 auto;" title="Check your chosen Suspect, Attack, and Room against the hidden solution in one step">🎯 Accuse</button>
+          </div>
+          <div class="nut-status-box" id="sc22-status-box">
+            Click <strong>Visit a Kiosk</strong> to light eliminated Suspects, Attacks, and Rooms in Green. When you deduce the remaining unlit Suspect, Attack, and Room, choose them above and click <strong>Accuse</strong>. After each Visit the new clue blinks on the badge for about 15 seconds; leave the badge buttons alone until it ends.
+          </div>
+          <div class="sc22-blink-note" id="sc22-blink-note" role="note" hidden></div>
+        </div>
+
+        <div class="sc21-section">
+          <div class="sc21-subhead">
+            <span>Skip Game (Ends Game at Once &amp; Shows Answer)</span>
+          </div>
+          <div class="btn-row">
+            <button type="button" class="ctrl-btn" id="btn-sc22-win-now" title="Immediately send the winning masks to the badge, reveal the hidden solution, and unlock the post-win LED modes">🏆 End Game &amp; Show Answer</button>
+          </div>
+        </div>
+
+        <div class="sc21-section">
+          <div class="sc21-subhead">
+            <span>Firmware Serial Log</span>
+            <span id="sc22-cursor-readout" style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 0.66rem; color: var(--text-muted); text-transform: none;">Cursor: Anonymous</span>
+          </div>
+          <div id="sc22-serial-log" class="sc22-serial-log" aria-label="Real Firmware Serial Output Log">(Serial idle — click Visit a Kiosk, Read Badge State, or Ping Badge)</div>
+          <p class="towers-hint" style="margin: 4px 0 0 0;">
+            The firmware's reply has no end marker, so a few bytes from memory can follow it (shown escaped).
+          </p>
+        </div>
+
+        <div class="sc21-section">
+          <div class="sc21-subhead">
+            <span>Ambient Light Sensor (I2C 0x29)</span>
+            <label class="sc21-chk-label" title="Simulate a dark room at I2C address 0x29">
+              <input type="checkbox" id="chk-sc22-dark-room" />
+              <span>Dark room</span>
+            </label>
+          </div>
+          <p class="towers-hint" style="margin: 0;">
+            When the sensor at I2C address <code>0x29</code> reports low light (<code>1..100</code>), the firmware turns off all 52 LEDs until the room brightens.
+          </p>
+        </div>
+
+        <div class="sc21-section">
+          <div class="sc21-subhead">
+            <span>Hold Button While Resetting</span>
+          </div>
+          <div class="btn-row">
+            <select id="sc22-boot-hold-select" class="nut-select" aria-label="Hold button while resetting badge">
+              <option value="none">Hold while resetting: None (Normal Boot)</option>
+              <option value="DOWN">Hold DOWN while resetting — RGB Self-Test (Red → Green → Blue)</option>
+              <option value="SELECT">Hold SELECT while resetting — USB Bootloader (waits for firmware file)</option>
+            </select>
+          </div>
+          <p class="towers-hint" style="margin: 2px 0 0 0;">
+            At power-on, holding <strong>SELECT</strong> enters the RP2040 ROM USB bootloader, and holding <strong>DOWN</strong> runs the Red → Green → Blue LED self-test loop. Holding <strong>UP</strong> at boot has no special behavior.
+          </p>
+        </div>
+
+        <div class="sc21-section">
+          <div class="sc21-subhead">
+            <span>How Winning Works &amp; Notes</span>
+          </div>
+          <p class="towers-hint" style="margin: 0;">
+            <strong>How Winning Works:</strong> Each clue replaces the badge's saved Green elimination masks, so the stand-in sends the combined masks of all clues collected so far. The firmware's flash save stores the clue status word and the Suspect, Attack, and Room masks in one flash sector, and your Suspect and Attack cursors in a second sector. Sending the winning message blinks the winning Suspect, Attack, and Room in Red for about 15 seconds (Mode 1) and unlocks four LED animations (Modes 2–5: Fast Rainbow, Slow Rainbow, Random Sparkle, and Random Fill, cycled with <strong>UP</strong> and <strong>DOWN</strong>; <strong>SELECT</strong> does nothing in those modes as the firmware ignores it).
+          </p>
+          <p class="towers-hint" style="margin: 4px 0 0 0;">
+            <strong>1. Board Drawing:</strong> Drawn from a photo of a real 2022 badge (no CAD files are published), so positions are approximate; row 14 of Suspects reads <code>Pali(?)</code> in the photo and is marked with <code>(?)</code>.<br />
+            <strong>2. Stand-in Kiosk:</strong> No kiosk software or clue data is published upstream.<br />
+            <strong>3. Clock &amp; Timer:</strong> The emulated RP2040 runs at an 8 MHz CPU clock with a 1:1 hardware timer; if your computer is slower, badge time slows down rather than dropping work.<br />
+            <strong>4. Column Order:</strong> Mapping the first 21-LED group to left column Suspects and the second 21-LED group to right column Attacks/Exploits follows the cursor and message order and has not been checked on hardware.
+          </p>
+        </div>
+      </div>
+
       <!-- Emulator Controls Panel -->
       <div class="panel-card">
         <h2>Emulator Controls</h2>
@@ -2180,7 +2396,7 @@ EMAIL:visitor@example.invalid</textarea>
       const DESKTOP_BREAKPOINT_PX = 820;
       const MAX_STEP_DT_MS = 100;
       const MAX_HIDDEN_CATCHUP_MS = 300000; // Bound catch-up at 5 min of real time in 100 ms steps
-      const LIVE_YEARS = ['2017', '2018', '2019', '2020', '2021', '2023', '2024', '2025', '2026'];
+      const LIVE_YEARS = ['2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
       const COMING_SOON_YEARS = []; // Only years explicitly listed as coming soon
       const WASM_MISSING_MSG = 'This emulator needs WebAssembly; it may be turned off, e.g. iPhone Lockdown Mode';
 
@@ -2467,6 +2683,28 @@ EMAIL:visitor@example.invalid</textarea>
       const sc17CompanionBody = document.getElementById('sc17-companion-body');
       const sc17AdcReadout = document.getElementById('sc17-adc-readout');
       const sc17RgbReadout = document.getElementById('sc17-rgb-readout');
+      const sc22PanelCard = document.getElementById('sc22-panel-card');
+      const sc22ModePill = document.getElementById('sc22-mode-pill');
+      const sc22BootloaderBanner = document.getElementById('sc22-bootloader-banner');
+      const sc22BoardNotice = document.getElementById('sc22-board-notice');
+      const sc22BoardNoticeText = document.getElementById('sc22-board-notice-text');
+      const btnSc22BoardReset = document.getElementById('btn-sc22-board-reset');
+      const sc22KioskDisabledNote = document.getElementById('sc22-kiosk-disabled-note');
+      const sc22ClueProgress = document.getElementById('sc22-clue-progress');
+      const btnSc22VisitKiosk = document.getElementById('btn-sc22-visit-kiosk');
+      const btnSc22WinNow = document.getElementById('btn-sc22-win-now');
+      const sc22AccuseSuspect = document.getElementById('sc22-accuse-suspect');
+      const sc22AccuseAttack = document.getElementById('sc22-accuse-attack');
+      const sc22AccuseRoom = document.getElementById('sc22-accuse-room');
+      const btnSc22Accuse = document.getElementById('btn-sc22-accuse');
+      const btnSc22Hi = document.getElementById('btn-sc22-hi');
+      const btnSc22Ping = document.getElementById('btn-sc22-ping');
+      const sc22StatusBox = document.getElementById('sc22-status-box');
+      const sc22BlinkNote = document.getElementById('sc22-blink-note');
+      const sc22CursorReadout = document.getElementById('sc22-cursor-readout');
+      const sc22SerialLog = document.getElementById('sc22-serial-log');
+      const chkSc22DarkRoom = document.getElementById('chk-sc22-dark-room');
+      const sc22BootHoldSelect = document.getElementById('sc22-boot-hold-select');
       const nfcCaptureLabel = document.getElementById('nfc-capture-label');
       const btnPhoneTap = document.getElementById('btn-phone-tap');
 
@@ -2474,6 +2712,7 @@ EMAIL:visitor@example.invalid</textarea>
       const fpsReadout = document.getElementById('fps-readout');
       const speedReadout = document.getElementById('speed-readout');
       const backlightReadout = document.getElementById('backlight-readout');
+      const eepromStatusLabel = document.getElementById('eeprom-status-label');
       const eepromStatus = document.getElementById('eeprom-status');
 
       const telButtonsLabel = document.getElementById('tel-buttons-label');
@@ -2691,6 +2930,15 @@ EMAIL:visitor@example.invalid</textarea>
       let sc20LastEnqueueMs = -1000;
       let sc20LastDirectInputMs = -1000;
 
+      const SC22_PAUSED_QUEUE_LIMIT = 16;
+      const sc22PausedQueue = [];
+      let sc22PausedActiveItem = null;
+
+      function clearSc22PausedQueue() {
+        sc22PausedQueue.length = 0;
+        sc22PausedActiveItem = null;
+      }
+
       function clearSc20PressQueue() {
         sc20PressQueue.length = 0;
         sc20ActivePressItem = null;
@@ -2725,6 +2973,20 @@ EMAIL:visitor@example.invalid</textarea>
           }
           if (rising & 1) {
             enqueueSc20Press(false);
+          }
+        }
+        if (currentYear === '2022' && core) {
+          if (paused && !core.isMock) {
+            const rising22 = rising & (1 | 2 | 16);
+            if (rising22 && sc22PausedQueue.length < SC22_PAUSED_QUEUE_LIMIT) {
+              sc22PausedQueue.push({ btnMask: rising22 });
+              if (typeof setSc22Status === 'function') {
+                const names = sc22PausedQueue.map((it) => maskToNames(it.btnMask)).join(', ');
+                setSc22Status(`Badge is paused — queued ${sc22PausedQueue.length} button press${sc22PausedQueue.length === 1 ? '' : 'es'} (${names}) to replay in order on Resume.`);
+              }
+            }
+          } else if (typeof core.emu_step === 'function' && !sc22PausedActiveItem && sc22PausedQueue.length === 0) {
+            core.emu_step(0, mask);
           }
         }
         const azMask = currentYear === '2019' ? sc19EffectiveAzMask() : 0;
@@ -2908,7 +3170,9 @@ EMAIL:visitor@example.invalid</textarea>
           el.className = 'led-dot off';
           el.style.left = `${(led.x_px / W) * 100}%`;
           el.style.top = `${(led.y_px / H) * 100}%`;
-          if (typeof led.radius_px === 'number' && led.radius_px <= 6) {
+          if (currentYear === '2022') {
+            el.style.width = '1.45%';
+          } else if (typeof led.radius_px === 'number' && led.radius_px <= 6) {
             const diamPct = Math.max(0.85, ((led.radius_px * 2.25) / W) * 100);
             el.style.width = `${diamPct.toFixed(3)}%`;
           } else if (isScreenlessBoard && typeof led.radius_px === 'number') {
@@ -2917,9 +3181,13 @@ EMAIL:visitor@example.invalid</textarea>
           }
           el.dataset.index = led.index;
           el.dataset.ref = led.ref;
-          el.title = led.din_net
-            ? `Chain #${led.index} (${led.ref}, DIN: ${led.din_net})`
-            : `LED #${led.index} (${led.ref}${led.line_note ? ' • ' + led.line_note : ''}${led.part ? ', ' + led.part : ''})`;
+          if (currentYear === '2022') {
+            el.title = String(led.label || led.ref || '');
+          } else {
+            el.title = led.din_net
+              ? `Chain #${led.index} (${led.ref}, DIN: ${led.din_net})`
+              : `LED #${led.index} (${led.ref}${led.line_note ? ' • ' + led.line_note : ''}${led.part ? ', ' + led.part : ''})`;
+          }
           ledLayer.appendChild(el);
           ledElements.push(el);
         }
@@ -2952,7 +3220,7 @@ EMAIL:visitor@example.invalid</textarea>
         for (const pb of pushList) {
           const el = document.createElement('button');
           el.type = 'button';
-          el.className = 'board-push-btn';
+          el.className = currentYear === '2022' ? 'board-push-btn sc22-overlay-btn' : 'board-push-btn';
           const pbLabel = pb.name || pb.ref || pb.label || 'BTN';
           el.style.left = `${(pb.x_px / W) * 100}%`;
           el.style.top = `${(pb.y_px / H) * 100}%`;
@@ -2973,7 +3241,11 @@ EMAIL:visitor@example.invalid</textarea>
           if (typeof pb.az_bit === 'number') {
             el.dataset.azBit = String(pb.az_bit);
           }
-          el.textContent = pb.name || (pb.pin ? `Pad ${pb.pin}` : pbLabel);
+          const btnText = pb.name || (pb.pin ? `Pad ${pb.pin}` : pbLabel);
+          if (currentYear === '2022') {
+            el.setAttribute('aria-label', `Button ${pb.label || btnText} (${pb.ref || 'SW'})`);
+          }
+          el.textContent = currentYear === '2022' ? '' : btnText;
           if (String(el.textContent || '').length > 3) {
             el.style.fontSize = '0.52rem';
             if (currentYear === '2020' || currentYear === '2017') {
@@ -3049,26 +3321,60 @@ EMAIL:visitor@example.invalid</textarea>
         }
       }
 
-      // Persistence: load & save 512-byte EEPROM in localStorage (per year and per mode)
+      // Persistence: load & save EEPROM in localStorage (per year and per mode)
       function loadEepromFromStorage(targetU8) {
         if (!targetU8 || targetU8.length === 0 || eepromBytes === 0) {
           return false;
         }
         const key = getStorageKey('eeprom');
+        if (currentYear !== '2022') {
+          // Every other year keeps the original loader: a save of a different length is partly loaded.
+          try {
+            const b64 = localStorage.getItem(key);
+            if (!b64) {
+              targetU8.fill(currentYear === '2020' ? 0xff : 0);
+              return false;
+            }
+            const bin = atob(b64);
+            const len = Math.min(targetU8.length, bin.length);
+            for (let i = 0; i < len; i++) {
+              targetU8[i] = bin.charCodeAt(i) & 0xff;
+            }
+            return true;
+          } catch (err) {
+            console.warn('Failed to load EEPROM from localStorage:', err);
+            return false;
+          }
+        }
+        // 2022 only: a save of the wrong size is thrown away whole.
+        const emptyFill = 0xff;
         try {
           const b64 = localStorage.getItem(key);
-          if (!b64) {
-            targetU8.fill(currentYear === '2020' ? 0xff : 0);
+          if (b64 === null) {
+            targetU8.fill(emptyFill);
             return false;
           }
           const bin = atob(b64);
-          const len = Math.min(targetU8.length, bin.length);
-          for (let i = 0; i < len; i++) {
+          if (bin.length !== targetU8.length) {
+            console.warn(
+              `Discarding saved EEPROM in ${key} with wrong byte length (${bin.length} !== ${targetU8.length}); starting fresh.`
+            );
+            targetU8.fill(emptyFill);
+            try { localStorage.removeItem(key); } catch (_) {}
+            try { localStorage.removeItem(getStorageKey('kiosk')); } catch (_) {}
+            initSc22KioskState(true);
+            return false;
+          }
+          for (let i = 0; i < targetU8.length; i++) {
             targetU8[i] = bin.charCodeAt(i) & 0xff;
           }
           return true;
         } catch (err) {
           console.warn('Failed to load EEPROM from localStorage:', err);
+          targetU8.fill(emptyFill);
+          try { localStorage.removeItem(key); } catch (_) {}
+          try { localStorage.removeItem(getStorageKey('kiosk')); } catch (_) {}
+          initSc22KioskState(true);
           return false;
         }
       }
@@ -3086,18 +3392,29 @@ EMAIL:visitor@example.invalid</textarea>
             bin += String.fromCharCode(eeprom[i]);
           }
           localStorage.setItem(key, btoa(bin));
+          if (currentYear === '2022') {
+            if (!saveSc22KioskState()) {
+              eepromPendingSave = false;
+              lastEepromSaveMs = now;
+              eepromStatus.textContent = 'Not saved';
+              return false;
+            }
+          }
           eepromPendingSave = false;
           lastEepromSaveMs = now;
           eepromWriteCount++;
           eepromStatus.textContent = 'Saved';
           telEeprom.textContent = currentYear === '2020'
             ? `saintcon_2020_stock_* (#${eepromWriteCount})`
-            : `${key} (#${eepromWriteCount})`;
+            : (currentYear === '2022'
+              ? `saintcon_2022_stock_* (#${eepromWriteCount})`
+              : `${key} (#${eepromWriteCount})`);
           return true;
         } catch (err) {
           console.warn('Failed to write EEPROM to localStorage:', err);
           eepromPendingSave = false;
           lastEepromSaveMs = now;
+          eepromStatus.textContent = 'Not saved';
           showStorageUnavailableNote();
           return false;
         }
@@ -3545,6 +3862,8 @@ EMAIL:visitor@example.invalid</textarea>
 
         if (currentYear === '2020' || currentYear === '2017') {
           updateLedBoardPanel();
+        } else if (currentYear === '2022') {
+          updateSc22Panel();
         }
 
         // Update LEDs in chain order
@@ -4095,6 +4414,9 @@ EMAIL:visitor@example.invalid</textarea>
         paused = true;
         loopStopped = true;
         eepromPendingSave = false;
+        if (core && typeof core.sc22SetPaused === 'function') {
+          core.sc22SetPaused(true);
+        }
         if (rafId !== null) {
           cancelAnimationFrame(rafId);
           rafId = null;
@@ -4109,6 +4431,9 @@ EMAIL:visitor@example.invalid</textarea>
         paused = !paused;
         if (!paused) {
           loopStopped = false;
+        }
+        if (core && typeof core.sc22SetPaused === 'function') {
+          core.sc22SetPaused(paused);
         }
         btnPause.blur();
         btnPause.textContent = paused ? 'Resume' : 'Pause';
@@ -4125,6 +4450,22 @@ EMAIL:visitor@example.invalid</textarea>
         if (sc21VcardPendingSave || (typeof core.sc21VcardDirty === 'function' && core.sc21VcardDirty())) {
           sc21VcardPendingSave = true;
           flushSc21VcardToStorage(true);
+        }
+        if (currentYear === '2022' && currentMode === 'stock' && !core.isMock && !isMockRequested && typeof core.sc22Reset === 'function') {
+          clearSc22PausedQueue();
+          sc22ActionQueue.length = 0;
+          sc22ActiveAction = null;
+          const st22 = typeof core.sc22GetState === 'function' ? core.sc22GetState() : null;
+          if (st22 && (st22.inBootloader || st22.inSelfTest) && sc22BootHoldSelect) {
+            sc22BootHoldSelect.value = 'none';
+          }
+          const holdVal = sc22BootHoldSelect ? String(sc22BootHoldSelect.value || 'none') : 'none';
+          core.sc22Reset(holdVal === 'DOWN' || holdVal === 'SELECT' ? holdVal : 'none');
+          if (holdVal === 'none') {
+            setSc22Status('Reset badge. Click Visit a Kiosk to receive elimination clues.');
+          }
+          renderOutputs();
+          return;
         }
         if (currentYear === '2019' && currentMode === 'stock' && !core.isMock && !isMockRequested) {
           clearSc19PausedQueue();
@@ -4203,6 +4544,65 @@ EMAIL:visitor@example.invalid</textarea>
           if (!wasPaused) {
             paused = false;
             loopStopped = false;
+            if (btnPause) {
+              btnPause.textContent = 'Pause';
+              btnPause.classList.remove('active');
+            }
+            if (resumeLoopFn) {
+              resumeLoopFn();
+            }
+          }
+          return;
+        }
+        if (currentYear === '2022' && currentMode === 'stock' && !core.isMock && !isMockRequested) {
+          let wipe22Ok = !removeFailed;
+          try {
+            localStorage.removeItem(getStorageKey('kiosk'));
+          } catch (err) {
+            console.warn('Failed to wipe 2022 stand-in kiosk key from localStorage:', err);
+            wipe22Ok = false;
+            showStorageUnavailableNote();
+          }
+          clearSc22PausedQueue();
+          sc22ActionQueue.length = 0;
+          sc22ActiveAction = null;
+          if (sc22BootHoldSelect) {
+            sc22BootHoldSelect.value = 'none';
+          }
+          if (sc22AccuseSuspect) {
+            sc22AccuseSuspect.value = '0';
+            delete sc22AccuseSuspect.dataset.userEdited;
+          }
+          if (sc22AccuseAttack) {
+            sc22AccuseAttack.value = '0';
+            delete sc22AccuseAttack.dataset.userEdited;
+          }
+          if (sc22AccuseRoom) {
+            sc22AccuseRoom.value = '0';
+            delete sc22AccuseRoom.dataset.userEdited;
+          }
+          core.getEepromView().fill(0xff);
+          eepromPendingSave = false;
+          initSc22KioskState(true);
+          const wipe22Restarted = typeof core.sc22WipeSave === 'function' && core.sc22WipeSave() !== false;
+          if (wipe22Ok) {
+            eepromStatus.textContent = 'Wiped';
+            telEeprom.textContent = 'saintcon_2022_stock_* (Wiped)';
+          } else {
+            eepromStatus.textContent = 'Not saved';
+          }
+          sc22WinStatusSynced = false;
+          sc22WipeHold = true;
+          setSc22Status(wipe22Restarted
+            ? 'Wiped flash save and started a new mystery: this is the firmware\'s own LED test, which it runs on a fresh save and never ends by itself. Click Reset Badge to start the notepad.'
+            : 'Wiped flash save. The emulator has stopped, so nothing is running: reload the page to start the badge again.');
+          renderOutputs();
+          if (!wasPaused) {
+            paused = false;
+            loopStopped = false;
+            if (typeof core.sc22SetPaused === 'function') {
+              core.sc22SetPaused(false);
+            }
             if (btnPause) {
               btnPause.textContent = 'Pause';
               btnPause.classList.remove('active');
@@ -6715,10 +7115,1062 @@ EMAIL:visitor@example.invalid</textarea>
         });
       }
 
+      // 2022 Stand-in Kiosk & Web Worker Core Adapter
+      const WORKER_MISSING_MSG = 'This 2022 badge emulator requires Web Workers, which are unavailable in this browser.';
+      const SC22_MODE_NAMES = [
+        'Clue Notepad',
+        'Mode 1: Win Solution Blink',
+        'Mode 2: Fast Rainbow Wave',
+        'Mode 3: Slow Rainbow Wave',
+        'Mode 4: Random Sparkle',
+        'Mode 5: Random Fill',
+      ];
+      const SC22_SUSPECT_LABELS = [
+        'Anonymous', 'Chunk', 'Compukidmike', 'C0n4rt1st', 'D4rkm4tter',
+        'Edward Snowden', 'Fyodor', 'HD Moore', 'Jup1t3r', 'Kingpin',
+        'L34N', 'Linus Torvalds', 'LostboY', 'Pali(?)', 'Ray-Man',
+        'sirashrum', 'Supertechguy', 'The Dark Tangent', 'Woz', 'Zevlag',
+        'Zodiak',
+      ];
+      const SC22_ATTACK_LABELS = [
+        'Buffer Overflow', 'Cross-Site Request Forgery', 'Default Password', 'Denial-of-Service', 'DNS Spoofing',
+        'Heap Overflow', 'Heartbleed', 'Metasploit', 'Pass-the-Hash', 'Phishing',
+        'Polymorphic Virus', 'Privilege Escalation', 'Ransomware', 'Remote Code Execution', 'RootKit',
+        'ShadowBrokers', 'Social Engineering', 'Speculative Execution', 'SQL Injection', 'Zero-Click',
+        'Zero-Day',
+      ];
+      const SC22_ROOM_LABELS = [
+        'Badgelife', 'Ballrooms', 'Hacker Lounge', 'Infobooth', 'Lockpicking',
+        'Mezzanine', 'Registration', 'Terrace', 'The Cloud', 'Trainings',
+      ];
+      let sc22KioskState = null;
+      const sc22ActionQueue = [];
+      let sc22ActiveAction = null;
+      let sc22LastSeenCursorS = -1;
+      let sc22LastSeenCursorA = -1;
+      let sc22WinStatusSynced = false;
+      // Set by Wipe Save: the Worker still reports the old won game until the restarted badge reports in.
+      let sc22WipeHold = false;
+      let activeSc22Worker = null;
+      let sc22WorkerFailed = false;
+      const sc22SerialLines = [];
+
+      window.addEventListener('pagehide', () => {
+        if (activeSc22Worker) {
+          try {
+            activeSc22Worker.postMessage({ type: 'pause' });
+            activeSc22Worker.terminate();
+          } catch (_) {}
+          activeSc22Worker = null;
+        }
+      });
+
+      window.addEventListener('pageshow', (e) => {
+        if (e.persisted && currentYear === '2022') {
+          window.__badgeEmu = undefined;
+          window.location.reload();
+        }
+      });
+
+      function buildSc22KioskMessage(serialHex, clueNum, suspectsMask24, attacksMask24, roomsMask16) {
+        const payload34 =
+          String(serialHex || '').toUpperCase().padStart(16, '0').slice(0, 16) +
+          (clueNum & 0xff).toString(16).toUpperCase().padStart(2, '0') +
+          (suspectsMask24 & 0xffffff).toString(16).toUpperCase().padStart(6, '0') +
+          (attacksMask24 & 0xffffff).toString(16).toUpperCase().padStart(6, '0') +
+          (roomsMask16 & 0xffff).toString(16).toUpperCase().padStart(4, '0');
+        let sum = 0;
+        for (let i = 0; i < 17; i++) {
+          sum = (sum + parseInt(payload34.slice(i * 2, i * 2 + 2), 16)) & 0xff;
+        }
+        const chk = (-sum) & 0xff;
+        const shift = chk % 34;
+        const rotated =
+          shift === 0 ? payload34 : payload34.slice(34 - shift) + payload34.slice(0, 34 - shift);
+        return `kiosk:${rotated}${chk.toString(16).toUpperCase().padStart(2, '0')}\n\r`;
+      }
+
+      function parseSc22BadgeMessage(line) {
+        if (typeof line !== 'string') return { valid: false, raw: '' };
+        const m = line.match(/badge:([0-9A-Fa-f]{34})([0-9A-Fa-f]{2})/);
+        if (!m) {
+          return { valid: false, raw: line.trim() };
+        }
+        const rotated = m[1];
+        const chk = parseInt(m[2], 16);
+        const shift = chk % 34;
+        const unrotated = shift === 0 ? rotated : rotated.slice(shift) + rotated.slice(0, shift);
+        let sum = 0;
+        for (let i = 0; i < 34; i++) {
+          sum = (sum + unrotated.charCodeAt(i)) & 0xff;
+        }
+        if (((sum + chk) & 0xff) !== 0) {
+          return { valid: false, raw: m[0], checksumMismatch: true };
+        }
+        return {
+          valid: true,
+          raw: m[0],
+          serial: unrotated.slice(0, 16).toLowerCase(),
+          statusByte: parseInt(unrotated.slice(16, 18), 16),
+          suspectsCursor: parseInt(unrotated.slice(18, 24), 16),
+          attacksCursor: parseInt(unrotated.slice(24, 30), 16),
+          roomsCursor: parseInt(unrotated.slice(30, 34), 16),
+        };
+      }
+
+      function sc22RandomInt(maxExclusive) {
+        const buf = new Uint32Array(1);
+        if (window.crypto && typeof window.crypto.getRandomValues === 'function') {
+          window.crypto.getRandomValues(buf);
+          return buf[0] % maxExclusive;
+        }
+        return Math.floor(Math.random() * maxExclusive);
+      }
+
+      function sc22ShuffleArray(arr) {
+        for (let i = arr.length - 1; i > 0; i--) {
+          const j = sc22RandomInt(i + 1);
+          const tmp = arr[i];
+          arr[i] = arr[j];
+          arr[j] = tmp;
+        }
+        return arr;
+      }
+
+      function initSc22KioskState(forceNew) {
+        if (!forceNew && sc22KioskState) return sc22KioskState;
+        const solS = sc22RandomInt(21);
+        const solA = sc22RandomInt(21);
+        const solR = sc22RandomInt(10);
+
+        const wrongS = [];
+        for (let i = 0; i < 21; i++) {
+          if (i !== solS) wrongS.push(i);
+        }
+        const wrongA = [];
+        for (let i = 0; i < 21; i++) {
+          if (i !== solA) wrongA.push(i);
+        }
+        const wrongR = [];
+        for (let i = 0; i < 10; i++) {
+          if (i !== solR) wrongR.push(i);
+        }
+        sc22ShuffleArray(wrongS);
+        sc22ShuffleArray(wrongA);
+        sc22ShuffleArray(wrongR);
+
+        const clues = [];
+        for (let k = 0; k < 10; k++) {
+          const s0 = wrongS[k * 2];
+          const s1 = wrongS[k * 2 + 1];
+          const a0 = wrongA[k * 2];
+          const a1 = wrongA[k * 2 + 1];
+          const m0 = ((1 << (23 - s0)) | (1 << (23 - s1))) >>> 0;
+          const m1 = ((1 << (23 - a0)) | (1 << (23 - a1))) >>> 0;
+          const m2 = k < 9 ? ((1 << (15 - wrongR[k])) >>> 0) : 0;
+          clues.push({
+            clueNum: k + 1,
+            m0,
+            m1,
+            m2,
+            clearedSuspects: [s0, s1],
+            clearedAttacks: [a0, a1],
+            clearedRooms: k < 9 ? [wrongR[k]] : [],
+          });
+        }
+
+        sc22KioskState = {
+          version: 1,
+          solutionSuspect: solS,
+          solutionAttack: solA,
+          solutionRoom: solR,
+          clues,
+          cluesSent: 0,
+          lastSerial: null,
+        };
+        return sc22KioskState;
+      }
+
+      function isValidSc22KioskState(obj) {
+        if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return false;
+        if (!Number.isInteger(obj.solutionSuspect) || obj.solutionSuspect < 0 || obj.solutionSuspect >= 21) return false;
+        if (!Number.isInteger(obj.solutionAttack) || obj.solutionAttack < 0 || obj.solutionAttack >= 21) return false;
+        if (!Number.isInteger(obj.solutionRoom) || obj.solutionRoom < 0 || obj.solutionRoom >= 10) return false;
+        if (!Number.isInteger(obj.cluesSent) || obj.cluesSent < 0 || obj.cluesSent > 10) return false;
+        if (!Array.isArray(obj.clues) || obj.clues.length !== 10) return false;
+        for (let k = 0; k < 10; k++) {
+          const c = obj.clues[k];
+          if (!c || typeof c !== 'object' || Array.isArray(c)) return false;
+          if (c.clueNum !== k + 1) return false;
+          if (!Number.isInteger(c.m0) || c.m0 < 0 || c.m0 > 0xffffff) return false;
+          if (!Number.isInteger(c.m1) || c.m1 < 0 || c.m1 > 0xffffff) return false;
+          if (!Number.isInteger(c.m2) || c.m2 < 0 || c.m2 > 0xffff) return false;
+          if (
+            !Array.isArray(c.clearedSuspects) ||
+            c.clearedSuspects.length !== 2 ||
+            !c.clearedSuspects.every((x) => Number.isInteger(x) && x >= 0 && x < 21 && x !== obj.solutionSuspect)
+          ) {
+            return false;
+          }
+          if (
+            !Array.isArray(c.clearedAttacks) ||
+            c.clearedAttacks.length !== 2 ||
+            !c.clearedAttacks.every((x) => Number.isInteger(x) && x >= 0 && x < 21 && x !== obj.solutionAttack)
+          ) {
+            return false;
+          }
+          const expectedRoomsLen = k < 9 ? 1 : 0;
+          if (
+            !Array.isArray(c.clearedRooms) ||
+            c.clearedRooms.length !== expectedRoomsLen ||
+            !c.clearedRooms.every((x) => Number.isInteger(x) && x >= 0 && x < 10 && x !== obj.solutionRoom)
+          ) {
+            return false;
+          }
+        }
+        return true;
+      }
+
+      function loadSc22KioskState() {
+        const key = getStorageKey('kiosk');
+        try {
+          const raw = localStorage.getItem(key);
+          if (!raw) {
+            initSc22KioskState(true);
+            return false;
+          }
+          const parsed = JSON.parse(raw);
+          if (isValidSc22KioskState(parsed)) {
+            sc22KioskState = parsed;
+            return true;
+          }
+          console.warn('Invalid 2022 stand-in kiosk state shape in localStorage; falling back to a fresh game.');
+        } catch (err) {
+          console.warn('Failed to load 2022 stand-in kiosk state from localStorage:', err);
+        }
+        initSc22KioskState(true);
+        return false;
+      }
+
+      function saveSc22KioskState() {
+        if (!sc22KioskState) return true;
+        const key = getStorageKey('kiosk');
+        try {
+          localStorage.setItem(key, JSON.stringify(sc22KioskState));
+          return true;
+        } catch (err) {
+          console.warn('Failed to save 2022 stand-in kiosk state to localStorage:', err);
+          if (eepromStatus) {
+            eepromStatus.textContent = 'Not saved';
+          }
+          showStorageUnavailableNote();
+          return false;
+        }
+      }
+
+      function appendSc22SerialLog(prefix, text) {
+        const clean = String(text || '').replace(/[\r\n]+/g, '');
+        if (!clean.trim()) return;
+        sc22SerialLines.push(`${prefix} ${clean}`);
+        while (sc22SerialLines.length > 40) {
+          sc22SerialLines.shift();
+        }
+        if (sc22SerialLog) {
+          sc22SerialLog.textContent = sc22SerialLines.join('\n');
+          sc22SerialLog.scrollTop = sc22SerialLog.scrollHeight;
+        }
+      }
+
+      function sc22Popcount(x) {
+        let v = x >>> 0;
+        let c = 0;
+        while (v) {
+          v &= v - 1;
+          c++;
+        }
+        return c;
+      }
+
+      function sc22CursorMaskToRow(mask, msbBit, count) {
+        for (let i = 0; i < count; i++) {
+          if (((mask >>> (msbBit - i)) & 1) !== 0) return i;
+        }
+        return 0;
+      }
+
+      function setSc22Status(msg) {
+        if (sc22StatusBox) {
+          sc22StatusBox.textContent = msg;
+        }
+      }
+
+      function pumpSc22ActionQueue() {
+        if (sc22ActiveAction || sc22ActionQueue.length === 0) return;
+        if (!core || typeof core.sc22SendSerial !== 'function') return;
+        sc22ActiveAction = sc22ActionQueue.shift();
+        appendSc22SerialLog('>', 'kiosk:hi');
+        core.sc22SendSerial('kiosk:hi\n\r');
+      }
+
+      function enqueueSc22Action(action) {
+        if (!core || typeof core.sc22SendSerial !== 'function') return;
+        sc22ActionQueue.push(action);
+        pumpSc22ActionQueue();
+      }
+
+      function sc22CumulativeClueMasks(count) {
+        let cumM0 = 0;
+        let cumM1 = 0;
+        let cumM2 = 0;
+        const limit = Math.max(0, Math.min(10, count | 0));
+        for (let i = 0; i < limit; i++) {
+          const c = sc22KioskState.clues[i];
+          cumM0 = (cumM0 | c.m0) >>> 0;
+          cumM1 = (cumM1 | c.m1) >>> 0;
+          cumM2 = (cumM2 | c.m2) >>> 0;
+        }
+        return { cumM0, cumM1, cumM2 };
+      }
+
+      function onSc22SerialLine(line) {
+        appendSc22SerialLog('<', line);
+        const trimmed = String(line || '').trim();
+        if (trimmed === 'badge:pong') {
+          setSc22Status('Badge replied "badge:pong".');
+          return;
+        }
+        const parsed = parseSc22BadgeMessage(trimmed);
+        if (!parsed.valid) {
+          // Keep action result in #sc22-status-box; firmware serial output stays in the serial log only.
+          return;
+        }
+        if (!sc22KioskState) {
+          initSc22KioskState(false);
+        }
+        sc22KioskState.lastSerial = parsed.serial;
+        const sRow = sc22CursorMaskToRow(parsed.suspectsCursor, 23, 21);
+        const aRow = sc22CursorMaskToRow(parsed.attacksCursor, 23, 21);
+        const sName = SC22_SUSPECT_LABELS[sRow] || `Row ${sRow + 1}`;
+        const aName = SC22_ATTACK_LABELS[aRow] || `Row ${aRow + 1}`;
+
+        const pending = sc22ActiveAction;
+        if (!pending) {
+          // Unsolicited badge: reply (e.g. from pressing UP/DOWN on the badge) stays in the serial log only.
+          return;
+        }
+        sc22ActiveAction = null;
+
+        if (pending.type === 'query') {
+          const stNow = typeof core.sc22GetState === 'function' ? core.sc22GetState() : null;
+          const sClearedNow = stNow ? sc22Popcount(stNow.suspectsMask & 0xfffff8) : 0;
+          const aClearedNow = stNow ? sc22Popcount(stNow.attacksMask & 0xfffff8) : 0;
+          const rClearedNow = stNow ? sc22Popcount(stNow.roomsMask & 0xffc0) : 0;
+          const activeCatWord = stNow && stNow.activeCategory === 1 ? 'Attacks' : 'Suspects';
+          setSc22Status(
+            `Badge state: ${sc22KioskState.cluesSent} of 10 clues collected (${sClearedNow} of 21 Suspects, ${aClearedNow} of 21 Attacks, and ${rClearedNow} of 10 Rooms eliminated). Blue cursors on Suspect "${sName}" and Attack "${aName}" (active button column: ${activeCatWord}).`
+          );
+          pumpSc22ActionQueue();
+          return;
+        }
+
+        if (pending.type === 'visit_next') {
+          if (sc22KioskState.cluesSent < 10) {
+            const step = sc22KioskState.clues[sc22KioskState.cluesSent];
+            sc22KioskState.cluesSent += 1;
+            const { cumM0, cumM1, cumM2 } = sc22CumulativeClueMasks(sc22KioskState.cluesSent);
+            const msg = buildSc22KioskMessage(parsed.serial, step.clueNum, cumM0, cumM1, cumM2);
+            appendSc22SerialLog('>', msg.trim());
+            core.sc22SendSerial(msg, { sendWhenBlinkEven: true });
+            const savedOk = saveSc22KioskState();
+            const cs0 = SC22_SUSPECT_LABELS[step.clearedSuspects[0]];
+            const cs1 = SC22_SUSPECT_LABELS[step.clearedSuspects[1]];
+            const ca0 = SC22_ATTACK_LABELS[step.clearedAttacks[0]];
+            const ca1 = SC22_ATTACK_LABELS[step.clearedAttacks[1]];
+            const roomNote = step.clearedRooms.length > 0
+              ? `, and Room "${SC22_ROOM_LABELS[step.clearedRooms[0]]}"`
+              : '';
+            const nextHint = sc22KioskState.cluesSent >= 10
+              ? ' All 10 clues collected (20/21 Suspects, 20/21 Attacks, and 9/10 Rooms eliminated)! Find the one unlit Suspect, Attack, and Room on the board, select them above, and click Accuse.'
+              : '';
+            const saveWarn = savedOk ? '' : ' (Not saved to browser storage.)';
+            setSc22Status(
+              `Clue ${step.clueNum} of 10: eliminated Suspects "${cs0}" & "${cs1}", Attacks "${ca0}" & "${ca1}"${roomNote}.${nextHint}${saveWarn}`
+            );
+          } else {
+            const { cumM0, cumM1, cumM2 } = sc22CumulativeClueMasks(10);
+            const msg = buildSc22KioskMessage(parsed.serial, 10, cumM0, cumM1, cumM2);
+            appendSc22SerialLog('>', msg.trim());
+            core.sc22SendSerial(msg, { sendWhenBlinkEven: true });
+            setSc22Status(
+              'All 10 clues have been collected (20/21 Suspects, 20/21 Attacks, and 9/10 Rooms eliminated in Green). Choose the remaining unlit Suspect, Attack, and Room above and click Accuse to solve the case.'
+            );
+          }
+          pumpSc22ActionQueue();
+          return;
+        }
+
+        if (pending.type === 'win_now') {
+          const solS = sc22KioskState.solutionSuspect;
+          const solA = sc22KioskState.solutionAttack;
+          const solR = sc22KioskState.solutionRoom;
+          sc22KioskState.endedEarly = true;
+          saveSc22KioskState();
+          const winM0 = (1 << (23 - solS)) >>> 0;
+          const winM1 = (1 << (23 - solA)) >>> 0;
+          const winM2 = (1 << (15 - solR)) >>> 0;
+          const msg = buildSc22KioskMessage(parsed.serial, 0xff, winM0, winM1, winM2);
+          appendSc22SerialLog('>', msg.trim());
+          core.sc22SendSerial(msg);
+          sc22WinStatusSynced = true;
+          setSc22Status(
+            `Game ended — Answer: Suspect "${SC22_SUSPECT_LABELS[solS]}", Attack "${SC22_ATTACK_LABELS[solA]}", Room "${SC22_ROOM_LABELS[solR]}". The game is finished: the winning triple blinks Red in Mode 1 (~15 s), then UP and DOWN cycle the post-win LED animations (Modes 2–5). SELECT does nothing in those modes, as the firmware ignores it.`
+          );
+          pumpSc22ActionQueue();
+          return;
+        }
+
+        if (pending.type === 'accuse') {
+          const chosenS = typeof pending.suspectIdx === 'number'
+            ? pending.suspectIdx
+            : ((sc22AccuseSuspect && sc22AccuseSuspect.dataset.userEdited === '1')
+              ? (Number(sc22AccuseSuspect.value) | 0)
+              : sRow);
+          const chosenA = typeof pending.attackIdx === 'number'
+            ? pending.attackIdx
+            : ((sc22AccuseAttack && sc22AccuseAttack.dataset.userEdited === '1')
+              ? (Number(sc22AccuseAttack.value) | 0)
+              : aRow);
+          const chosenR = typeof pending.roomIdx === 'number'
+            ? pending.roomIdx
+            : (sc22AccuseRoom ? (Number(sc22AccuseRoom.value) | 0) : 0);
+
+          const chosenSName = SC22_SUSPECT_LABELS[chosenS] || `Row ${chosenS + 1}`;
+          const chosenAName = SC22_ATTACK_LABELS[chosenA] || `Row ${chosenA + 1}`;
+          const chosenRName = SC22_ROOM_LABELS[chosenR] || `Room ${chosenR + 1}`;
+
+          if (
+            chosenS === sc22KioskState.solutionSuspect &&
+            chosenA === sc22KioskState.solutionAttack &&
+            chosenR === sc22KioskState.solutionRoom
+          ) {
+            sc22KioskState.endedEarly = false;
+            saveSc22KioskState();
+            const winM0 = (1 << (23 - chosenS)) >>> 0;
+            const winM1 = (1 << (23 - chosenA)) >>> 0;
+            const winM2 = (1 << (15 - chosenR)) >>> 0;
+            const msg = buildSc22KioskMessage(parsed.serial, 0xff, winM0, winM1, winM2);
+            appendSc22SerialLog('>', msg.trim());
+            core.sc22SendSerial(msg);
+            sc22WinStatusSynced = true;
+            setSc22Status(
+              `Correct accusation! Suspect "${chosenSName}", Attack "${chosenAName}", Room "${chosenRName}" solves the case. The game is finished: the winning triple blinks Red in Mode 1 (~15 s), then UP and DOWN cycle the post-win LED animations (Modes 2–5). SELECT does nothing in those modes, as the firmware ignores it.`
+            );
+          } else {
+            setSc22Status(
+              `Wrong accusation: Suspect "${chosenSName}", Attack "${chosenAName}", Room "${chosenRName}" is not the hidden solution (${sc22KioskState.cluesSent}/10 clues collected). Check which LEDs are still unlit on the board or visit more kiosks.`
+            );
+          }
+          pumpSc22ActionQueue();
+        }
+      }
+
+      function updateSc22Panel() {
+        if (!core || core.isMock || typeof core.sc22GetState !== 'function') return;
+        if (sc22WorkerFailed) return;
+        const st = core.sc22GetState();
+        if (!st) return;
+        if (sc22WipeHold && !st.gameWon) sc22WipeHold = false;
+        const gameWon = Boolean(st.gameWon) && !sc22WipeHold;
+
+        const ratio = typeof core.sc22GetSpeedRatio === 'function' ? core.sc22GetSpeedRatio() : 1.0;
+        if (speedReadout) {
+          if (st.inBootloader) {
+            speedReadout.textContent = '0.00x (USB Bootloader)';
+          } else if (ratio >= 0.95) {
+            speedReadout.textContent = `${ratio.toFixed(2)}x (Real-time • 8 MHz)`;
+          } else {
+            speedReadout.textContent = `${ratio.toFixed(2)}x (Slow host — badge time slowed, no work dropped)`;
+          }
+        }
+
+        if (sc22BootloaderBanner) {
+          sc22BootloaderBanner.classList.toggle('visible', Boolean(st.inBootloader));
+        }
+
+        const inSpecialBootState = Boolean(st.inSelfTest || st.inBootloader);
+        if (sc22BoardNotice) {
+          sc22BoardNotice.classList.toggle('visible', currentYear === '2022' && inSpecialBootState);
+        }
+        if (sc22BoardNoticeText) {
+          if (st.inBootloader) {
+            sc22BoardNoticeText.textContent =
+              'The badge is waiting for a firmware file in the RP2040 USB bootloader (all 52 LEDs off). Click Reset Badge to start the notepad.';
+          } else if (st.inSelfTest) {
+            sc22BoardNoticeText.textContent =
+              'This is the firmware\'s own LED test, which it runs on a fresh save and never ends by itself. Click Reset Badge to start the notepad.';
+          }
+        }
+
+        for (const el of [
+          btnSc22VisitKiosk,
+          btnSc22Hi,
+          btnSc22Ping,
+          btnSc22Accuse,
+          btnSc22WinNow,
+          sc22AccuseSuspect,
+          sc22AccuseAttack,
+          sc22AccuseRoom,
+        ]) {
+          if (el) el.disabled = inSpecialBootState;
+        }
+        if (sc22KioskDisabledNote) {
+          sc22KioskDisabledNote.classList.toggle('visible', inSpecialBootState);
+          if (st.inBootloader) {
+            sc22KioskDisabledNote.textContent =
+              'Kiosk buttons are disabled in the USB bootloader — click Reset Badge to start the notepad.';
+          } else if (st.inSelfTest) {
+            sc22KioskDisabledNote.textContent =
+              'Kiosk buttons are disabled during the LED self-test — click Reset Badge to start the notepad.';
+          }
+        }
+
+        if (sc22ModePill) {
+          if (st.inBootloader) {
+            sc22ModePill.textContent = 'USB Bootloader (Click Reset Badge to start notepad)';
+          } else if (st.inSelfTest) {
+            sc22ModePill.textContent = 'LED Self-Test (Click Reset Badge to start notepad)';
+          } else {
+            const mIdx = st.displayMode >>> 0;
+            const baseMode = SC22_MODE_NAMES[mIdx] || `Mode ${mIdx}`;
+            const blinkNote = (mIdx === 0 && st.newClueBlinkCounter > 0)
+              ? ` (New Clue Blink ${st.newClueBlinkCounter}/61)`
+              : '';
+            sc22ModePill.textContent = `${baseMode}${blinkNote}`;
+          }
+        }
+
+        if (sc22BlinkNote) {
+          const blinking = !st.inBootloader && !st.inSelfTest && (st.displayMode >>> 0) === 0 && st.newClueBlinkCounter > 0;
+          const cluesNow = sc22KioskState ? sc22KioskState.cluesSent : 0;
+          let note = '';
+          if (st.inBootloader || st.inSelfTest || gameWon) {
+            note = '';
+          } else if (blinking) {
+            note = 'The new clue is blinking (about 15 seconds). Leave the badge buttons alone until it ends. If one is pressed, the firmware can leave some LEDs dark; that is its own behaviour, and Reset Badge redraws them from the save.';
+          } else if (cluesNow > 0) {
+            note = 'Some LEDs look dark or wrong? Click Reset Badge to redraw them from the save.';
+          }
+          if (sc22BlinkNote.textContent !== note) sc22BlinkNote.textContent = note;
+          sc22BlinkNote.hidden = note === '';
+        }
+
+        const sCleared = sc22Popcount(st.suspectsMask & 0xfffff8);
+        const aCleared = sc22Popcount(st.attacksMask & 0xfffff8);
+        const rCleared = sc22Popcount(st.roomsMask & 0xffc0);
+        const cluesSent = sc22KioskState ? sc22KioskState.cluesSent : 0;
+
+        const solSIdx = st.winSuspectsMask ? sc22CursorMaskToRow(st.winSuspectsMask, 23, 21) : (sc22KioskState ? sc22KioskState.solutionSuspect : 0);
+        const solAIdx = st.winAttacksMask ? sc22CursorMaskToRow(st.winAttacksMask, 23, 21) : (sc22KioskState ? sc22KioskState.solutionAttack : 0);
+        const solRIdx = st.winRoomsMask ? sc22CursorMaskToRow(st.winRoomsMask, 15, 10) : (sc22KioskState ? sc22KioskState.solutionRoom : 0);
+        const solSName = SC22_SUSPECT_LABELS[solSIdx] || `Row ${solSIdx + 1}`;
+        const solAName = SC22_ATTACK_LABELS[solAIdx] || `Row ${solAIdx + 1}`;
+        const solRName = SC22_ROOM_LABELS[solRIdx] || `Room ${solRIdx + 1}`;
+        const wasEndedEarly = Boolean((sc22KioskState && sc22KioskState.endedEarly) || (sCleared === 0 && aCleared === 0 && rCleared === 0));
+
+        if (sc22ClueProgress) {
+          if (gameWon) {
+            sc22ClueProgress.textContent = wasEndedEarly
+              ? `Game ended • Answer: ${solSName} / ${solAName} / ${solRName}`
+              : `Game won • Answer: ${solSName} / ${solAName} / ${solRName} (${cluesSent}/10 clues)`;
+          } else {
+            sc22ClueProgress.textContent =
+              `${cluesSent} / 10 clues • ${sCleared}/21 S, ${aCleared}/21 A, ${rCleared}/10 R cleared`;
+          }
+        }
+
+        if (gameWon && !st.inBootloader && !st.inSelfTest) {
+          if (!sc22WinStatusSynced) {
+            sc22WinStatusSynced = true;
+            const prefixWord = wasEndedEarly ? 'Game ended' : 'Game finished (case solved)';
+            setSc22Status(
+              `${prefixWord} — Answer: Suspect "${solSName}", Attack "${solAName}", Room "${solRName}". UP and DOWN cycle the post-win LED animations (Modes 2–5). SELECT does nothing in those modes, as the firmware ignores it.`
+            );
+          }
+        } else if (sc22WinStatusSynced && st.inBootloader) {
+          // A win status written from the last frame before the reboot must not stay up in these states.
+          sc22WinStatusSynced = false;
+          setSc22Status('The badge is in the USB bootloader. Click Reset Badge to go back to your saved game.');
+        } else if (sc22WinStatusSynced && st.inSelfTest) {
+          sc22WinStatusSynced = false;
+          setSc22Status('The firmware is running its LED test. Click Reset Badge to go back to your saved game.');
+        }
+
+        const sRow = sc22CursorMaskToRow(st.suspectsCursor, 23, 21);
+        const aRow = sc22CursorMaskToRow(st.attacksCursor, 23, 21);
+        if (sRow !== sc22LastSeenCursorS) {
+          if (sc22LastSeenCursorS !== -1 && sc22AccuseSuspect) {
+            sc22AccuseSuspect.value = String(sRow);
+            delete sc22AccuseSuspect.dataset.userEdited;
+          }
+          sc22LastSeenCursorS = sRow;
+        }
+        if (aRow !== sc22LastSeenCursorA) {
+          if (sc22LastSeenCursorA !== -1 && sc22AccuseAttack) {
+            sc22AccuseAttack.value = String(aRow);
+            delete sc22AccuseAttack.dataset.userEdited;
+          }
+          sc22LastSeenCursorA = aRow;
+        }
+
+        if (sc22CursorReadout) {
+          if (st.inBootloader) {
+            sc22CursorReadout.textContent = 'Waiting for firmware file (Bootloader)';
+          } else if (st.inSelfTest) {
+            sc22CursorReadout.textContent = 'LED Self-Test Loop';
+          } else {
+            const activeCat = st.activeCategory === 0 ? 'Suspects' : 'Attacks';
+            sc22CursorReadout.textContent =
+              `Active: ${activeCat} • S: ${SC22_SUSPECT_LABELS[sRow]} • A: ${SC22_ATTACK_LABELS[aRow]}`;
+          }
+        }
+      }
+
+      let sc22UiInitialized = false;
+      function initSc22CompanionUi() {
+        if (!sc22KioskState) {
+          initSc22KioskState(false);
+        }
+        if (sc22AccuseSuspect && sc22AccuseSuspect.options.length === 0) {
+          for (let i = 0; i < 21; i++) {
+            const opt = document.createElement('option');
+            opt.value = String(i);
+            opt.textContent = `Suspect: ${SC22_SUSPECT_LABELS[i]}`;
+            sc22AccuseSuspect.appendChild(opt);
+          }
+          sc22AccuseSuspect.addEventListener('change', () => {
+            sc22AccuseSuspect.dataset.userEdited = '1';
+          });
+        }
+        if (sc22AccuseAttack && sc22AccuseAttack.options.length === 0) {
+          for (let i = 0; i < 21; i++) {
+            const opt = document.createElement('option');
+            opt.value = String(i);
+            opt.textContent = `Attack: ${SC22_ATTACK_LABELS[i]}`;
+            sc22AccuseAttack.appendChild(opt);
+          }
+          sc22AccuseAttack.addEventListener('change', () => {
+            sc22AccuseAttack.dataset.userEdited = '1';
+          });
+        }
+        if (sc22AccuseRoom && sc22AccuseRoom.options.length === 0) {
+          for (let r = 0; r < 10; r++) {
+            const opt = document.createElement('option');
+            opt.value = String(r);
+            opt.textContent = `Room: ${SC22_ROOM_LABELS[r]}`;
+            sc22AccuseRoom.appendChild(opt);
+          }
+          sc22AccuseRoom.addEventListener('change', () => {
+            sc22AccuseRoom.dataset.userEdited = '1';
+          });
+        }
+        if (sc22UiInitialized) {
+          updateSc22Panel();
+          return;
+        }
+        sc22UiInitialized = true;
+
+        if (btnSc22BoardReset) {
+          btnSc22BoardReset.addEventListener('click', (e) => {
+            e.currentTarget.blur();
+            if (sc22BootHoldSelect && (sc22BootHoldSelect.value === 'DOWN' || sc22BootHoldSelect.value === 'SELECT')) {
+              sc22BootHoldSelect.value = 'none';
+            }
+            const mainResetBtn = document.getElementById('btn-reset');
+            if (mainResetBtn) mainResetBtn.click();
+          });
+        }
+        if (btnSc22VisitKiosk) {
+          btnSc22VisitKiosk.addEventListener('click', (e) => {
+            e.currentTarget.blur();
+            enqueueSc22Action({ type: 'visit_next' });
+          });
+        }
+        if (btnSc22WinNow) {
+          btnSc22WinNow.addEventListener('click', (e) => {
+            e.currentTarget.blur();
+            enqueueSc22Action({ type: 'win_now' });
+          });
+        }
+        if (btnSc22Accuse) {
+          btnSc22Accuse.addEventListener('click', (e) => {
+            e.currentTarget.blur();
+            const roomIdx = sc22AccuseRoom ? (Number(sc22AccuseRoom.value) | 0) : 0;
+            const suspectIdx = (sc22AccuseSuspect && sc22AccuseSuspect.dataset.userEdited === '1')
+              ? (Number(sc22AccuseSuspect.value) | 0)
+              : undefined;
+            const attackIdx = (sc22AccuseAttack && sc22AccuseAttack.dataset.userEdited === '1')
+              ? (Number(sc22AccuseAttack.value) | 0)
+              : undefined;
+            enqueueSc22Action({ type: 'accuse', roomIdx, suspectIdx, attackIdx });
+          });
+        }
+        if (btnSc22Hi) {
+          btnSc22Hi.addEventListener('click', (e) => {
+            e.currentTarget.blur();
+            enqueueSc22Action({ type: 'query' });
+          });
+        }
+        if (btnSc22Ping) {
+          btnSc22Ping.addEventListener('click', (e) => {
+            e.currentTarget.blur();
+            if (!core || typeof core.sc22SendSerial !== 'function') return;
+            appendSc22SerialLog('>', 'kiosk:ping');
+            core.sc22SendSerial('kiosk:ping\n\r');
+          });
+        }
+        if (chkSc22DarkRoom) {
+          chkSc22DarkRoom.addEventListener('change', () => {
+            if (!core || typeof core.sc22SetAlsLux !== 'function') return;
+            const isDark = Boolean(chkSc22DarkRoom.checked);
+            core.sc22SetAlsLux(isDark ? 10 : 250);
+            setSc22Status(
+              isDark
+                ? 'Dark room enabled (ambient light sensor at 0x29 reads 10): the firmware blanks all 52 LEDs in the dark.'
+                : 'Normal room lighting restored (ambient light sensor at 0x29 reads 250): LEDs are active.'
+            );
+          });
+        }
+        if (sc22BootHoldSelect) {
+          sc22BootHoldSelect.addEventListener('change', () => {
+            if (!core || typeof core.sc22Reset !== 'function') return;
+            flushEepromToStorage(true);
+            clearSc22PausedQueue();
+            sc22ActionQueue.length = 0;
+            sc22ActiveAction = null;
+            const holdVal = String(sc22BootHoldSelect.value || 'none');
+            core.sc22Reset(holdVal === 'DOWN' || holdVal === 'SELECT' ? holdVal : 'none');
+            if (holdVal === 'DOWN') {
+              setSc22Status('Resetting badge with DOWN held at power-on: running LED self-test across all 52 LEDs (Red → Green → Blue).');
+            } else if (holdVal === 'SELECT') {
+              setSc22Status('Resetting badge with SELECT held at power-on: entered RP2040 USB bootloader. Click Reset Badge to leave the bootloader.');
+            } else {
+              setSc22Status('Resetting badge (normal boot).');
+            }
+            renderOutputs();
+          });
+        }
+        updateSc22Panel();
+      }
+
+      async function loadCore2022Worker(baseDir, meta) {
+        if (typeof Worker !== 'function') {
+          throw new Error(WORKER_MISSING_MSG);
+        }
+        if (activeSc22Worker) {
+          try {
+            activeSc22Worker.postMessage({ type: 'pause' });
+            activeSc22Worker.terminate();
+          } catch (_) {}
+          activeSc22Worker = null;
+        }
+        sc22WorkerFailed = false;
+        sc22ActionQueue.length = 0;
+        sc22ActiveAction = null;
+        sc22LastSeenCursorS = -1;
+        sc22LastSeenCursorA = -1;
+        sc22WinStatusSynced = false;
+
+        const modeObj = meta && meta.modes && meta.modes[currentMode];
+        const coreJsRel = (modeObj && modeObj.core_js) || (meta && meta.files && meta.files.core_js) || 'core.js';
+        const uf2Rel = (modeObj && modeObj.uf2) || (meta && meta.files && meta.files.uf2) || 'Saintcon2022BadgeFirmwareFix.uf2';
+        const coreJsUrl = `${baseDir}/${coreJsRel}`;
+        const uf2Url = `${baseDir}/${uf2Rel}`;
+
+        const [coreResp, uf2Resp] = await Promise.all([
+          fetch(coreJsUrl),
+          fetch(uf2Url),
+        ]);
+        if (!coreResp.ok) {
+          throw new Error(`HTTP ${coreResp.status} while downloading ${coreJsUrl}`);
+        }
+        if (!uf2Resp.ok) {
+          throw new Error(`HTTP ${uf2Resp.status} while downloading ${uf2Url}`);
+        }
+        const uf2Buf = await uf2Resp.arrayBuffer();
+        const uf2Bytes = new Uint8Array(uf2Buf);
+        if (uf2Bytes.byteLength < 512 || new DataView(uf2Buf).getUint32(0, true) !== 0x0a324655) {
+          throw new Error(`Invalid UF2 firmware image from ${uf2Url} (${uf2Bytes.byteLength} bytes)`);
+        }
+
+        const ledsBuf = new Uint8Array(52 * 3);
+        const eepromBuf = new Uint8Array(8192);
+        eepromBuf.fill(0xff);
+        let flashDirtyFlag = false;
+        let latestState = null;
+        let latestSpeedRatio = 1.0;
+        let lastBtnMask = 0;
+
+        const worker = new Worker(coreJsUrl, { type: 'module' });
+        activeSc22Worker = worker;
+
+        await new Promise((resolve, reject) => {
+          const onInitMsg = (ev) => {
+            const msg = ev.data;
+            if (!msg || typeof msg.type !== 'string') return;
+            if (msg.type === 'ready') {
+              latestState = msg.state || null;
+              worker.removeEventListener('message', onInitMsg);
+              worker.removeEventListener('error', onInitErr);
+              resolve();
+            } else if (msg.type === 'error') {
+              worker.removeEventListener('message', onInitMsg);
+              worker.removeEventListener('error', onInitErr);
+              reject(new Error(msg.message || 'Worker init failed'));
+            }
+          };
+          const onInitErr = (err) => {
+            worker.removeEventListener('message', onInitMsg);
+            worker.removeEventListener('error', onInitErr);
+            reject(new Error((err && err.message) ? err.message : `Failed to start worker ${coreJsUrl}`));
+          };
+          worker.addEventListener('message', onInitMsg);
+          worker.addEventListener('error', onInitErr);
+          worker.postMessage({
+            type: 'init',
+            uf2Bytes,
+            cycleNanos: 125,
+            savedSectors: null,
+            holdButtonsAtBoot: [],
+            autoStart: false,
+          });
+        });
+
+        function handleWorkerRuntimeError(detailMsg) {
+          if (sc22WorkerFailed) return;
+          sc22WorkerFailed = true;
+          latestSpeedRatio = 0;
+          stopEmulationLoop();
+          try {
+            worker.terminate();
+          } catch (_) {}
+          if (activeSc22Worker === worker) {
+            activeSc22Worker = null;
+          }
+          const cleanDetail = detailMsg ? String(detailMsg) : 'Runtime error in RP2040 Web Worker';
+          if (speedReadout) {
+            speedReadout.textContent = '— (Worker stopped)';
+          }
+          if (fpsReadout) {
+            fpsReadout.textContent = '0';
+          }
+          setSc22Status(`Emulator worker error: ${cleanDetail}`);
+          showAssetLoadError(
+            'The 2022 RP2040 emulator worker stopped due to a runtime error.',
+            cleanDetail,
+            'WORKER ERROR'
+          );
+        }
+
+        worker.addEventListener('error', (err) => {
+          const msg = (err && err.message) ? err.message : 'Unhandled error in RP2040 Web Worker';
+          handleWorkerRuntimeError(msg);
+        });
+
+        worker.addEventListener('message', (ev) => {
+          const msg = ev.data;
+          if (!msg || typeof msg.type !== 'string') return;
+          if (msg.type === 'error') {
+            handleWorkerRuntimeError(msg.message || 'Worker error');
+            return;
+          }
+          if (msg.type === 'frame') {
+            if (msg.rgb && msg.rgb.length === 156) {
+              ledsBuf.set(msg.rgb);
+            }
+            if (msg.state) {
+              latestState = msg.state;
+              updateSc22Panel();
+            }
+            if (typeof msg.speedRatio === 'number') {
+              latestSpeedRatio = msg.speedRatio;
+            }
+            if (msg.dirtySectors) {
+              if (msg.dirtySectors.sector1cc && msg.dirtySectors.sector1cc.length === 4096) {
+                eepromBuf.set(msg.dirtySectors.sector1cc, 0);
+              }
+              if (msg.dirtySectors.sector1cd && msg.dirtySectors.sector1cd.length === 4096) {
+                eepromBuf.set(msg.dirtySectors.sector1cd, 4096);
+              }
+              flashDirtyFlag = true;
+            }
+          } else if (msg.type === 'serial_line') {
+            if (typeof msg.line === 'string') {
+              onSc22SerialLine(msg.line);
+            }
+          } else if (msg.type === 'reset_done' || msg.type === 'wipe_done' || msg.type === 'paused' || msg.type === 'started') {
+            if (msg.state) {
+              latestState = msg.state;
+              updateSc22Panel();
+            }
+          }
+        });
+
+        function hasNonErasedFlash() {
+          for (let i = 0; i < eepromBuf.length; i++) {
+            if (eepromBuf[i] !== 0xff) return true;
+          }
+          return false;
+        }
+
+        function currentSavedSectorsFromBuf() {
+          if (!hasNonErasedFlash()) return null;
+          return {
+            sector1cc: eepromBuf.slice(0, 4096),
+            sector1cd: eepromBuf.slice(4096, 8192),
+          };
+        }
+
+        function syncButtonsToWorker(mask) {
+          if (sc22WorkerFailed) return;
+          const diff = mask ^ lastBtnMask;
+          if (!diff) return;
+          lastBtnMask = mask;
+          if (diff & 1) {
+            worker.postMessage({ type: 'button', name: 'UP', pressed: (mask & 1) !== 0 });
+          }
+          if (diff & 2) {
+            worker.postMessage({ type: 'button', name: 'DOWN', pressed: (mask & 2) !== 0 });
+          }
+          if (diff & 16) {
+            worker.postMessage({ type: 'button', name: 'SELECT', pressed: (mask & 16) !== 0 });
+          }
+        }
+
+        console.info(`[badge-emu] Loaded RP2040 Web Worker core from ${coreJsUrl}`);
+        return {
+          isMock: false,
+          coreBadgeLabel: 'RP2040 CORE',
+          emu_init(_seed) {
+            if (sc22WorkerFailed) return;
+            lastBtnMask = 0;
+            sc22WinStatusSynced = false;
+            const savedSectors = currentSavedSectorsFromBuf();
+            if (savedSectors) {
+              worker.postMessage({
+                type: 'reset',
+                savedSectors,
+                holdButtonsAtBoot: [],
+                autoStart: !paused && !document.hidden,
+              });
+            } else {
+              setSc22Status(
+                'First boot on erased flash: this is the firmware\'s own LED test, which it runs on a fresh save and never ends by itself. Click Reset Badge to start the notepad.'
+              );
+              if (!paused && !document.hidden) {
+                worker.postMessage({ type: 'start' });
+              }
+            }
+          },
+          emu_reset() {
+            if (sc22WorkerFailed) return;
+            lastBtnMask = 0;
+            sc22WinStatusSynced = false;
+            const holdVal = sc22BootHoldSelect ? String(sc22BootHoldSelect.value || 'none') : 'none';
+            const holdArr = (holdVal === 'DOWN' || holdVal === 'SELECT') ? [holdVal] : [];
+            worker.postMessage({
+              type: 'reset',
+              savedSectors: currentSavedSectorsFromBuf(),
+              holdButtonsAtBoot: holdArr,
+              autoStart: !paused && !document.hidden,
+            });
+          },
+          emu_step(_dtMs, buttonsMask) {
+            syncButtonsToWorker(buttonsMask >>> 0);
+          },
+          emu_fb_width() { return 0; },
+          emu_fb_height() { return 0; },
+          emu_led_count() { return 52; },
+          emu_backlight() { return 255; },
+          emu_set_speed(_mult) {},
+          emu_eeprom_size() { return 8192; },
+          emu_eeprom_dirty() {
+            if (flashDirtyFlag) {
+              flashDirtyFlag = false;
+              return 1;
+            }
+            return 0;
+          },
+          getFramebufferView() { return new Uint16Array(0); },
+          getLedsView() { return ledsBuf; },
+          getEepromView() { return eepromBuf; },
+          sc22GetState() { return latestState; },
+          sc22GetSpeedRatio() { return latestSpeedRatio; },
+          sc22SendSerial(text, opts) {
+            if (sc22WorkerFailed) return;
+            worker.postMessage({
+              type: 'serial_in',
+              text: String(text || ''),
+              sendWhenBlinkEven: Boolean(opts && opts.sendWhenBlinkEven),
+            });
+          },
+          sc22SetAlsLux(lux) {
+            if (sc22WorkerFailed) return;
+            worker.postMessage({ type: 'als_lux', lux: Number(lux) });
+          },
+          sc22SetPaused(isPaused) {
+            if (sc22WorkerFailed) return;
+            worker.postMessage({ type: isPaused ? 'pause' : 'start' });
+          },
+          sc22Reset(holdButtonName) {
+            if (sc22WorkerFailed) return;
+            lastBtnMask = 0;
+            sc22LastSeenCursorS = -1;
+            sc22LastSeenCursorA = -1;
+            sc22WinStatusSynced = false;
+            const holdArr = (holdButtonName === 'DOWN' || holdButtonName === 'SELECT') ? [holdButtonName] : [];
+            if (holdButtonName === 'SELECT') {
+              ledsBuf.fill(0);
+            }
+            worker.postMessage({
+              type: 'reset',
+              savedSectors: currentSavedSectorsFromBuf(),
+              holdButtonsAtBoot: holdArr,
+              autoStart: !paused && !document.hidden,
+            });
+          },
+          sc22WipeSave() {
+            if (sc22WorkerFailed) return false;
+            lastBtnMask = 0;
+            sc22LastSeenCursorS = -1;
+            sc22LastSeenCursorA = -1;
+            sc22WinStatusSynced = false;
+            eepromBuf.fill(0xff);
+            flashDirtyFlag = false;
+            worker.postMessage({
+              type: 'wipe_save',
+              autoStart: !paused && !document.hidden,
+            });
+          },
+          sc22TerminateWorker() {
+            if (activeSc22Worker === worker) {
+              activeSc22Worker = null;
+            }
+            try {
+              worker.postMessage({ type: 'pause' });
+              worker.terminate();
+            } catch (_) {}
+          },
+        };
+      }
+
       async function loadCoreInstance(baseDir, meta) {
         if (isMockRequested) {
           console.info('[badge-emu] ?mock=1 requested; running mock-core.js under isolated mock storage key');
           return wrapRawModule(window.createMockCore(), true);
+        }
+
+        if (currentYear === '2022') {
+          return loadCore2022Worker(baseDir, meta);
         }
 
         if (typeof WebAssembly !== 'object' || typeof WebAssembly.instantiate !== 'function') {
@@ -6854,6 +8306,9 @@ EMAIL:visitor@example.invalid</textarea>
           btnWipeEl.disabled = eepromBytes === 0;
           btnWipeEl.title = eepromBytes === 0 ? 'No save data is used by HITB Minibadge 2017' : '';
         }
+        if (eepromStatusLabel) {
+          eepromStatusLabel.textContent = Number(yr) === 2022 ? 'Flash save' : 'EEPROM';
+        }
         if (eepromBytes === 0) {
           eepromStatus.textContent = 'No save data';
           telEeprom.textContent = 'No save data needed (RAM only)';
@@ -6984,7 +8439,9 @@ EMAIL:visitor@example.invalid</textarea>
           if (dpadSubtitleEl) {
             dpadSubtitleEl.textContent = Number(yr) === 2021
               ? 'Release Dial to Open'
-              : (is2019 ? (sc19InEnigmaScreens ? 'Hold 3s = Back' : 'Hold or Tap') : 'Hold or Tap');
+              : (Number(yr) === 2022
+                ? 'Acts on Release (No Repeat)'
+                : (is2019 ? (sc19InEnigmaScreens ? 'Hold 3s = Back' : 'Hold or Tap') : 'Hold or Tap'));
           }
 
           if (is2019) {
@@ -7098,7 +8555,7 @@ EMAIL:visitor@example.invalid</textarea>
             const navRef = (centerDef && centerDef.ref) || 'SW2';
             const centerLabel = (centerDef && centerDef.name) || 'Center';
             dpadTitleLabel.textContent = (!hasLeft && !hasRight)
-              ? '3-Button Controls (SW1 / SW2 / SW3)'
+              ? (Number(yr) === 2022 ? '3-Button Controls (UP / DOWN / SELECT)' : '3-Button Controls (SW1 / SW2 / SW3)')
               : `5-Way Joystick (${navRef})`;
             const centerSp = document.createElement('span');
             centerSp.append(`${centerLabel}: `);
@@ -7159,7 +8616,7 @@ EMAIL:visitor@example.invalid</textarea>
           ? activeModeObj.has_speed_control
           : (meta.has_speed_control !== false);
         speedControlGroup.style.display = hasSpeed ? '' : 'none';
-        speedStripItem.style.display = hasSpeed ? '' : 'none';
+        speedStripItem.style.display = (hasSpeed || Number(yr) === 2022) ? '' : 'none';
 
         if (stockNutGroup) {
           stockNutGroup.style.display = 'none';
@@ -7184,6 +8641,12 @@ EMAIL:visitor@example.invalid</textarea>
         }
         if (ledBoardPanelCard) {
           ledBoardPanelCard.style.display = 'none';
+        }
+        if (sc22PanelCard) {
+          sc22PanelCard.style.display = 'none';
+        }
+        if (sc22BoardNotice) {
+          sc22BoardNotice.classList.remove('visible');
         }
         syncTouchUiState();
 
@@ -7236,34 +8699,46 @@ EMAIL:visitor@example.invalid</textarea>
             });
           };
 
-          const stBadgeBy = document.createElement('strong');
-          stBadgeBy.append('Badge by ');
-          if (coCreators.length > 1) {
-            appendCreditNameList(stBadgeBy, coCreators);
+          if (c.repo_only) {
+            creditsPrimaryLine.append('Repo: ', createExtLink(repoUrl, repoShort, false));
+            if (c.commit && c.source_url) {
+              const commitLink = createExtLink(c.source_url, '', false);
+              commitLink.textContent = '';
+              const codeEl = document.createElement('code');
+              codeEl.textContent = String(c.commit);
+              commitLink.appendChild(codeEl);
+              creditsPrimaryLine.append(' (', commitLink, ')');
+            }
           } else {
-            stBadgeBy.appendChild(createExtLink(authorUrl, authorHandle, false));
-          }
-          creditsPrimaryLine.appendChild(stBadgeBy);
-          if (authorName && coCreators.length <= 1) {
-            creditsPrimaryLine.append(authorName);
-          }
-          creditsPrimaryLine.append(' • Repo: ', createExtLink(repoUrl, repoShort, false));
-          if (c.commit && c.source_url) {
-            const commitLink = createExtLink(c.source_url, '', false);
-            commitLink.textContent = '';
-            const codeEl = document.createElement('code');
-            codeEl.textContent = String(c.commit);
-            commitLink.appendChild(codeEl);
-            creditsPrimaryLine.append(' (', commitLink, ')');
-          }
-          for (const o of extraCredits) {
-            creditsPrimaryLine.append(' • ');
-            if (o.url) {
-              creditsPrimaryLine.append(createExtLink(o.url, o.name, true), ` (${o.role || ''})`);
+            const stBadgeBy = document.createElement('strong');
+            stBadgeBy.append(c.credit_prefix ? String(c.credit_prefix) : 'Badge by ');
+            if (coCreators.length > 1) {
+              appendCreditNameList(stBadgeBy, coCreators);
             } else {
-              const stO = document.createElement('strong');
-              stO.textContent = String(o.name);
-              creditsPrimaryLine.append(stO, ` (${o.role || ''})`);
+              stBadgeBy.appendChild(createExtLink(authorUrl, authorHandle, false));
+            }
+            creditsPrimaryLine.appendChild(stBadgeBy);
+            if (authorName && coCreators.length <= 1) {
+              creditsPrimaryLine.append(authorName);
+            }
+            creditsPrimaryLine.append(' • Repo: ', createExtLink(repoUrl, repoShort, false));
+            if (c.commit && c.source_url) {
+              const commitLink = createExtLink(c.source_url, '', false);
+              commitLink.textContent = '';
+              const codeEl = document.createElement('code');
+              codeEl.textContent = String(c.commit);
+              commitLink.appendChild(codeEl);
+              creditsPrimaryLine.append(' (', commitLink, ')');
+            }
+            for (const o of extraCredits) {
+              creditsPrimaryLine.append(' • ');
+              if (o.url) {
+                creditsPrimaryLine.append(createExtLink(o.url, o.name, true), ` (${o.role || ''})`);
+              } else {
+                const stO = document.createElement('strong');
+                stO.textContent = String(o.name);
+                creditsPrimaryLine.append(stO, ` (${o.role || ''})`);
+              }
             }
           }
 
@@ -7315,16 +8790,29 @@ EMAIL:visitor@example.invalid</textarea>
             } else {
               srcLink.textContent = 'source';
             }
-            aboutAuthorPara.append(
-              'Emulates the ',
-              stTitle,
-              ' badge by ',
-              createExtLink(authorUrl, authorHandle, false),
-              ' (',
-              srcLink,
-              ', ',
-              buildLicenseNodes()
-            );
+            if (c.repo_only) {
+              aboutAuthorPara.append(
+                'Emulates the ',
+                stTitle,
+                ' badge — Repo: ',
+                createExtLink(repoUrl, repoShort, false),
+                ' (',
+                srcLink,
+                ', ',
+                buildLicenseNodes()
+              );
+            } else {
+              aboutAuthorPara.append(
+                'Emulates the ',
+                stTitle,
+                ' badge by ',
+                createExtLink(authorUrl, authorHandle, false),
+                ' (',
+                srcLink,
+                ', ',
+                buildLicenseNodes()
+              );
+            }
             if (c.copyright) {
               aboutAuthorPara.append(` — ${c.copyright}`);
             }
@@ -7339,7 +8827,9 @@ EMAIL:visitor@example.invalid</textarea>
             aboutAuthorPara.append(
               'This is a ',
               stFan,
-              is2017 ? ' of the HITB Minibadge 2017 (minibadge — main 2017 badge firmware is not in this repo) by ' : ' of the badge by '
+              is2017
+                ? ' of the HITB Minibadge 2017 (minibadge — main 2017 badge firmware is not in this repo) by '
+                : (Number(yr) === 2022 ? ' of the SAINTCON 2022 badge (repo by ' : ' of the badge by ')
             );
             if (coCreators.length > 1) {
               appendCreditNameList(aboutAuthorPara, coCreators);
@@ -7349,6 +8839,9 @@ EMAIL:visitor@example.invalid</textarea>
               }
             } else {
               aboutAuthorPara.appendChild(createExtLink(authorUrl, authorHandle, false));
+            }
+            if (Number(yr) === 2022) {
+              aboutAuthorPara.append(')');
             }
             aboutAuthorPara.append(
               ' (',
@@ -7376,11 +8869,13 @@ EMAIL:visitor@example.invalid</textarea>
           } else {
             const storageDesc = Number(yr) === 2021
               ? `simulated ${eepromBytes}-byte EEPROM & registration vCard flash`
-              : (is2019
-                ? `simulated ${eepromBytes}-byte EEPROM & plugboard jumper wires`
-                : (is2020
-                  ? `simulated ${eepromBytes}-byte EEPROM & TP1 boot jumper setting`
-                  : `simulated ${eepromBytes}-byte EEPROM`));
+              : (Number(yr) === 2022
+                ? `simulated ${eepromBytes}-byte flash sectors (0x1cc000 & 0x1cd000) and stand-in kiosk mystery state`
+                : (is2019
+                  ? `simulated ${eepromBytes}-byte EEPROM & plugboard jumper wires`
+                  : (is2020
+                    ? `simulated ${eepromBytes}-byte EEPROM & TP1 boot jumper setting`
+                    : `simulated ${eepromBytes}-byte EEPROM`)));
             aboutPrivacyPara.append(
               stPriv,
               ` All badge progress (${storageDesc}) is saved in `,
@@ -7476,6 +8971,8 @@ EMAIL:visitor@example.invalid</textarea>
               ', ',
               makeNavLink(yearHref('2021'), '2021 (Combination lock badge)'),
               ', ',
+              makeNavLink(yearHref('2022'), '2022 (Clue notepad badge)'),
+              ', ',
               makeNavLink(yearHref('2023'), '2023 ("Incidents")'),
               ', ',
               makeNavLink(yearHref('2024'), '2024 ("Tower Battle")'),
@@ -7552,14 +9049,14 @@ EMAIL:visitor@example.invalid</textarea>
         } catch (wasmErr) {
           console.error('[badge-emu] WebAssembly core failed to load:', wasmErr);
           const errMsg = wasmErr && wasmErr.message ? String(wasmErr.message) : '';
-          if (errMsg === WASM_MISSING_MSG) {
+          if (errMsg === WASM_MISSING_MSG || errMsg === WORKER_MISSING_MSG) {
             const hasSaves = currentYear !== '2017' && eepromBytes > 0;
-            coreModePill.textContent = 'WASM REQUIRED';
+            coreModePill.textContent = errMsg === WORKER_MISSING_MSG ? 'WORKER REQUIRED' : 'WASM REQUIRED';
             eepromStatus.textContent = hasSaves ? 'Untouched' : 'No save data';
-            telEeprom.textContent = WASM_MISSING_MSG;
+            telEeprom.textContent = errMsg;
             comingSoonBanner.classList.add('visible', 'error');
             const stMsg = document.createElement('strong');
-            stMsg.textContent = WASM_MISSING_MSG;
+            stMsg.textContent = errMsg;
             if (hasSaves) {
               comingSoonBanner.replaceChildren(
                 stMsg,
@@ -7573,8 +9070,9 @@ EMAIL:visitor@example.invalid</textarea>
             const modeObj = meta && meta.modes && meta.modes[currentMode];
             const coreJsRel = (modeObj && modeObj.core_js) || (meta && meta.files && meta.files.core_js) || 'core.js';
             const coreWasmRel = (modeObj && modeObj.core_wasm) || (meta && meta.files && meta.files.core_wasm) || 'core.wasm';
+            const secondAssetRel = (modeObj && modeObj.uf2) || (meta && meta.files && meta.files.uf2) || coreWasmRel;
             showAssetLoadError(
-              `Could not load the ${currentYear} badge firmware (${effectiveBaseDir}/${coreJsRel} / ${coreWasmRel}).`,
+              `Could not load the ${currentYear} badge firmware (${effectiveBaseDir}/${coreJsRel} / ${secondAssetRel}).`,
               errMsg || 'Download failed',
               'FIRMWARE LOAD ERROR'
             );
@@ -7724,6 +9222,15 @@ EMAIL:visitor@example.invalid</textarea>
             : 'SAINTCON 2020 — LEDs, TP1 Boot Switch & Hardware';
         }
 
+        const showSc22Controls = Boolean(
+          ((activeModeObj && activeModeObj.has_2022_companion) || meta.has_2022_companion) &&
+          !core.isMock &&
+          !isMockRequested
+        );
+        if (sc22PanelCard) {
+          sc22PanelCard.style.display = showSc22Controls ? '' : 'none';
+        }
+
         // Sync framebuffer dimensions, LED count, and EEPROM size from the Generalized Core ABI
         const coreW = core.emu_fb_width() | 0;
         const coreH = core.emu_fb_height() | 0;
@@ -7740,7 +9247,9 @@ EMAIL:visitor@example.invalid</textarea>
         if (coreLeds > 0) numLeds = coreLeds;
         if (coreEeprom > 0) eepromBytes = coreEeprom;
 
-        coreModePill.textContent = core.isMock ? 'MOCK CORE (JS)' : 'WASM CORE';
+        coreModePill.textContent = core.isMock
+          ? 'MOCK CORE (JS)'
+          : (core.coreBadgeLabel || (meta && meta.core_badge_label) || 'WASM CORE');
 
         // Load persisted EEPROM from per-year/per-mode localStorage key before calling emu_init(seed)
         const eepromKey = getStorageKey('eeprom');
@@ -7759,6 +9268,11 @@ EMAIL:visitor@example.invalid</textarea>
           telEeprom.textContent = (hadSaved || hadSrv23)
             ? 'saintcon_2023_stock_* (Loaded)'
             : 'saintcon_2023_stock_* (Fresh)';
+        } else if (currentYear === '2022' && currentMode === 'stock' && !core.isMock && !isMockRequested) {
+          const hadKiosk22 = loadSc22KioskState();
+          telEeprom.textContent = (hadSaved || hadKiosk22)
+            ? 'saintcon_2022_stock_* (Loaded)'
+            : 'saintcon_2022_stock_* (Fresh)';
         } else if (currentYear === '2021' && currentMode === 'stock' && !core.isMock && !isMockRequested) {
           const hadVcard21 = loadSc21VcardFromStorage();
           let hadMb21 = false;
@@ -7820,6 +9334,9 @@ EMAIL:visitor@example.invalid</textarea>
         if (showSc19Controls) {
           initSc19PlugboardUi();
         }
+        if (showSc22Controls) {
+          initSc22CompanionUi();
+        }
         core.emu_set_speed(currentSpeed);
         if (core.emu_eeprom_dirty()) {
           eepromPendingSave = true;
@@ -7858,6 +9375,9 @@ EMAIL:visitor@example.invalid</textarea>
             activeSc19PadPointers.clear();
             releaseActiveTouch();
             updateInputVisuals();
+            if (currentYear === '2022' && core && typeof core.sc22SetPaused === 'function') {
+              core.sc22SetPaused(true);
+            }
             if (!loopStopped) {
               flushEepromToStorage(true);
               if (sc21VcardPendingSave || (typeof core.sc21VcardDirty === 'function' && core.sc21VcardDirty())) {
@@ -7871,7 +9391,11 @@ EMAIL:visitor@example.invalid</textarea>
             tabHidden = false;
             hiddenSinceMs = null;
             lastFrameTime = now;
-            if (!paused && !loopStopped && elapsedHidden > 0) {
+            if (currentYear === '2022') {
+              if (!paused && !loopStopped && core && typeof core.sc22SetPaused === 'function') {
+                core.sc22SetPaused(false);
+              }
+            } else if (!paused && !loopStopped && elapsedHidden > 0) {
               advanceBoundedSteps(elapsedHidden);
             }
           }
@@ -7919,6 +9443,15 @@ EMAIL:visitor@example.invalid</textarea>
             if (currentYear === '2020' && !sc20ActivePressItem && sc20PressQueue.length > 0) {
               sc20ActivePressItem = sc20PressQueue.shift();
             }
+            if (currentYear === '2022' && !sc22PausedActiveItem && sc22PausedQueue.length > 0) {
+              const next22 = sc22PausedQueue.shift();
+              sc22PausedActiveItem = {
+                btnMask: (next22 && typeof next22 === 'object' ? next22.btnMask : next22) >>> 0,
+                phase: 'hold',
+                remainingMs: 60,
+                steps: 0,
+              };
+            }
             let stepMask = getButtonsMask() | sc21PausedPendingMask | queued19Btn;
             if (currentYear === '2020' && sc20ActivePressItem) {
               if (sc20ActivePressItem.phase === 'hold') {
@@ -7927,9 +9460,29 @@ EMAIL:visitor@example.invalid</textarea>
                 stepMask &= ~1;
               }
             }
+            if (currentYear === '2022' && sc22PausedActiveItem) {
+              if (sc22PausedActiveItem.phase === 'hold') {
+                stepMask |= sc22PausedActiveItem.btnMask;
+              } else {
+                stepMask &= ~sc22PausedActiveItem.btnMask;
+              }
+            }
             sc21PausedPendingMask = 0;
             core.emu_step(dt, stepMask);
             totalSteps++;
+            if (currentYear === '2022' && sc22PausedActiveItem) {
+              sc22PausedActiveItem.remainingMs -= dt;
+              sc22PausedActiveItem.steps += 1;
+              if (sc22PausedActiveItem.phase === 'hold') {
+                if (sc22PausedActiveItem.remainingMs <= 0 && sc22PausedActiveItem.steps >= 2) {
+                  sc22PausedActiveItem.phase = 'gap';
+                  sc22PausedActiveItem.remainingMs = 60;
+                  sc22PausedActiveItem.steps = 0;
+                }
+              } else if (sc22PausedActiveItem.remainingMs <= 0 && sc22PausedActiveItem.steps >= 2) {
+                sc22PausedActiveItem = null;
+              }
+            }
             if (currentYear === '2020' && sc20ActivePressItem) {
               sc20ActivePressItem.remainingMs -= dt * currentSpeed;
               sc20ActivePressItem.steps += 1;
@@ -7972,7 +9525,7 @@ EMAIL:visitor@example.invalid</textarea>
               sc21VcardPendingSave = true;
               flushSc21VcardToStorage(true);
             }
-            flushEepromToStorage(false);
+            flushEepromToStorage(currentYear === '2022');
             renderOutputs();
             if (showSc18Controls && now - lastSc18PollMs >= 250) {
               lastSc18PollMs = now;
@@ -8213,6 +9766,59 @@ EMAIL:visitor@example.invalid</textarea>
           },
           sc17GetLastBrightness() {
             return core && typeof core.sc17GetLastBrightness === 'function' ? core.sc17GetLastBrightness() : 0;
+          },
+          sc22GetState() {
+            return core && typeof core.sc22GetState === 'function' ? core.sc22GetState() : null;
+          },
+          sc22GetSpeedRatio() {
+            return core && typeof core.sc22GetSpeedRatio === 'function' ? core.sc22GetSpeedRatio() : 1.0;
+          },
+          sc22SendSerial(text) {
+            if (core && typeof core.sc22SendSerial === 'function') {
+              appendSc22SerialLog('>', text);
+              core.sc22SendSerial(text);
+            }
+          },
+          sc22GetSerialLog() {
+            return sc22SerialLines.slice();
+          },
+          sc22GetKioskState() {
+            return sc22KioskState ? JSON.parse(JSON.stringify(sc22KioskState)) : null;
+          },
+          sc22VisitKiosk() {
+            if (btnSc22VisitKiosk) btnSc22VisitKiosk.click();
+          },
+          sc22SendWinClue() {
+            if (btnSc22WinNow) btnSc22WinNow.click();
+          },
+          sc22Accuse(roomIdx, suspectIdx, attackIdx) {
+            if (typeof suspectIdx === 'number' && sc22AccuseSuspect) {
+              sc22AccuseSuspect.value = String(suspectIdx);
+              sc22AccuseSuspect.dataset.userEdited = '1';
+            }
+            if (typeof attackIdx === 'number' && sc22AccuseAttack) {
+              sc22AccuseAttack.value = String(attackIdx);
+              sc22AccuseAttack.dataset.userEdited = '1';
+            }
+            if (typeof roomIdx === 'number' && sc22AccuseRoom) {
+              sc22AccuseRoom.value = String(roomIdx);
+              sc22AccuseRoom.dataset.userEdited = '1';
+            }
+            if (btnSc22Accuse) btnSc22Accuse.click();
+          },
+          sc22SetDarkRoom(dark) {
+            if (chkSc22DarkRoom) {
+              chkSc22DarkRoom.checked = Boolean(dark);
+              chkSc22DarkRoom.dispatchEvent(new Event('change'));
+            }
+          },
+          sc22Reset(holdBtn) {
+            if (sc22BootHoldSelect) {
+              sc22BootHoldSelect.value = (holdBtn === 'DOWN' || holdBtn === 'SELECT') ? holdBtn : 'none';
+            }
+            if (core && typeof core.sc22Reset === 'function') {
+              core.sc22Reset((holdBtn === 'DOWN' || holdBtn === 'SELECT') ? holdBtn : 'none');
+            }
           },
         };
       }

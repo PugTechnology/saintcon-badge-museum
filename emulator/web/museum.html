@@ -6,7 +6,7 @@
   <title>SAINTCON Badge Museum</title>
   <script>
     (function () {
-      var LIVE_YEARS = ['2017', '2018', '2019', '2020', '2021', '2023', '2024', '2025', '2026'];
+      var LIVE_YEARS = ['2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'];
       var PROD = 'sc.pug.technology';
       var host = (window.location.hostname || '').toLowerCase();
       var isProdDomain = host === PROD || host.endsWith('.' + PROD);
@@ -409,6 +409,7 @@
       <a class="card-cta secondary" style="padding: 8px 14px; width: auto;" href="?year=2025">Play 2025 Badge →</a>
       <a class="card-cta secondary" style="padding: 8px 14px; width: auto;" href="?year=2024">Play 2024 Badge →</a>
       <a class="card-cta secondary" style="padding: 8px 14px; width: auto;" href="?year=2023">Play 2023 Badge →</a>
+      <a class="card-cta secondary" style="padding: 8px 14px; width: auto;" href="?year=2022">Play 2022 Badge →</a>
       <a class="card-cta secondary" style="padding: 8px 14px; width: auto;" href="?year=2021">Play 2021 Badge →</a>
       <a class="card-cta secondary" style="padding: 8px 14px; width: auto;" href="?year=2020">Play 2020 Badge →</a>
       <a class="card-cta secondary" style="padding: 8px 14px; width: auto;" href="?year=2019">Play 2019 Badge →</a>
@@ -624,6 +625,45 @@
         </div>
       </article>
 
+      <!-- 2022 Badge Card (LIVE) -->
+      <article class="year-card" id="card-2022">
+        <div class="card-top">
+          <a class="card-thumb" href="?year=2022" title="Launch SAINTCON 2022 Clue-Style Notepad Badge Emulator">
+            <img src="badges/2022/board.png" alt="SAINTCON 2022 Clue-style notepad badge drawing" />
+          </a>
+          <div class="card-head-info">
+            <div class="status-row">
+              <span class="year-badge">2022</span>
+              <span class="status-pill live">● Live</span>
+            </div>
+            <h2><a href="?year=2022" style="color: inherit;">Clue-style notepad badge</a></h2>
+            <p class="hw-summary">
+              RP2040 dual Cortex-M0+ (QSPI flash) • 52 charlieplexed RGB LEDs on GP0–GP14 (21 Suspects, 21 Attacks/Exploits, 10 Rooms) • UP / DOWN / SELECT tactile buttons (GP15–GP17) • Ambient light sensor (I2C0 @ 0x29) • Dual-wing minibadge connectors (8 total, 4 per wing) • Stand-in museum kiosk over firmware serial protocol.
+            </p>
+          </div>
+        </div>
+
+        <div class="modes-row">
+          <a class="mode-chip" href="?year=2022" style="color: inherit;">🚀 <strong>Original UF2 Firmware</strong></a>
+        </div>
+
+        <div class="credits-box">
+          <div class="main-credit">
+            <strong>Repo: <a href="https://github.com/compukidmike/saintcon2022" target="_blank" rel="noopener">compukidmike/saintcon2022</a></strong>
+            (<a href="https://github.com/compukidmike/saintcon2022/commit/383964e2e0e576dd3c153fc479d37fb429ce2969" target="_blank" rel="noopener"><code>383964e</code></a>)
+            • Licence not stated
+            • <a href="badges/2022/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">Third-party licenses</a>
+          </div>
+          <div class="sub-credit">
+            Runs the unpatched <code>Saintcon2022BadgeFirmwareFix.uf2</code> binary from <a href="https://github.com/compukidmike/saintcon2022" target="_blank" rel="noopener"><strong>compukidmike/saintcon2022</strong></a> (upstream repo provides guides and the UF2 binary; no firmware source or board design files are published) on a dual-core RP2040 emulator built with <a href="https://github.com/wokwi/rp2040js" target="_blank" rel="noopener">wokwi/rp2040js</a> (MIT)
+          </div>
+        </div>
+
+        <div class="card-actions">
+          <a class="card-cta" href="?year=2022">Play Original Firmware →</a>
+        </div>
+      </article>
+
       <!-- 2023 Badge Card (LIVE) -->
       <article class="year-card" id="card-2023">
         <div class="card-top">
@@ -795,7 +835,7 @@
         <strong><a href="https://saintcon.org" target="_blank" rel="noopener">SAINTCON</a></strong> is Utah's annual cybersecurity and hackers conference, organized by the UtahSAINT community and known for its custom electronic badges.
       </p>
       <p>
-        2017 (HITB Minibadge 2017), 2018, 2019, 2020, 2023, 2024, and 2025 are built from <a href="https://github.com/compukidmike" target="_blank" rel="noopener">compukidmike</a>'s source (<a href="badges/2017/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2017 third-party licenses</a>, <a href="badges/2018/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2018 third-party licenses</a>, <a href="badges/2019/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2019 third-party licenses</a>, <a href="badges/2020/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2020 third-party licenses</a>, <a href="badges/2023/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2023 third-party licenses</a>, <a href="badges/2024/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2024 third-party licenses</a>, <a href="badges/2025/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2025 third-party licenses</a>); 2021 is built from the badge created by <a href="https://github.com/compukidmike" target="_blank" rel="noopener">compukidmike</a>, <a href="https://github.com/Professor-plum" target="_blank" rel="noopener">Professor_Plum</a>, and <a href="https://github.com/Sodium-Hydrogen" target="_blank" rel="noopener">Sodium_Hydrogen</a> (<a href="badges/2021/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2021 third-party licenses</a>); 2026 is built from <a href="https://github.com/Professor-plum" target="_blank" rel="noopener">Professor-plum</a>'s <a href="badges/2026/LICENSE.txt" target="_blank" rel="noopener">MIT-licensed</a> source (<a href="badges/2026/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2026 third-party licenses</a>).
+        2017 (HITB Minibadge 2017), 2018, 2019, 2020, 2023, 2024, and 2025 are built from <a href="https://github.com/compukidmike" target="_blank" rel="noopener">compukidmike</a>'s source (<a href="badges/2017/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2017 third-party licenses</a>, <a href="badges/2018/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2018 third-party licenses</a>, <a href="badges/2019/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2019 third-party licenses</a>, <a href="badges/2020/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2020 third-party licenses</a>, <a href="badges/2023/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2023 third-party licenses</a>, <a href="badges/2024/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2024 third-party licenses</a>, <a href="badges/2025/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2025 third-party licenses</a>); 2021 is built from the badge created by <a href="https://github.com/compukidmike" target="_blank" rel="noopener">compukidmike</a>, <a href="https://github.com/Professor-plum" target="_blank" rel="noopener">Professor_Plum</a>, and <a href="https://github.com/Sodium-Hydrogen" target="_blank" rel="noopener">Sodium_Hydrogen</a> (<a href="badges/2021/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2021 third-party licenses</a>); 2026 is built from <a href="https://github.com/Professor-plum" target="_blank" rel="noopener">Professor-plum</a>'s <a href="badges/2026/LICENSE.txt" target="_blank" rel="noopener">MIT-licensed</a> source (<a href="badges/2026/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2026 third-party licenses</a>). The 2022 badge runs the UF2 binary from <a href="https://github.com/compukidmike/saintcon2022" target="_blank" rel="noopener">compukidmike's repository</a> (<a href="badges/2022/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2022 third-party licenses</a>), because no source is published.
       </p>
       <p>
         <strong>Browser-Only Storage:</strong> Each badge's simulated EEPROM/flash is stored locally in your browser's <code>localStorage</code> (isolated per year and mode). No external CDNs, no analytics, and no cookies are used.

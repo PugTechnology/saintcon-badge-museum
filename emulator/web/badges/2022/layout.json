@@ -1,0 +1,1491 @@
+{
+  "board_image": {
+    "file": "board.png",
+    "width_px": 1200,
+    "height_px": 1460,
+    "scale_px_per_mm": 10.0,
+    "origin_x_mm": 0.0,
+    "origin_y_mm": 0.0,
+    "source_note": "Drawn from a photo of a real 2022 badge, not from board files, so positions are approximate."
+  },
+  "outline": {
+    "bbox_mm": {
+      "x": 2.6,
+      "y": 4.6,
+      "w": 114.8,
+      "h": 137.0
+    },
+    "bbox_px": {
+      "x": 26,
+      "y": 46,
+      "w": 1148,
+      "h": 1370
+    }
+  },
+  "buttons": [
+    {
+      "id": "up",
+      "name": "UP",
+      "label": "UP (GP15)",
+      "ref": "UP",
+      "pin": "GP15",
+      "gpio": 15,
+      "bit": 1,
+      "shape": "rect",
+      "x_mm": 29.6,
+      "y_mm": 111.0,
+      "x_px": 296,
+      "y_px": 1110,
+      "w_px": 72,
+      "h_px": 72,
+      "radius_px": 36,
+      "min_hit_px": 44
+    },
+    {
+      "id": "down",
+      "name": "DOWN",
+      "label": "DOWN (GP16)",
+      "ref": "DOWN",
+      "pin": "GP16",
+      "gpio": 16,
+      "bit": 2,
+      "shape": "rect",
+      "x_mm": 29.6,
+      "y_mm": 121.8,
+      "x_px": 296,
+      "y_px": 1218,
+      "w_px": 72,
+      "h_px": 72,
+      "radius_px": 36,
+      "min_hit_px": 44
+    },
+    {
+      "id": "select",
+      "name": "SELECT",
+      "label": "SELECT (GP17)",
+      "ref": "SELECT",
+      "pin": "GP17",
+      "gpio": 17,
+      "bit": 16,
+      "shape": "rect",
+      "x_mm": 90.2,
+      "y_mm": 112.6,
+      "x_px": 902,
+      "y_px": 1126,
+      "w_px": 72,
+      "h_px": 72,
+      "radius_px": 36,
+      "min_hit_px": 44
+    }
+  ],
+  "action_buttons": [
+    {
+      "id": "up",
+      "name": "UP",
+      "label": "UP (GP15)",
+      "ref": "UP",
+      "pin": "GP15",
+      "gpio": 15,
+      "bit": 1,
+      "shape": "rect",
+      "x_mm": 29.6,
+      "y_mm": 111.0,
+      "x_px": 296,
+      "y_px": 1110,
+      "w_px": 72,
+      "h_px": 72,
+      "radius_px": 36,
+      "min_hit_px": 44
+    },
+    {
+      "id": "down",
+      "name": "DOWN",
+      "label": "DOWN (GP16)",
+      "ref": "DOWN",
+      "pin": "GP16",
+      "gpio": 16,
+      "bit": 2,
+      "shape": "rect",
+      "x_mm": 29.6,
+      "y_mm": 121.8,
+      "x_px": 296,
+      "y_px": 1218,
+      "w_px": 72,
+      "h_px": 72,
+      "radius_px": 36,
+      "min_hit_px": 44
+    },
+    {
+      "id": "select",
+      "name": "SELECT",
+      "label": "SELECT (GP17)",
+      "ref": "SELECT",
+      "pin": "GP17",
+      "gpio": 17,
+      "bit": 16,
+      "shape": "rect",
+      "x_mm": 90.2,
+      "y_mm": 112.6,
+      "x_px": 902,
+      "y_px": 1126,
+      "w_px": 72,
+      "h_px": 72,
+      "radius_px": 36,
+      "min_hit_px": 44
+    }
+  ],
+  "leds": [
+    {
+      "index": 0,
+      "ref": "Anonymous",
+      "label": "Anonymous",
+      "category": "suspects",
+      "row": 0,
+      "mask_bit": 23,
+      "r": {
+        "cathode": 1,
+        "anode": 0
+      },
+      "g": {
+        "cathode": 2,
+        "anode": 0
+      },
+      "b": {
+        "cathode": 0,
+        "anode": 1
+      },
+      "x_mm": 28.7,
+      "y_mm": 15.1,
+      "radius_mm": 1.15,
+      "x_px": 287,
+      "y_px": 151,
+      "radius_px": 11.5
+    },
+    {
+      "index": 1,
+      "ref": "Chunk",
+      "label": "Chunk",
+      "category": "suspects",
+      "row": 1,
+      "mask_bit": 22,
+      "r": {
+        "cathode": 1,
+        "anode": 2
+      },
+      "g": {
+        "cathode": 2,
+        "anode": 1
+      },
+      "b": {
+        "cathode": 0,
+        "anode": 2
+      },
+      "x_mm": 28.7,
+      "y_mm": 18.2,
+      "radius_mm": 1.15,
+      "x_px": 287,
+      "y_px": 182,
+      "radius_px": 11.5
+    },
+    {
+      "index": 2,
+      "ref": "Compukidmike",
+      "label": "Compukidmike",
+      "category": "suspects",
+      "row": 2,
+      "mask_bit": 21,
+      "r": {
+        "cathode": 1,
+        "anode": 3
+      },
+      "g": {
+        "cathode": 2,
+        "anode": 3
+      },
+      "b": {
+        "cathode": 0,
+        "anode": 3
+      },
+      "x_mm": 28.7,
+      "y_mm": 21.3,
+      "radius_mm": 1.15,
+      "x_px": 287,
+      "y_px": 213,
+      "radius_px": 11.5
+    },
+    {
+      "index": 3,
+      "ref": "C0n4rt1st",
+      "label": "C0n4rt1st",
+      "category": "suspects",
+      "row": 3,
+      "mask_bit": 20,
+      "r": {
+        "cathode": 1,
+        "anode": 4
+      },
+      "g": {
+        "cathode": 2,
+        "anode": 4
+      },
+      "b": {
+        "cathode": 0,
+        "anode": 4
+      },
+      "x_mm": 28.7,
+      "y_mm": 24.4,
+      "radius_mm": 1.15,
+      "x_px": 287,
+      "y_px": 244,
+      "radius_px": 11.5
+    },
+    {
+      "index": 4,
+      "ref": "D4rkm4tter",
+      "label": "D4rkm4tter",
+      "category": "suspects",
+      "row": 4,
+      "mask_bit": 19,
+      "r": {
+        "cathode": 1,
+        "anode": 5
+      },
+      "g": {
+        "cathode": 2,
+        "anode": 5
+      },
+      "b": {
+        "cathode": 0,
+        "anode": 5
+      },
+      "x_mm": 28.7,
+      "y_mm": 27.5,
+      "radius_mm": 1.15,
+      "x_px": 287,
+      "y_px": 275,
+      "radius_px": 11.5
+    },
+    {
+      "index": 5,
+      "ref": "Edward Snowden",
+      "label": "Edward Snowden",
+      "category": "suspects",
+      "row": 5,
+      "mask_bit": 18,
+      "r": {
+        "cathode": 1,
+        "anode": 6
+      },
+      "g": {
+        "cathode": 2,
+        "anode": 6
+      },
+      "b": {
+        "cathode": 0,
+        "anode": 6
+      },
+      "x_mm": 28.7,
+      "y_mm": 30.6,
+      "radius_mm": 1.15,
+      "x_px": 287,
+      "y_px": 306,
+      "radius_px": 11.5
+    },
+    {
+      "index": 6,
+      "ref": "Fyodor",
+      "label": "Fyodor",
+      "category": "suspects",
+      "row": 6,
+      "mask_bit": 17,
+      "r": {
+        "cathode": 1,
+        "anode": 7
+      },
+      "g": {
+        "cathode": 2,
+        "anode": 7
+      },
+      "b": {
+        "cathode": 0,
+        "anode": 7
+      },
+      "x_mm": 28.7,
+      "y_mm": 33.7,
+      "radius_mm": 1.15,
+      "x_px": 287,
+      "y_px": 337,
+      "radius_px": 11.5
+    },
+    {
+      "index": 7,
+      "ref": "HD Moore",
+      "label": "HD Moore",
+      "category": "suspects",
+      "row": 7,
+      "mask_bit": 16,
+      "r": {
+        "cathode": 1,
+        "anode": 8
+      },
+      "g": {
+        "cathode": 2,
+        "anode": 8
+      },
+      "b": {
+        "cathode": 0,
+        "anode": 8
+      },
+      "x_mm": 28.7,
+      "y_mm": 36.8,
+      "radius_mm": 1.15,
+      "x_px": 287,
+      "y_px": 368,
+      "radius_px": 11.5
+    },
+    {
+      "index": 8,
+      "ref": "Jup1t3r",
+      "label": "Jup1t3r",
+      "category": "suspects",
+      "row": 8,
+      "mask_bit": 15,
+      "r": {
+        "cathode": 1,
+        "anode": 9
+      },
+      "g": {
+        "cathode": 2,
+        "anode": 9
+      },
+      "b": {
+        "cathode": 0,
+        "anode": 9
+      },
+      "x_mm": 28.7,
+      "y_mm": 39.9,
+      "radius_mm": 1.15,
+      "x_px": 287,
+      "y_px": 399,
+      "radius_px": 11.5
+    },
+    {
+      "index": 9,
+      "ref": "Kingpin",
+      "label": "Kingpin",
+      "category": "suspects",
+      "row": 9,
+      "mask_bit": 14,
+      "r": {
+        "cathode": 1,
+        "anode": 10
+      },
+      "g": {
+        "cathode": 2,
+        "anode": 10
+      },
+      "b": {
+        "cathode": 0,
+        "anode": 10
+      },
+      "x_mm": 28.7,
+      "y_mm": 43.0,
+      "radius_mm": 1.15,
+      "x_px": 287,
+      "y_px": 430,
+      "radius_px": 11.5
+    },
+    {
+      "index": 10,
+      "ref": "L34N",
+      "label": "L34N",
+      "category": "suspects",
+      "row": 10,
+      "mask_bit": 13,
+      "r": {
+        "cathode": 1,
+        "anode": 11
+      },
+      "g": {
+        "cathode": 2,
+        "anode": 11
+      },
+      "b": {
+        "cathode": 0,
+        "anode": 11
+      },
+      "x_mm": 28.7,
+      "y_mm": 46.1,
+      "radius_mm": 1.15,
+      "x_px": 287,
+      "y_px": 461,
+      "radius_px": 11.5
+    },
+    {
+      "index": 11,
+      "ref": "Linus Torvalds",
+      "label": "Linus Torvalds",
+      "category": "suspects",
+      "row": 11,
+      "mask_bit": 12,
+      "r": {
+        "cathode": 1,
+        "anode": 12
+      },
+      "g": {
+        "cathode": 2,
+        "anode": 12
+      },
+      "b": {
+        "cathode": 0,
+        "anode": 12
+      },
+      "x_mm": 28.7,
+      "y_mm": 49.2,
+      "radius_mm": 1.15,
+      "x_px": 287,
+      "y_px": 492,
+      "radius_px": 11.5
+    },
+    {
+      "index": 12,
+      "ref": "LostboY",
+      "label": "LostboY",
+      "category": "suspects",
+      "row": 12,
+      "mask_bit": 11,
+      "r": {
+        "cathode": 4,
+        "anode": 0
+      },
+      "g": {
+        "cathode": 5,
+        "anode": 0
+      },
+      "b": {
+        "cathode": 3,
+        "anode": 0
+      },
+      "x_mm": 28.7,
+      "y_mm": 52.3,
+      "radius_mm": 1.15,
+      "x_px": 287,
+      "y_px": 523,
+      "radius_px": 11.5
+    },
+    {
+      "index": 13,
+      "ref": "Pali(?)",
+      "label": "Pali(?)",
+      "category": "suspects",
+      "row": 13,
+      "mask_bit": 10,
+      "r": {
+        "cathode": 4,
+        "anode": 1
+      },
+      "g": {
+        "cathode": 5,
+        "anode": 1
+      },
+      "b": {
+        "cathode": 3,
+        "anode": 1
+      },
+      "x_mm": 28.7,
+      "y_mm": 55.4,
+      "radius_mm": 1.15,
+      "x_px": 287,
+      "y_px": 554,
+      "radius_px": 11.5
+    },
+    {
+      "index": 14,
+      "ref": "Ray-Man",
+      "label": "Ray-Man",
+      "category": "suspects",
+      "row": 14,
+      "mask_bit": 9,
+      "r": {
+        "cathode": 4,
+        "anode": 2
+      },
+      "g": {
+        "cathode": 5,
+        "anode": 2
+      },
+      "b": {
+        "cathode": 3,
+        "anode": 2
+      },
+      "x_mm": 28.7,
+      "y_mm": 58.5,
+      "radius_mm": 1.15,
+      "x_px": 287,
+      "y_px": 585,
+      "radius_px": 11.5
+    },
+    {
+      "index": 15,
+      "ref": "sirashrum",
+      "label": "sirashrum",
+      "category": "suspects",
+      "row": 15,
+      "mask_bit": 8,
+      "r": {
+        "cathode": 4,
+        "anode": 3
+      },
+      "g": {
+        "cathode": 5,
+        "anode": 3
+      },
+      "b": {
+        "cathode": 3,
+        "anode": 4
+      },
+      "x_mm": 28.7,
+      "y_mm": 61.6,
+      "radius_mm": 1.15,
+      "x_px": 287,
+      "y_px": 616,
+      "radius_px": 11.5
+    },
+    {
+      "index": 16,
+      "ref": "Supertechguy",
+      "label": "Supertechguy",
+      "category": "suspects",
+      "row": 16,
+      "mask_bit": 7,
+      "r": {
+        "cathode": 4,
+        "anode": 5
+      },
+      "g": {
+        "cathode": 5,
+        "anode": 4
+      },
+      "b": {
+        "cathode": 3,
+        "anode": 5
+      },
+      "x_mm": 28.7,
+      "y_mm": 64.7,
+      "radius_mm": 1.15,
+      "x_px": 287,
+      "y_px": 647,
+      "radius_px": 11.5
+    },
+    {
+      "index": 17,
+      "ref": "The Dark Tangent",
+      "label": "The Dark Tangent",
+      "category": "suspects",
+      "row": 17,
+      "mask_bit": 6,
+      "r": {
+        "cathode": 4,
+        "anode": 6
+      },
+      "g": {
+        "cathode": 5,
+        "anode": 6
+      },
+      "b": {
+        "cathode": 3,
+        "anode": 6
+      },
+      "x_mm": 28.7,
+      "y_mm": 67.8,
+      "radius_mm": 1.15,
+      "x_px": 287,
+      "y_px": 678,
+      "radius_px": 11.5
+    },
+    {
+      "index": 18,
+      "ref": "Woz",
+      "label": "Woz",
+      "category": "suspects",
+      "row": 18,
+      "mask_bit": 5,
+      "r": {
+        "cathode": 4,
+        "anode": 7
+      },
+      "g": {
+        "cathode": 5,
+        "anode": 7
+      },
+      "b": {
+        "cathode": 3,
+        "anode": 7
+      },
+      "x_mm": 28.7,
+      "y_mm": 70.9,
+      "radius_mm": 1.15,
+      "x_px": 287,
+      "y_px": 709,
+      "radius_px": 11.5
+    },
+    {
+      "index": 19,
+      "ref": "Zevlag",
+      "label": "Zevlag",
+      "category": "suspects",
+      "row": 19,
+      "mask_bit": 4,
+      "r": {
+        "cathode": 4,
+        "anode": 8
+      },
+      "g": {
+        "cathode": 5,
+        "anode": 8
+      },
+      "b": {
+        "cathode": 3,
+        "anode": 8
+      },
+      "x_mm": 28.7,
+      "y_mm": 74.0,
+      "radius_mm": 1.15,
+      "x_px": 287,
+      "y_px": 740,
+      "radius_px": 11.5
+    },
+    {
+      "index": 20,
+      "ref": "Zodiak",
+      "label": "Zodiak",
+      "category": "suspects",
+      "row": 20,
+      "mask_bit": 3,
+      "r": {
+        "cathode": 4,
+        "anode": 9
+      },
+      "g": {
+        "cathode": 5,
+        "anode": 9
+      },
+      "b": {
+        "cathode": 3,
+        "anode": 9
+      },
+      "x_mm": 28.7,
+      "y_mm": 77.1,
+      "radius_mm": 1.15,
+      "x_px": 287,
+      "y_px": 771,
+      "radius_px": 11.5
+    },
+    {
+      "index": 21,
+      "ref": "Buffer Overflow",
+      "label": "Buffer Overflow",
+      "category": "attacks",
+      "row": 0,
+      "mask_bit": 23,
+      "r": {
+        "cathode": 7,
+        "anode": 2
+      },
+      "g": {
+        "cathode": 8,
+        "anode": 2
+      },
+      "b": {
+        "cathode": 6,
+        "anode": 2
+      },
+      "x_mm": 60.9,
+      "y_mm": 15.1,
+      "radius_mm": 1.15,
+      "x_px": 609,
+      "y_px": 151,
+      "radius_px": 11.5
+    },
+    {
+      "index": 22,
+      "ref": "Cross-Site Request Forgery",
+      "label": "Cross-Site Request Forgery",
+      "category": "attacks",
+      "row": 1,
+      "mask_bit": 22,
+      "r": {
+        "cathode": 7,
+        "anode": 3
+      },
+      "g": {
+        "cathode": 8,
+        "anode": 3
+      },
+      "b": {
+        "cathode": 6,
+        "anode": 3
+      },
+      "x_mm": 60.9,
+      "y_mm": 18.2,
+      "radius_mm": 1.15,
+      "x_px": 609,
+      "y_px": 182,
+      "radius_px": 11.5
+    },
+    {
+      "index": 23,
+      "ref": "Default Password",
+      "label": "Default Password",
+      "category": "attacks",
+      "row": 2,
+      "mask_bit": 21,
+      "r": {
+        "cathode": 7,
+        "anode": 4
+      },
+      "g": {
+        "cathode": 8,
+        "anode": 4
+      },
+      "b": {
+        "cathode": 6,
+        "anode": 4
+      },
+      "x_mm": 60.9,
+      "y_mm": 21.3,
+      "radius_mm": 1.15,
+      "x_px": 609,
+      "y_px": 213,
+      "radius_px": 11.5
+    },
+    {
+      "index": 24,
+      "ref": "Denial-of-Service",
+      "label": "Denial-of-Service",
+      "category": "attacks",
+      "row": 3,
+      "mask_bit": 20,
+      "r": {
+        "cathode": 7,
+        "anode": 5
+      },
+      "g": {
+        "cathode": 8,
+        "anode": 5
+      },
+      "b": {
+        "cathode": 6,
+        "anode": 5
+      },
+      "x_mm": 60.9,
+      "y_mm": 24.4,
+      "radius_mm": 1.15,
+      "x_px": 609,
+      "y_px": 244,
+      "radius_px": 11.5
+    },
+    {
+      "index": 25,
+      "ref": "DNS Spoofing",
+      "label": "DNS Spoofing",
+      "category": "attacks",
+      "row": 4,
+      "mask_bit": 19,
+      "r": {
+        "cathode": 7,
+        "anode": 6
+      },
+      "g": {
+        "cathode": 8,
+        "anode": 6
+      },
+      "b": {
+        "cathode": 6,
+        "anode": 7
+      },
+      "x_mm": 60.9,
+      "y_mm": 27.5,
+      "radius_mm": 1.15,
+      "x_px": 609,
+      "y_px": 275,
+      "radius_px": 11.5
+    },
+    {
+      "index": 26,
+      "ref": "Heap Overflow",
+      "label": "Heap Overflow",
+      "category": "attacks",
+      "row": 5,
+      "mask_bit": 18,
+      "r": {
+        "cathode": 7,
+        "anode": 8
+      },
+      "g": {
+        "cathode": 8,
+        "anode": 7
+      },
+      "b": {
+        "cathode": 6,
+        "anode": 8
+      },
+      "x_mm": 60.9,
+      "y_mm": 30.6,
+      "radius_mm": 1.15,
+      "x_px": 609,
+      "y_px": 306,
+      "radius_px": 11.5
+    },
+    {
+      "index": 27,
+      "ref": "Heartbleed",
+      "label": "Heartbleed",
+      "category": "attacks",
+      "row": 6,
+      "mask_bit": 17,
+      "r": {
+        "cathode": 7,
+        "anode": 9
+      },
+      "g": {
+        "cathode": 8,
+        "anode": 9
+      },
+      "b": {
+        "cathode": 6,
+        "anode": 9
+      },
+      "x_mm": 60.9,
+      "y_mm": 33.7,
+      "radius_mm": 1.15,
+      "x_px": 609,
+      "y_px": 337,
+      "radius_px": 11.5
+    },
+    {
+      "index": 28,
+      "ref": "Metasploit",
+      "label": "Metasploit",
+      "category": "attacks",
+      "row": 7,
+      "mask_bit": 16,
+      "r": {
+        "cathode": 7,
+        "anode": 10
+      },
+      "g": {
+        "cathode": 8,
+        "anode": 10
+      },
+      "b": {
+        "cathode": 6,
+        "anode": 10
+      },
+      "x_mm": 60.9,
+      "y_mm": 36.8,
+      "radius_mm": 1.15,
+      "x_px": 609,
+      "y_px": 368,
+      "radius_px": 11.5
+    },
+    {
+      "index": 29,
+      "ref": "Pass-the-Hash",
+      "label": "Pass-the-Hash",
+      "category": "attacks",
+      "row": 8,
+      "mask_bit": 15,
+      "r": {
+        "cathode": 7,
+        "anode": 11
+      },
+      "g": {
+        "cathode": 8,
+        "anode": 11
+      },
+      "b": {
+        "cathode": 6,
+        "anode": 11
+      },
+      "x_mm": 60.9,
+      "y_mm": 39.9,
+      "radius_mm": 1.15,
+      "x_px": 609,
+      "y_px": 399,
+      "radius_px": 11.5
+    },
+    {
+      "index": 30,
+      "ref": "Phishing",
+      "label": "Phishing",
+      "category": "attacks",
+      "row": 9,
+      "mask_bit": 14,
+      "r": {
+        "cathode": 7,
+        "anode": 12
+      },
+      "g": {
+        "cathode": 8,
+        "anode": 12
+      },
+      "b": {
+        "cathode": 6,
+        "anode": 12
+      },
+      "x_mm": 60.9,
+      "y_mm": 43.0,
+      "radius_mm": 1.15,
+      "x_px": 609,
+      "y_px": 430,
+      "radius_px": 11.5
+    },
+    {
+      "index": 31,
+      "ref": "Polymorphic Virus",
+      "label": "Polymorphic Virus",
+      "category": "attacks",
+      "row": 10,
+      "mask_bit": 13,
+      "r": {
+        "cathode": 10,
+        "anode": 0
+      },
+      "g": {
+        "cathode": 11,
+        "anode": 0
+      },
+      "b": {
+        "cathode": 9,
+        "anode": 0
+      },
+      "x_mm": 60.9,
+      "y_mm": 46.1,
+      "radius_mm": 1.15,
+      "x_px": 609,
+      "y_px": 461,
+      "radius_px": 11.5
+    },
+    {
+      "index": 32,
+      "ref": "Privilege Escalation",
+      "label": "Privilege Escalation",
+      "category": "attacks",
+      "row": 11,
+      "mask_bit": 12,
+      "r": {
+        "cathode": 10,
+        "anode": 1
+      },
+      "g": {
+        "cathode": 11,
+        "anode": 1
+      },
+      "b": {
+        "cathode": 9,
+        "anode": 1
+      },
+      "x_mm": 60.9,
+      "y_mm": 49.2,
+      "radius_mm": 1.15,
+      "x_px": 609,
+      "y_px": 492,
+      "radius_px": 11.5
+    },
+    {
+      "index": 33,
+      "ref": "Ransomware",
+      "label": "Ransomware",
+      "category": "attacks",
+      "row": 12,
+      "mask_bit": 11,
+      "r": {
+        "cathode": 10,
+        "anode": 2
+      },
+      "g": {
+        "cathode": 11,
+        "anode": 2
+      },
+      "b": {
+        "cathode": 9,
+        "anode": 2
+      },
+      "x_mm": 60.9,
+      "y_mm": 52.3,
+      "radius_mm": 1.15,
+      "x_px": 609,
+      "y_px": 523,
+      "radius_px": 11.5
+    },
+    {
+      "index": 34,
+      "ref": "Remote Code Execution",
+      "label": "Remote Code Execution",
+      "category": "attacks",
+      "row": 13,
+      "mask_bit": 10,
+      "r": {
+        "cathode": 10,
+        "anode": 3
+      },
+      "g": {
+        "cathode": 11,
+        "anode": 3
+      },
+      "b": {
+        "cathode": 9,
+        "anode": 3
+      },
+      "x_mm": 60.9,
+      "y_mm": 55.4,
+      "radius_mm": 1.15,
+      "x_px": 609,
+      "y_px": 554,
+      "radius_px": 11.5
+    },
+    {
+      "index": 35,
+      "ref": "RootKit",
+      "label": "RootKit",
+      "category": "attacks",
+      "row": 14,
+      "mask_bit": 9,
+      "r": {
+        "cathode": 10,
+        "anode": 4
+      },
+      "g": {
+        "cathode": 11,
+        "anode": 4
+      },
+      "b": {
+        "cathode": 9,
+        "anode": 4
+      },
+      "x_mm": 60.9,
+      "y_mm": 58.5,
+      "radius_mm": 1.15,
+      "x_px": 609,
+      "y_px": 585,
+      "radius_px": 11.5
+    },
+    {
+      "index": 36,
+      "ref": "ShadowBrokers",
+      "label": "ShadowBrokers",
+      "category": "attacks",
+      "row": 15,
+      "mask_bit": 8,
+      "r": {
+        "cathode": 10,
+        "anode": 5
+      },
+      "g": {
+        "cathode": 11,
+        "anode": 5
+      },
+      "b": {
+        "cathode": 9,
+        "anode": 5
+      },
+      "x_mm": 60.9,
+      "y_mm": 61.6,
+      "radius_mm": 1.15,
+      "x_px": 609,
+      "y_px": 616,
+      "radius_px": 11.5
+    },
+    {
+      "index": 37,
+      "ref": "Social Engineering",
+      "label": "Social Engineering",
+      "category": "attacks",
+      "row": 16,
+      "mask_bit": 7,
+      "r": {
+        "cathode": 10,
+        "anode": 6
+      },
+      "g": {
+        "cathode": 11,
+        "anode": 6
+      },
+      "b": {
+        "cathode": 9,
+        "anode": 6
+      },
+      "x_mm": 60.9,
+      "y_mm": 64.7,
+      "radius_mm": 1.15,
+      "x_px": 609,
+      "y_px": 647,
+      "radius_px": 11.5
+    },
+    {
+      "index": 38,
+      "ref": "Speculative Execution",
+      "label": "Speculative Execution",
+      "category": "attacks",
+      "row": 17,
+      "mask_bit": 6,
+      "r": {
+        "cathode": 10,
+        "anode": 7
+      },
+      "g": {
+        "cathode": 11,
+        "anode": 7
+      },
+      "b": {
+        "cathode": 9,
+        "anode": 7
+      },
+      "x_mm": 60.9,
+      "y_mm": 67.8,
+      "radius_mm": 1.15,
+      "x_px": 609,
+      "y_px": 678,
+      "radius_px": 11.5
+    },
+    {
+      "index": 39,
+      "ref": "SQL Injection",
+      "label": "SQL Injection",
+      "category": "attacks",
+      "row": 18,
+      "mask_bit": 5,
+      "r": {
+        "cathode": 10,
+        "anode": 8
+      },
+      "g": {
+        "cathode": 11,
+        "anode": 8
+      },
+      "b": {
+        "cathode": 9,
+        "anode": 8
+      },
+      "x_mm": 60.9,
+      "y_mm": 70.9,
+      "radius_mm": 1.15,
+      "x_px": 609,
+      "y_px": 709,
+      "radius_px": 11.5
+    },
+    {
+      "index": 40,
+      "ref": "Zero-Click",
+      "label": "Zero-Click",
+      "category": "attacks",
+      "row": 19,
+      "mask_bit": 4,
+      "r": {
+        "cathode": 10,
+        "anode": 9
+      },
+      "g": {
+        "cathode": 11,
+        "anode": 9
+      },
+      "b": {
+        "cathode": 9,
+        "anode": 10
+      },
+      "x_mm": 60.9,
+      "y_mm": 74.0,
+      "radius_mm": 1.15,
+      "x_px": 609,
+      "y_px": 740,
+      "radius_px": 11.5
+    },
+    {
+      "index": 41,
+      "ref": "Zero-Day",
+      "label": "Zero-Day",
+      "category": "attacks",
+      "row": 20,
+      "mask_bit": 3,
+      "r": {
+        "cathode": 10,
+        "anode": 11
+      },
+      "g": {
+        "cathode": 11,
+        "anode": 10
+      },
+      "b": {
+        "cathode": 9,
+        "anode": 11
+      },
+      "x_mm": 60.9,
+      "y_mm": 77.1,
+      "radius_mm": 1.15,
+      "x_px": 609,
+      "y_px": 771,
+      "radius_px": 11.5
+    },
+    {
+      "index": 42,
+      "ref": "Badgelife",
+      "label": "Badgelife",
+      "category": "rooms",
+      "row": 0,
+      "mask_bit": 15,
+      "r": {
+        "cathode": 4,
+        "anode": 10
+      },
+      "g": {
+        "cathode": 5,
+        "anode": 10
+      },
+      "b": {
+        "cathode": 3,
+        "anode": 10
+      },
+      "x_mm": 28.7,
+      "y_mm": 80.2,
+      "radius_mm": 1.15,
+      "x_px": 287,
+      "y_px": 802,
+      "radius_px": 11.5
+    },
+    {
+      "index": 43,
+      "ref": "Ballrooms",
+      "label": "Ballrooms",
+      "category": "rooms",
+      "row": 1,
+      "mask_bit": 14,
+      "r": {
+        "cathode": 4,
+        "anode": 11
+      },
+      "g": {
+        "cathode": 5,
+        "anode": 11
+      },
+      "b": {
+        "cathode": 3,
+        "anode": 11
+      },
+      "x_mm": 28.7,
+      "y_mm": 83.3,
+      "radius_mm": 1.15,
+      "x_px": 287,
+      "y_px": 833,
+      "radius_px": 11.5
+    },
+    {
+      "index": 44,
+      "ref": "Hacker Lounge",
+      "label": "Hacker Lounge",
+      "category": "rooms",
+      "row": 2,
+      "mask_bit": 13,
+      "r": {
+        "cathode": 4,
+        "anode": 12
+      },
+      "g": {
+        "cathode": 5,
+        "anode": 12
+      },
+      "b": {
+        "cathode": 3,
+        "anode": 12
+      },
+      "x_mm": 28.7,
+      "y_mm": 86.4,
+      "radius_mm": 1.15,
+      "x_px": 287,
+      "y_px": 864,
+      "radius_px": 11.5
+    },
+    {
+      "index": 45,
+      "ref": "Infobooth",
+      "label": "Infobooth",
+      "category": "rooms",
+      "row": 3,
+      "mask_bit": 12,
+      "r": {
+        "cathode": 7,
+        "anode": 0
+      },
+      "g": {
+        "cathode": 8,
+        "anode": 0
+      },
+      "b": {
+        "cathode": 6,
+        "anode": 0
+      },
+      "x_mm": 28.7,
+      "y_mm": 89.5,
+      "radius_mm": 1.15,
+      "x_px": 287,
+      "y_px": 895,
+      "radius_px": 11.5
+    },
+    {
+      "index": 46,
+      "ref": "Lockpicking",
+      "label": "Lockpicking",
+      "category": "rooms",
+      "row": 4,
+      "mask_bit": 11,
+      "r": {
+        "cathode": 7,
+        "anode": 1
+      },
+      "g": {
+        "cathode": 8,
+        "anode": 1
+      },
+      "b": {
+        "cathode": 6,
+        "anode": 1
+      },
+      "x_mm": 28.7,
+      "y_mm": 92.6,
+      "radius_mm": 1.15,
+      "x_px": 287,
+      "y_px": 926,
+      "radius_px": 11.5
+    },
+    {
+      "index": 47,
+      "ref": "Mezzanine",
+      "label": "Mezzanine",
+      "category": "rooms",
+      "row": 5,
+      "mask_bit": 10,
+      "r": {
+        "cathode": 10,
+        "anode": 12
+      },
+      "g": {
+        "cathode": 11,
+        "anode": 12
+      },
+      "b": {
+        "cathode": 9,
+        "anode": 12
+      },
+      "x_mm": 60.9,
+      "y_mm": 80.2,
+      "radius_mm": 1.15,
+      "x_px": 609,
+      "y_px": 802,
+      "radius_px": 11.5
+    },
+    {
+      "index": 48,
+      "ref": "Registration",
+      "label": "Registration",
+      "category": "rooms",
+      "row": 6,
+      "mask_bit": 9,
+      "r": {
+        "cathode": 13,
+        "anode": 0
+      },
+      "g": {
+        "cathode": 14,
+        "anode": 0
+      },
+      "b": {
+        "cathode": 12,
+        "anode": 0
+      },
+      "x_mm": 60.9,
+      "y_mm": 83.3,
+      "radius_mm": 1.15,
+      "x_px": 609,
+      "y_px": 833,
+      "radius_px": 11.5
+    },
+    {
+      "index": 49,
+      "ref": "Terrace",
+      "label": "Terrace",
+      "category": "rooms",
+      "row": 7,
+      "mask_bit": 8,
+      "r": {
+        "cathode": 13,
+        "anode": 1
+      },
+      "g": {
+        "cathode": 14,
+        "anode": 1
+      },
+      "b": {
+        "cathode": 12,
+        "anode": 1
+      },
+      "x_mm": 60.9,
+      "y_mm": 86.4,
+      "radius_mm": 1.15,
+      "x_px": 609,
+      "y_px": 864,
+      "radius_px": 11.5
+    },
+    {
+      "index": 50,
+      "ref": "The Cloud",
+      "label": "The Cloud",
+      "category": "rooms",
+      "row": 8,
+      "mask_bit": 7,
+      "r": {
+        "cathode": 13,
+        "anode": 2
+      },
+      "g": {
+        "cathode": 14,
+        "anode": 2
+      },
+      "b": {
+        "cathode": 12,
+        "anode": 2
+      },
+      "x_mm": 60.9,
+      "y_mm": 89.5,
+      "radius_mm": 1.15,
+      "x_px": 609,
+      "y_px": 895,
+      "radius_px": 11.5
+    },
+    {
+      "index": 51,
+      "ref": "Trainings",
+      "label": "Trainings",
+      "category": "rooms",
+      "row": 9,
+      "mask_bit": 6,
+      "r": {
+        "cathode": 13,
+        "anode": 3
+      },
+      "g": {
+        "cathode": 14,
+        "anode": 3
+      },
+      "b": {
+        "cathode": 12,
+        "anode": 3
+      },
+      "x_mm": 60.9,
+      "y_mm": 92.6,
+      "radius_mm": 1.15,
+      "x_px": 609,
+      "y_px": 926,
+      "radius_px": 11.5
+    }
+  ]
+}

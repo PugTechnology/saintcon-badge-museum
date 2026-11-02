@@ -1,6 +1,7 @@
 # SAINTCON Badge Museum
 
-Play SAINTCON conference badges in your browser, running their real firmware compiled to WebAssembly.
+Play SAINTCON conference badges in your browser, running their real firmware. Most years are compiled to WebAssembly;
+2022 runs the published firmware binary in an RP2040 emulator.
 
 **Live:** https://sc.pug.technology/
 
@@ -10,6 +11,7 @@ Play SAINTCON conference badges in your browser, running their real firmware com
 | 2025 | "The Wrench" by [compukidmike](https://github.com/compukidmike) ([source](https://github.com/compukidmike/Saintcon2025)): original firmware, plus the [pug pet](https://github.com/PugTechnology/saintcon25-pug-pet) as a second mode | https://25.sc.pug.technology/ |
 | 2024 | "Tower Battle" wrist badge by [compukidmike](https://github.com/compukidmike) ([source](https://github.com/compukidmike/Saintcon2024)): original firmware with a stand-in tower server | https://24.sc.pug.technology/ |
 | 2023 | "Incidents" by [compukidmike](https://github.com/compukidmike) ([source](https://github.com/compukidmike/Saintcon2023)), with contributions from jarmknecht and klipperx: original firmware with a stand-in game server | https://23.sc.pug.technology/ |
+| 2022 | Clue-style notepad badge ([repo by compukidmike](https://github.com/compukidmike/saintcon2022)): the published firmware binary unchanged, with a stand-in kiosk game, as no kiosk software or clue data is published | https://22.sc.pug.technology/ |
 | 2021 | Combination lock badge by [compukidmike](https://github.com/compukidmike), [Professor_Plum](https://github.com/Professor-plum) and [Sodium_Hydrogen](https://github.com/Sodium-Hydrogen) ([source](https://github.com/compukidmike/Saintcon2021)), with a firmware fix by [kfeuz](https://github.com/kfeuz): original firmware with stand-in NFC tags and a solo trade partner | https://21.sc.pug.technology/ |
 | 2020 | LED badge by [compukidmike](https://github.com/compukidmike) ([source](https://github.com/compukidmike/Saintcon2020)): the original firmware with its 8 LED modes and the hidden boot mode | https://20.sc.pug.technology/ |
 | 2019 | Enigma badge by [compukidmike](https://github.com/compukidmike) ([source](https://github.com/compukidmike/Saintcon2019)), with Enigma code from Cory Lutton's enigma-c as changed by @_bashNinja: the original firmware with the matrix, lamps, keys and plugboard on a picture of the real board, and the at-home challenge playable to the end | https://19.sc.pug.technology/ |
@@ -23,6 +25,8 @@ Unofficial fan project. Not affiliated with or endorsed by [SAINTCON](https://sa
 - Each year's original firmware is fetched from its author's repository at a pinned commit, built against a small
   platform layer (display, LEDs, buttons, storage, a pretend game server for servers that no longer exist), and
   compiled to WebAssembly with Emscripten. The firmware source itself is not copied into this repository.
+- 2022 is the exception. No firmware source is published for it, so `emulator/web/badges/2022/` holds the upstream
+  UF2 byte for byte, and it runs on [rp2040js](https://github.com/wokwi/rp2040js) (MIT) in a Web Worker.
 - Conference secrets (Wi-Fi passwords, API keys) are scrubbed by the fetch scripts before anything is built.
 - Your progress lives only in your own browser (localStorage). No analytics, no cookies.
 
@@ -31,6 +35,8 @@ Unofficial fan project. Not affiliated with or endorsed by [SAINTCON](https://sa
 - `emulator/web/` is the whole website (static files). `emulator/web/badges/<year>/` holds each year's board
   picture, layout, compiled core and license notices.
 - `emulator/cores/<year>/` has the fetch script, platform layer and build script for each year's original firmware.
+  `emulator/cores/2022/UPSTREAM.md` lists every change the 2022 emulator makes to rp2040js, and what is not yet
+  checked against a real badge.
 - `emulator/web/badges/2025/core.js` and `core.wasm` are the pug pet, built in its own repo,
   [PugTechnology/saintcon25-pug-pet](https://github.com/PugTechnology/saintcon25-pug-pet).
 - `emulator/deploy/wrangler.jsonc` deploys the site as a Cloudflare Worker with static assets.
@@ -42,12 +48,12 @@ Unofficial fan project. Not affiliated with or endorsed by [SAINTCON](https://sa
 ```
 
 Building cores needs Docker (Emscripten image): `emulator/cores/<year>/build.sh` builds each year's original
-firmware. See `emulator/README.md`.
+firmware. 2022 needs `deno` 2.9.7 instead. See `emulator/README.md`.
 
 ## License
 
 The code made for this project (the emulator shell, platform layers, build scripts) is MIT licensed, see `LICENSE`.
 The pug pet is MIT licensed in its own repo. The badge firmware belongs to its authors: the compiled cores in
-`emulator/web/badges/<year>/` contain their code under their terms (the 2026 firmware is MIT; the 2017, 2018, 2019, 2020, 2021, 2023, 2024 and 2025 firmware
+`emulator/web/badges/<year>/` contain their code under their terms (the 2026 firmware is MIT; the 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024 and 2025 firmware
 belongs to compukidmike and its contributors, as credited above), plus the third-party libraries listed in each
-year's `THIRD_PARTY_LICENSES.txt`.
+year's `THIRD_PARTY_LICENSES.txt`. The 2022 UF2 states no licence.
