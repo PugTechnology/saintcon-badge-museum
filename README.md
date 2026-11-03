@@ -56,4 +56,5 @@ The code made for this project (the emulator shell, platform layers, build scrip
 The pug pet is MIT licensed in its own repo. The badge firmware belongs to its authors: the compiled cores in
 `emulator/web/badges/<year>/` contain their code under their terms (the 2026 firmware is MIT; the 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024 and 2025 firmware
 belongs to compukidmike and its contributors, as credited above), plus the third-party libraries listed in each
-year's `THIRD_PARTY_LICENSES.txt`. The 2022 UF2 states no licence.
+year's `THIRD_PARTY_LICENSES.txt`. The 2022 UF2 states no licence. The main page's fonts, Chakra Petch and JetBrains Mono,
+are under the SIL Open Font License, with the licence texts in `emulator/web/museum-art/fonts/`.

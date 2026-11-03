@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="dark" />
   <title>SAINTCON Badge Museum</title>
   <script>
     (function () {
@@ -37,414 +38,836 @@
     })();
   </script>
   <style>
+    /* Fonts: Chakra Petch (display) and JetBrains Mono (labels), both SIL OFL, served from museum-art/fonts. */
+    @font-face { font-family: "Chakra Petch"; font-style: normal; font-weight: 600; font-display: swap; src: url("museum-art/fonts/chakra-petch-latin-600-normal.woff2") format("woff2"); }
+    @font-face { font-family: "Chakra Petch"; font-style: normal; font-weight: 700; font-display: swap; src: url("museum-art/fonts/chakra-petch-latin-700-normal.woff2") format("woff2"); }
+    @font-face { font-family: "JetBrains Mono"; font-style: normal; font-weight: 400; font-display: swap; src: url("museum-art/fonts/jetbrains-mono-latin-400-normal.woff2") format("woff2"); }
+    @font-face { font-family: "JetBrains Mono"; font-style: normal; font-weight: 500; font-display: swap; src: url("museum-art/fonts/jetbrains-mono-latin-500-normal.woff2") format("woff2"); }
+
+    /* The page is a circuit board: black solder mask, gold plating, white silkscreen. */
     :root {
-      --bg-dark: #0d1117;
-      --panel-bg: #161b22;
-      --panel-border: #30363d;
-      --text-main: #e6edf3;
-      --text-muted: #8b949e;
-      --accent-gold: #d4a72c;
-      --accent-green: #3fb950;
-      --accent-blue: #58a6ff;
+      --mask: #0a0e0c;
+      --mask-raised: #121815;
+      --line: #2a342e;
+      --gold: #e8b93a;
+      --gold-dim: #8a6c1e;
+      --copper: #c8743a;
+      --silk: #f2efe6;
+      --muted: #a3aca6;
+      --led: #59ff9a;
+      --display: "Chakra Petch", "Arial Narrow", Impact, sans-serif;
+      --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      --sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --ch: 12px;
+      color-scheme: dark;
     }
 
-    * {
-      box-sizing: border-box;
+    * { box-sizing: border-box; }
+
+    html {
+      color-scheme: dark;
+      background: var(--mask);
+      -webkit-text-size-adjust: 100%;
     }
 
+    @media (prefers-reduced-motion: no-preference) {
+      html { scroll-behavior: smooth; }
+    }
+
+    /* Faint traces and vias. Colours here repeat --line (data URIs cannot read custom properties). */
     body {
       margin: 0;
-      padding: 0;
-      background: radial-gradient(circle at 50% 15%, #1c2331 0%, #0b0e14 100%);
-      color: var(--text-main);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      overflow-x: clip;
+      background-color: var(--mask);
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240' viewBox='0 0 240 240'%3E%3Cg fill='none' stroke='%232a342e' stroke-opacity='.5' stroke-width='3' stroke-linejoin='bevel'%3E%3Cpath d='M0 48H60L84 72H156L180 48H240'/%3E%3Cpath d='M0 180H36L60 156H108L132 180H240'/%3E%3Cpath d='M204 0V72L180 96V144L204 168V240'/%3E%3Cpath d='M24 0V30L48 48'/%3E%3Cpath d='M108 156V108L132 84'/%3E%3C/g%3E%3Cg fill='none' stroke='%232a342e' stroke-opacity='.6' stroke-width='3'%3E%3Ccircle cx='84' cy='72' r='6'/%3E%3Ccircle cx='156' cy='72' r='6'/%3E%3Ccircle cx='60' cy='156' r='6'/%3E%3Ccircle cx='132' cy='84' r='6'/%3E%3Ccircle cx='204' cy='168' r='6'/%3E%3C/g%3E%3Cg fill='%232a342e' fill-opacity='.5'%3E%3Crect x='16' y='24' width='10' height='10'/%3E%3Crect x='214' y='206' width='10' height='10'/%3E%3C/g%3E%3C/svg%3E");
+      background-size: 240px 240px;
+      color: var(--silk);
+      font-family: var(--sans);
+      line-height: 1.55;
     }
 
-    a {
-      color: var(--accent-blue);
-      text-decoration: none;
-    }
+    a { color: var(--gold); text-underline-offset: 3px; }
+    a:hover { color: var(--silk); }
+    :focus-visible { outline: 3px solid var(--silk); outline-offset: 3px; }
+    code { font-family: var(--mono); font-size: 0.92em; color: var(--silk); }
 
-    a:hover {
-      text-decoration: underline;
-    }
+    .wrap { width: 100%; max-width: 1120px; margin-inline: auto; padding-inline: 24px; }
 
-    header {
-      width: 100%;
-      max-width: 1120px;
-      padding: 20px 24px;
-      border-bottom: 1px solid var(--panel-border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 12px;
-    }
-
-    .brand h1 {
-      margin: 0;
-      font-size: 1.35rem;
-      letter-spacing: 0.04em;
-      color: var(--accent-gold);
+    .silk, .refdes {
+      font-family: var(--mono);
+      font-weight: 500;
+      font-size: 0.75rem;
+      letter-spacing: 0.12em;
       text-transform: uppercase;
     }
 
-    .brand p {
-      margin: 4px 0 0 0;
-      font-size: 0.88rem;
-      color: var(--text-muted);
-    }
-
-    .brand .disclaimer-line {
-      margin: 4px 0 0 0;
-      font-size: 0.78rem;
-      color: #f0c654;
-      font-weight: 500;
-    }
-
-    main {
-      width: 100%;
-      max-width: 1120px;
-      flex: 1;
-      padding: 28px 24px 40px;
-      display: flex;
-      flex-direction: column;
-      gap: 28px;
-    }
-
-    .cards-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(min(340px, 100%), 1fr));
-      gap: 24px;
-    }
-
-    .year-card {
-      background: var(--panel-bg);
-      border: 1px solid var(--panel-border);
-      border-radius: 16px;
-      padding: 22px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
-      transition: transform 0.14s ease, border-color 0.14s ease;
-    }
-
-    .year-card:hover {
-      transform: translateY(-2px);
-      border-color: rgba(212, 167, 44, 0.55);
-    }
-
-    .card-top {
-      display: flex;
-      gap: 18px;
-      align-items: center;
-    }
-
-    .card-thumb {
-      width: 96px;
-      height: 168px;
-      background: #0b0e14;
-      border: 1px solid #262c36;
-      border-radius: 10px;
-      display: flex;
+    /* Plated pad buttons: gold fill, chamfered corners, dark text. */
+    .pad {
+      position: relative;
+      isolation: isolate;
+      display: inline-flex;
       align-items: center;
       justify-content: center;
-      overflow: hidden;
-      flex-shrink: 0;
-      padding: 6px;
-    }
-
-    .card-thumb.landscape {
-      width: 132px;
-      height: 108px;
-    }
-
-    .card-thumb img {
-      max-width: 100%;
-      max-height: 100%;
-      object-fit: contain;
-      filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.7));
-    }
-
-    .card-thumb-placeholder {
-      font-size: 0.75rem;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-      color: var(--accent-gold);
+      min-height: 48px;
+      padding: 10px 24px;
+      font: 700 1rem/1.2 var(--display);
+      letter-spacing: 0.03em;
       text-align: center;
-      line-height: 1.4;
-      padding: 6px;
+      text-decoration: none;
+      color: var(--mask);
+    }
+    .pad:hover { color: var(--mask); }
+    .pad::before, .pad::after {
+      content: "";
+      position: absolute;
+      z-index: -1;
+      inset: 0;
+      clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+    }
+    .pad::before { background: var(--gold); transition: filter 0.15s; }
+    .pad:hover::before { filter: brightness(1.15); }
+    .pad::after { display: none; }
+    .pad.outline { color: var(--silk); }
+    .pad.outline:hover { color: var(--silk); }
+    .pad.outline::after {
+      display: block;
+      inset: 2px;
+      background: var(--mask);
+      clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+      transition: background 0.15s;
+    }
+    .pad.outline:hover::after { background: var(--mask-raised); }
+
+    .actions { display: flex; flex-wrap: wrap; gap: 14px; }
+
+    /* Hero */
+    .hero { padding: 56px 0 20px; overflow-x: clip; }
+    .hero .wrap {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+      gap: 32px;
+      align-items: center;
+    }
+    .refdes { margin: 0 0 18px; color: var(--copper); }
+    h1 {
+      margin: 0 0 20px;
+      font: 700 clamp(2.4rem, 11.5vw, 5.75rem)/0.95 var(--display);
+      letter-spacing: 0.01em;
+      text-transform: uppercase;
+      color: var(--gold);
+      overflow-wrap: break-word;
+    }
+    .silk-line {
+      margin: 0 0 12px;
+      max-width: 30em;
+      font: 500 1rem/1.6 var(--mono);
+      color: var(--silk);
+    }
+    .disclaimer-line {
+      margin: 0 0 28px;
+      font: 400 0.82rem/1.5 var(--mono);
+      color: var(--muted);
     }
 
-    .card-head-info {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
+    .hero-boards {
+      position: relative;
+      width: 100%;
+      max-width: 460px;
+      aspect-ratio: 1 / 1;
+      justify-self: center;
+    }
+    .hero-boards::before {
+      content: "";
+      position: absolute;
+      inset: -12%;
+      background: radial-gradient(closest-side, color-mix(in srgb, var(--gold) 30%, transparent), transparent);
+    }
+    .hero-boards img {
+      position: absolute;
+      max-width: none;
+      filter: drop-shadow(0 0 1px color-mix(in srgb, var(--gold) 55%, transparent));
+    }
+    .hero-boards .b19 { width: 68%; height: auto; left: -2%; bottom: 6%; transform: rotate(-9deg); }
+    .hero-boards .b25 { height: 82%; width: auto; right: 2%; top: 10%; transform: rotate(8deg); }
+    .hero-boards .b26 { height: 94%; width: auto; left: 34%; top: 0; transform: rotate(-3deg); z-index: 2; }
+
+    /* Year bus */
+    .yearbus { padding: 20px 0 8px; }
+    .yearbus-inner { display: flex; align-items: center; gap: 12px; }
+    .pwr { display: inline-flex; align-items: center; gap: 8px; flex: none; }
+    .led {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--led);
+      box-shadow: 0 0 10px 3px color-mix(in srgb, var(--led) 55%, transparent);
+    }
+    .yearbus ol {
       flex: 1;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+    }
+    .yearbus li {
+      position: relative;
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      padding-block: 4px;
+    }
+    .yearbus li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 50%;
+      height: 4px;
+      margin-top: -2px;
+      background: var(--gold);
+    }
+    .yearbus .pad { min-width: 56px; min-height: 44px; padding: 8px 10px; font-size: 1.2rem; }
+
+    /* Exhibits */
+    .exhibits { position: relative; padding-block: 24px 16px; }
+    .bus-line {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 50%;
+      width: 4px;
+      margin-left: -2px;
+      background: var(--gold-dim);
+      overflow: hidden;
+    }
+    .bus-line i {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: -160px;
+      height: 160px;
+      background: linear-gradient(to bottom, transparent, var(--gold) 75%, var(--silk));
+      animation: bus-pulse 8s linear infinite;
+    }
+    @keyframes bus-pulse { to { top: 100%; } }
+
+    .exhibit {
+      position: relative;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 56px minmax(0, 1fr);
+      align-items: center;
+      padding-block: 36px;
+      scroll-margin-top: 16px;
+    }
+    .via { grid-column: 2; grid-row: 1; align-self: stretch; position: relative; }
+    .via::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 50%;
+      height: 4px;
+      margin-top: -2px;
+      background: var(--gold);
+    }
+    .via::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 26px;
+      height: 26px;
+      margin: -13px 0 0 -13px;
+      border-radius: 50%;
+      border: 6px solid var(--gold);
+      background: var(--mask);
+      transition: background 0.2s, box-shadow 0.2s;
+    }
+    .exhibit:is(:hover, :focus-within) .via::after {
+      background: var(--gold);
+      box-shadow: 0 0 18px 6px color-mix(in srgb, var(--gold) 55%, transparent);
     }
 
-    .status-row {
+    .ex-pic { grid-column: 1; grid-row: 1; justify-self: end; width: 100%; max-width: 440px; }
+    .ex-text { grid-column: 3; grid-row: 1; padding-left: 20px; min-width: 0; }
+    .exhibit:nth-of-type(even) .ex-pic { grid-column: 3; justify-self: start; }
+    .exhibit:nth-of-type(even) .ex-text { grid-column: 1; padding-left: 0; padding-right: 20px; }
+
+    .mat {
+      position: relative;
+      display: grid;
+      place-items: center;
+      width: 100%;
+      height: 440px; /* fixed, so rows do not move while lazy pictures load */
+      padding: 30px;
+    }
+    .mat::before, .mat::after {
+      content: "";
+      position: absolute;
+      z-index: 0;
+      clip-path: polygon(18px 0, 100% 0, 100% calc(100% - 18px), calc(100% - 18px) 100%, 0 100%, 0 18px);
+    }
+    .mat::before { inset: 0; background: var(--line); }
+    .mat::after {
+      inset: 1px;
+      background:
+        radial-gradient(circle at 16px 16px, var(--gold) 0 3px, transparent 3.5px),
+        radial-gradient(circle at calc(100% - 16px) 16px, var(--gold) 0 3px, transparent 3.5px),
+        radial-gradient(circle at 16px calc(100% - 16px), var(--gold) 0 3px, transparent 3.5px),
+        radial-gradient(circle at calc(100% - 16px) calc(100% - 16px), var(--gold) 0 3px, transparent 3.5px),
+        var(--mask-raised);
+    }
+    .mat img {
+      position: relative;
+      z-index: 1;
+      display: block;
+      width: 100%;
+      height: 100%;
+      min-height: 0;
+      object-fit: contain;
+      filter: drop-shadow(0 0 1px color-mix(in srgb, var(--gold) 45%, transparent));
+      transition: transform 0.25s ease, filter 0.25s ease;
+    }
+    .exhibit:is(:hover, :focus-within) .mat img {
+      transform: translateY(-6px);
+      filter: drop-shadow(0 0 8px color-mix(in srgb, var(--gold) 60%, transparent));
+    }
+    .ex-pic .silk { margin: 12px 0 0; color: var(--silk); }
+
+    h2 { margin: 0; }
+    .year {
+      display: block;
+      font: 700 clamp(3.5rem, 8vw, 6.5rem)/0.9 var(--display);
+      letter-spacing: -0.01em;
+      color: var(--gold);
+    }
+    .name {
+      display: block;
+      margin-top: 8px;
+      font: 600 1.6rem/1.2 var(--display);
+      color: var(--silk);
+    }
+    .one-liner { margin: 14px 0 22px; max-width: 34em; font-size: 1.05rem; }
+
+    /* Hardware and credits */
+    .dossier { margin-top: 24px; border-top: 1px solid var(--line); }
+    .dossier summary {
       display: flex;
       align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .year-badge {
-      font-size: 0.78rem;
-      font-weight: 700;
-      padding: 2px 9px;
-      border-radius: 999px;
-      background: rgba(212, 167, 44, 0.18);
-      border: 1px solid rgba(212, 167, 44, 0.5);
-      color: #f0c654;
-    }
-
-    .status-pill {
-      font-size: 0.7rem;
-      font-weight: 700;
-      padding: 2px 8px;
-      border-radius: 999px;
+      gap: 12px;
+      min-height: 48px;
+      padding-block: 8px;
+      cursor: pointer;
+      list-style: none;
+      font: 500 0.85rem/1.3 var(--mono);
+      letter-spacing: 0.1em;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
+      color: var(--silk);
     }
-
-    .status-pill.live {
-      background: rgba(63, 185, 80, 0.18);
-      border: 1px solid rgba(63, 185, 80, 0.55);
-      color: #56d364;
+    .dossier summary::-webkit-details-marker { display: none; }
+    .dossier summary::before {
+      content: "+";
+      flex: none;
+      display: grid;
+      place-items: center;
+      width: 24px;
+      height: 24px;
+      font: 700 1rem/1 var(--mono);
+      color: var(--mask);
+      background: var(--gold);
+      clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
     }
-
-    .status-pill.soon {
-      background: rgba(139, 148, 158, 0.16);
-      border: 1px solid rgba(139, 148, 158, 0.45);
-      color: #c9d1d9;
+    .dossier[open] > summary::before { content: "-"; }
+    .dossier summary:hover { color: var(--gold); }
+    .fine {
+      padding: 4px 0 8px;
+      font: 400 0.8rem/1.7 var(--mono);
+      color: var(--muted);
+      overflow-wrap: anywhere;
     }
-
-    .year-card h2 {
-      margin: 0;
-      font-size: 1.22rem;
-      color: var(--text-main);
-    }
-
-    .hw-summary {
-      margin: 0;
-      font-size: 0.82rem;
-      color: var(--text-muted);
-      line-height: 1.45;
-    }
-
-    .modes-row {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      font-size: 0.74rem;
-    }
-
-    .mode-chip {
-      padding: 3px 9px;
-      border-radius: 6px;
-      background: #0d1117;
-      border: 1px solid #292e36;
-      color: var(--text-main);
-    }
-
-    .mode-chip.muted {
-      color: var(--text-muted);
-    }
-
+    .fine p { margin: 0 0 14px; }
+    .fine strong { color: var(--silk); font-weight: 500; }
     .credits-box {
-      background: #0d1117;
-      border: 1px solid #21262d;
-      border-radius: 10px;
-      padding: 11px 13px;
-      font-size: 0.8rem;
-      line-height: 1.45;
+      padding: 12px 14px;
+      border-left: 2px solid var(--copper);
+      background: var(--mask-raised);
     }
+    .credits-box .main-credit { color: var(--silk); }
+    .credits-box .sub-credit { margin-top: 10px; color: var(--muted); }
 
-    .credits-box .main-credit {
-      color: var(--text-main);
+    /* About: the back of the board */
+    .about { margin-top: 40px; padding-bottom: 48px; }
+    .backside {
+      position: relative;
+      padding: 28px;
+      background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--gold-dim) 30%, var(--mask)) 0 2px, var(--mask) 2px 10px);
+      clip-path: polygon(24px 0, 100% 0, 100% calc(100% - 24px), calc(100% - 24px) 100%, 0 100%, 0 24px);
     }
-
-    .credits-box .main-credit strong {
-      color: #f0c654;
+    .backside .hole {
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: 3px solid var(--gold);
+      background: var(--mask);
     }
-
-    .credits-box .sub-credit {
-      margin-top: 4px;
-      font-size: 0.7rem;
-      color: var(--text-muted);
+    .hole.h1 { top: 7px; right: 7px; }
+    .hole.h2 { bottom: 7px; left: 7px; }
+    .hole.h3 { top: 7px; left: 36px; }
+    .hole.h4 { bottom: 7px; right: 36px; }
+    .backside-text {
+      position: relative;
+      padding: 28px;
+      max-width: 52rem;
+      background: var(--mask-raised);
+      border: 1px solid var(--line);
+      font-size: 0.95rem;
     }
+    .backside-text h2 { font: 700 1.8rem/1.1 var(--display); color: var(--gold); text-transform: uppercase; margin-bottom: 14px; }
+    .backside-text p { margin: 0 0 12px; }
 
-    .card-actions {
-      margin-top: auto;
-      display: flex;
-    }
-
-    .card-cta {
-      width: 100%;
-      text-align: center;
-      padding: 10px 14px;
-      border-radius: 9px;
-      font-size: 0.88rem;
-      font-weight: 600;
-      background: #1f6feb;
-      border: 1px solid #58a6ff;
-      color: #ffffff;
-      text-decoration: none;
-      transition: background 0.12s;
-    }
-
-    .card-cta:hover {
-      background: #388bfd;
-      text-decoration: none;
-    }
-
-    .card-cta.secondary {
-      background: #21262d;
-      border-color: #3b434d;
-      color: var(--text-main);
-    }
-
-    .card-cta.secondary:hover {
-      background: #292e36;
-      border-color: var(--accent-blue);
-    }
-
-    .about-panel {
-      background: var(--panel-bg);
-      border: 1px solid var(--panel-border);
-      border-radius: 14px;
-      padding: 18px 22px;
-      font-size: 0.84rem;
-      color: var(--text-muted);
-      line-height: 1.5;
-    }
-
-    .about-panel h3 {
-      margin: 0 0 8px 0;
-      font-size: 0.9rem;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--accent-gold);
-    }
-
-    .about-panel p {
-      margin: 0 0 8px 0;
-    }
-
-    .about-panel p:last-child {
-      margin-bottom: 0;
-    }
-
-    .about-panel strong {
-      color: var(--text-main);
-    }
-
-    @media (max-width: 420px) {
-      header {
-        padding: 14px 12px;
-      }
-
-      .brand h1 {
-        font-size: 1.15rem;
-      }
-
-      main {
-        padding: 16px 12px 28px;
-        gap: 18px;
-      }
-
-      .cards-grid {
-        gap: 16px;
-      }
-
-      .year-card {
-        padding: 14px;
-        gap: 12px;
-      }
-
-      .card-top {
-        gap: 12px;
-      }
-
-      .card-thumb {
-        width: 78px;
-        height: 138px;
-      }
-
-      .card-thumb.landscape {
-        width: 106px;
-        height: 88px;
-      }
-
-      .about-panel {
-        padding: 14px;
-      }
-    }
     .site-footer {
-      text-align: center;
-      font-size: 0.8rem;
-      color: #8b949e;
-      padding: 20px 16px 28px;
-      line-height: 1.6;
+      border-top: 1px solid var(--line);
+      background: var(--mask);
+      padding: 28px 0 36px;
+      font: 400 0.8rem/1.7 var(--mono);
+      color: var(--muted);
     }
-    .site-footer a { color: #58a6ff; text-decoration: none; }
-    .site-footer a:hover { text-decoration: underline; }
+
+    @media (max-width: 900px) {
+      .hero .wrap { grid-template-columns: minmax(0, 1fr); }
+      .hero-boards { max-width: 400px; }
+    }
+
+    @media (max-width: 760px) {
+      .wrap { padding-inline: 16px; }
+      .hero { padding-top: 36px; }
+      .hero-boards { max-width: 320px; }
+      .yearbus-inner { flex-direction: column; align-items: stretch; gap: 10px; }
+      .yearbus ol { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); row-gap: 8px; }
+      .yearbus .pad { min-width: 0; width: 48px; padding-inline: 6px; }
+
+      .bus-line { left: 28px; margin-left: -2px; }
+      .exhibit, .exhibit:nth-of-type(even) {
+        grid-template-columns: 24px minmax(0, 1fr);
+        column-gap: 0;
+        row-gap: 20px;
+        padding-block: 28px;
+        align-items: start;
+      }
+      .via { grid-column: 1; grid-row: 1 / 3; align-self: stretch; margin-left: 12px; }
+      .via::before { top: 150px; left: 0; right: -12px; }
+      .via::after { top: 150px; left: 0; margin-left: -13px; }
+      .exhibit .ex-pic, .exhibit:nth-of-type(even) .ex-pic {
+        grid-column: 2; grid-row: 1; justify-self: stretch; max-width: none; padding-left: 12px;
+      }
+      .exhibit .ex-text, .exhibit:nth-of-type(even) .ex-text {
+        grid-column: 2; grid-row: 2; padding: 0 0 0 12px;
+      }
+      .mat { height: 320px; padding: 24px; }
+      .ex-pic .silk { text-align: left; }
+      .backside { padding: 20px 14px; }
+      .backside-text { padding: 20px 16px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+      .bus-line i { display: none; }
+    }
   </style>
 </head>
 <body>
-  <header>
-    <div class="brand">
-      <h1>🏛️ SAINTCON Badge Museum</h1>
-      <p>Interactive WebAssembly hardware emulators for SAINTCON electronic conference badges</p>
-      <p class="disclaimer-line">Unofficial fan project. Not affiliated with or endorsed by SAINTCON or UtahSAINT.</p>
-    </div>
-    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-      <a class="card-cta" style="padding: 8px 14px; width: auto;" href="?year=2026">Play 2026 Badge →</a>
-      <a class="card-cta secondary" style="padding: 8px 14px; width: auto;" href="?year=2025">Play 2025 Badge →</a>
-      <a class="card-cta secondary" style="padding: 8px 14px; width: auto;" href="?year=2024">Play 2024 Badge →</a>
-      <a class="card-cta secondary" style="padding: 8px 14px; width: auto;" href="?year=2023">Play 2023 Badge →</a>
-      <a class="card-cta secondary" style="padding: 8px 14px; width: auto;" href="?year=2022">Play 2022 Badge →</a>
-      <a class="card-cta secondary" style="padding: 8px 14px; width: auto;" href="?year=2021">Play 2021 Badge →</a>
-      <a class="card-cta secondary" style="padding: 8px 14px; width: auto;" href="?year=2020">Play 2020 Badge →</a>
-      <a class="card-cta secondary" style="padding: 8px 14px; width: auto;" href="?year=2019">Play 2019 Badge →</a>
-      <a class="card-cta secondary" style="padding: 8px 14px; width: auto;" href="?year=2018">Play 2018 Badge →</a>
-      <a class="card-cta secondary" style="padding: 8px 14px; width: auto;" href="?year=2017">Play 2017 Minibadge →</a>
+  <header class="hero">
+    <div class="wrap">
+      <div class="hero-copy">
+        <p class="refdes" aria-hidden="true">SC-MUSEUM / REV 2017 TO 2026</p>
+        <h1>SAINTCON Badge Museum</h1>
+        <p class="silk-line">Ten years of conference badges, running their real firmware in your browser.</p>
+        <p class="disclaimer-line">Unofficial fan project. Not affiliated with or endorsed by SAINTCON or UtahSAINT.</p>
+        <div class="actions">
+          <a class="card-cta pad" href="?year=2026">Play the newest badge</a>
+          <a class="pad outline" href="#year-bus">Browse all ten</a>
+        </div>
+      </div>
+      <div class="hero-boards" aria-hidden="true">
+        <img class="b19" src="museum-art/2019.webp" width="760" height="755" alt="" />
+        <img class="b25" src="museum-art/2025.webp" width="307" height="760" alt="" />
+        <img class="b26" src="museum-art/2026.webp" width="385" height="760" alt="" />
+      </div>
     </div>
   </header>
 
+  <nav class="yearbus" id="year-bus" aria-label="Jump to a badge year">
+    <div class="wrap yearbus-inner">
+      <span class="pwr" aria-hidden="true"><i class="led"></i><span class="silk">PWR</span></span>
+      <ol>
+        <li><a class="pad" href="#card-2026" aria-label="26: 2026 Orion Trail"><span aria-hidden="true">26</span></a></li>
+        <li><a class="pad" href="#card-2025" aria-label="25: 2025 The Wrench"><span aria-hidden="true">25</span></a></li>
+        <li><a class="pad" href="#card-2024" aria-label="24: 2024 Tower Battle"><span aria-hidden="true">24</span></a></li>
+        <li><a class="pad" href="#card-2023" aria-label="23: 2023 Incidents"><span aria-hidden="true">23</span></a></li>
+        <li><a class="pad" href="#card-2022" aria-label="22: 2022 Clue-style notepad badge"><span aria-hidden="true">22</span></a></li>
+        <li><a class="pad" href="#card-2021" aria-label="21: 2021 Combination lock badge"><span aria-hidden="true">21</span></a></li>
+        <li><a class="pad" href="#card-2020" aria-label="20: 2020 LED badge"><span aria-hidden="true">20</span></a></li>
+        <li><a class="pad" href="#card-2019" aria-label="19: 2019 Enigma badge"><span aria-hidden="true">19</span></a></li>
+        <li><a class="pad" href="#card-2018" aria-label="18: 2018 LED matrix badge"><span aria-hidden="true">18</span></a></li>
+        <li><a class="pad" href="#card-2017" aria-label="17: 2017 HITB Minibadge"><span aria-hidden="true">17</span></a></li>
+      </ol>
+    </div>
+  </nav>
+
   <main>
-    <div class="cards-grid">
-      <!-- 2017 HITB Minibadge Card (LIVE) -->
-      <article class="year-card" id="card-2017">
-        <div class="card-top">
-          <a class="card-thumb landscape" href="?year=2017" title="Launch HITB Minibadge 2017 Emulator">
-            <img src="badges/2017/board.png" alt="HITB Minibadge 2017 PCB" />
+    <div class="wrap exhibits">
+      <div class="bus-line" aria-hidden="true"><i></i></div>
+
+      <article class="exhibit" id="card-2026">
+        <div class="via" aria-hidden="true"></div>
+        <div class="ex-pic">
+          <a class="mat" href="?year=2026" title="Launch SAINTCON 2026 Badge Emulator">
+            <img src="museum-art/2026.webp" width="385" height="760" loading="lazy" alt="SAINTCON 2026 Orion Trail Rocket Badge PCB" />
           </a>
-          <div class="card-head-info">
-            <div class="status-row">
-              <span class="year-badge">2017</span>
-              <span class="status-pill live">● Live</span>
-              <span class="status-pill soon" title="This repository contains the HITB Minibadge 2017, not the main 2017 conference badge.">Minibadge Only</span>
-            </div>
-            <h2><a href="?year=2017" style="color: inherit;">HITB Minibadge 2017</a></h2>
-            <p class="hw-summary">
-              <strong>Note:</strong> This is a <strong>minibadge</strong> (HITB Minibadge 2017), not the main 2017 conference badge — the main 2017 badge's firmware is not in this repository. ATtiny45 (<code>Tiny45-20-SMT</code>) • 2× APA102 5050 RGB LEDs (U2, U3 @ brightness 10) • 2 capacitive touch pads: Pad 1 ring &amp; <code>TOUCH_BTN_1</code> on bottom (A3, <code>value0 &gt; 40</code>) &amp; "You Can't Touch This" polygon on top + <code>TOUCH_BTN_2</code> on bottom (A2, <code>value1 &gt; 10</code>) • 16-pin minibadge header.
-            </p>
+          <p class="silk" aria-hidden="true">U26 ORION TRAIL</p>
+        </div>
+        <div class="ex-text">
+          <h2><span class="year">2026</span> <span class="name">Orion Trail</span></h2>
+          <p class="one-liner">A rocket-shaped badge with a round screen, running the Orion Trail game.</p>
+          <div class="actions">
+          <a class="card-cta pad" href="?year=2026">Play Original Firmware</a>
           </div>
+          <details class="dossier">
+            <summary>Hardware and credits</summary>
+            <div class="fine">
+              <p class="hw-summary">
+                RP2350A • 1.85" 360×360 Round ST77916 QSPI LCD • 9 WS2812C LEDs • 5-way joystick (SW4 / C) + A &amp; B buttons (SW2, SW3) • 24CS08 1 KB EEPROM.
+              </p>
+              <div class="credits-box">          <div class="main-credit">
+            <strong>Badge by <a href="https://github.com/Professor-plum" target="_blank" rel="noopener">Professor-plum</a></strong> •
+            Repo: <a href="https://github.com/Professor-plum/SAINTCON-BADGE-2026" target="_blank" rel="noopener">github.com/Professor-plum/SAINTCON-BADGE-2026</a>
+            (<a href="https://github.com/Professor-plum/SAINTCON-BADGE-2026/tree/2168f62/firmware" target="_blank" rel="noopener"><code>2168f62</code></a>) •
+            <a href="badges/2026/LICENSE.txt" target="_blank" rel="noopener"><strong>MIT License</strong></a>
+            (<a href="https://github.com/Professor-plum/SAINTCON-BADGE-2026/blob/2168f62/LICENSE" target="_blank" rel="noopener">upstream</a>) •
+            <a href="badges/2026/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">Third-party licenses</a>
+          </div>
+          <div class="sub-credit">
+            Copyright (c) 2026 Professor Plum • Stock "Orion Trail" firmware live
+          </div>
+        
+              </div>
+            </div>
+          </details>
         </div>
+      </article>
 
-        <div class="modes-row">
-          <a class="mode-chip" href="?year=2017" style="color: inherit;">🚀 <strong>Original Firmware</strong></a>
+      <article class="exhibit" id="card-2025">
+        <div class="via" aria-hidden="true"></div>
+        <div class="ex-pic">
+          <a class="mat" href="?year=2025" title="Launch SAINTCON 2025 Badge Emulator">
+            <img src="museum-art/2025.webp" width="307" height="760" loading="lazy" alt="SAINTCON 2025 Wrench Badge PCB" />
+          </a>
+          <p class="silk" aria-hidden="true">U25 THE WRENCH</p>
         </div>
+        <div class="ex-text">
+          <h2><span class="year">2025</span> <span class="name">The Wrench</span></h2>
+          <p class="one-liner">A wrench with a small screen, 20 LEDs and the original faction game. A pug pet is here as a second mode.</p>
+          <div class="actions">
+          <a class="card-cta pad" href="?year=2025&amp;mode=stock">Play Original Firmware</a>
+          <a class="card-cta pad outline" href="?year=2025&amp;mode=pug">Play Pug Pet</a>
+          </div>
+          <details class="dossier">
+            <summary>Hardware and credits</summary>
+            <div class="fine">
+              <p class="hw-summary">
+                ESP32-S3-WROOM-1 • 2.0" 240×320 ST7789V LCD • 20 WS2812B-2020 LEDs • 5-way navigation switch (SW2) • ST25DV04K 512B NFC tag.
+              </p>
+              <div class="credits-box">          <div class="main-credit">
+            <strong>Badge by <a href="https://github.com/compukidmike" target="_blank" rel="noopener">compukidmike</a></strong>
+            • Repo: <a href="https://github.com/compukidmike/Saintcon2025" target="_blank" rel="noopener">github.com/compukidmike/Saintcon2025</a>
+            • <a href="badges/2025/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">Third-party licenses</a>
+          </div>
+          <div class="sub-credit">
+            Stock firmware &amp; faction game from <a href="https://github.com/compukidmike/Saintcon2025" target="_blank" rel="noopener"><strong>compukidmike/Saintcon2025</strong></a> • Pug pet by <strong>PugTechnology</strong>
+          </div>
+        
+              </div>
+            </div>
+          </details>
+        </div>
+      </article>
 
-        <div class="credits-box">
-          <div class="main-credit">
+      <article class="exhibit" id="card-2024">
+        <div class="via" aria-hidden="true"></div>
+        <div class="ex-pic">
+          <a class="mat" href="?year=2024" title="Launch SAINTCON 2024 Wrist Badge Emulator">
+            <img src="museum-art/2024.webp" width="760" height="502" loading="lazy" alt="SAINTCON 2024 Tower Battle Wrist Badge PCB" />
+          </a>
+          <p class="silk" aria-hidden="true">U24 TOWER BATTLE</p>
+        </div>
+        <div class="ex-text">
+          <h2><span class="year">2024</span> <span class="name">Tower Battle</span></h2>
+          <p class="one-liner">A wrist badge with a touch screen and an IR tower battle game, with a stand-in server playing the towers.</p>
+          <div class="actions">
+          <a class="card-cta pad" href="?year=2024">Play Original Firmware</a>
+          </div>
+          <details class="dossier">
+            <summary>Hardware and credits</summary>
+            <div class="fine">
+              <p class="hw-summary">
+                ESP32-S3-WROOM-1 • 2.8" 320×240 ST7789 8080 LCD + GT911 capacitive touch • NEC IR TX/RX • MC3419 accelerometer • Klip-on I2C mux.
+              </p>
+              <div class="credits-box">          <div class="main-credit">
+            <strong>Badge by <a href="https://github.com/compukidmike" target="_blank" rel="noopener">compukidmike</a></strong>
+            • Repo: <a href="https://github.com/compukidmike/Saintcon2024" target="_blank" rel="noopener">github.com/compukidmike/Saintcon2024</a>
+            (<a href="https://github.com/compukidmike/Saintcon2024/tree/5e9412c837334379d7f6cadf68327fc0771f636d/Firmware" target="_blank" rel="noopener"><code>5e9412c</code></a>)
+            • <a href="badges/2024/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">Third-party licenses</a>
+          </div>
+          <div class="sub-credit">
+            Original wrist badge firmware &amp; 11-tower IR battle game from <a href="https://github.com/compukidmike/Saintcon2024" target="_blank" rel="noopener"><strong>compukidmike/Saintcon2024</strong></a>
+          </div>
+        
+              </div>
+            </div>
+          </details>
+        </div>
+      </article>
+
+      <article class="exhibit" id="card-2023">
+        <div class="via" aria-hidden="true"></div>
+        <div class="ex-pic">
+          <a class="mat" href="?year=2023" title="Launch SAINTCON 2023 Incidents Badge Emulator">
+            <img src="museum-art/2023.webp" width="760" height="627" loading="lazy" alt="SAINTCON 2023 Incidents Badge PCB" />
+          </a>
+          <p class="silk" aria-hidden="true">U23 INCIDENTS</p>
+        </div>
+        <div class="ex-text">
+          <h2><span class="year">2023</span> <span class="name">Incidents</span></h2>
+          <p class="one-liner">A dungeon crawler with a screen, 20 LEDs and a stand-in game server.</p>
+          <div class="actions">
+          <a class="card-cta pad" href="?year=2023">Play Original Firmware</a>
+          </div>
+          <details class="dossier">
+            <summary>Hardware and credits</summary>
+            <div class="fine">
+              <p class="hw-summary">
+                ESP32-S3-WROOM-1 • 2.8" 320×240 ST7789 8080 LCD • 20 SK6812MINI LEDs • 4-way switch (SW5) + A &amp; B buttons (SW2, SW3) • NEC IR TX/RX • 4 I2C minibadge slots.
+              </p>
+              <div class="credits-box">          <div class="main-credit">
+            <strong>Badge by <a href="https://github.com/compukidmike" target="_blank" rel="noopener">compukidmike</a></strong>
+            • Repo: <a href="https://github.com/compukidmike/Saintcon2023" target="_blank" rel="noopener">github.com/compukidmike/Saintcon2023</a>
+            (<a href="https://github.com/compukidmike/Saintcon2023/tree/6f5f3407bb57000e0131fc317ad907f27bda7234/Firmware/Source" target="_blank" rel="noopener"><code>6f5f340</code></a>)
+            • <a href="badges/2023/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">Third-party licenses</a>
+          </div>
+          <div class="sub-credit">
+            Original badge firmware &amp; Incidents dungeon crawler from <a href="https://github.com/compukidmike/Saintcon2023" target="_blank" rel="noopener"><strong>compukidmike/Saintcon2023</strong></a>, with contributions from <a href="https://github.com/compukidmike/Saintcon2023/commits?author=jarmknecht" target="_blank" rel="noopener">jarmknecht</a> and <a href="https://github.com/compukidmike/Saintcon2023/pull/6" target="_blank" rel="noopener">klipperx</a>
+          </div>
+        
+              </div>
+            </div>
+          </details>
+        </div>
+      </article>
+
+      <article class="exhibit" id="card-2022">
+        <div class="via" aria-hidden="true"></div>
+        <div class="ex-pic">
+          <a class="mat" href="?year=2022" title="Launch SAINTCON 2022 Clue-Style Notepad Badge Emulator">
+            <img src="museum-art/2022.webp" width="637" height="760" loading="lazy" alt="SAINTCON 2022 Clue-style notepad badge drawing" />
+          </a>
+          <p class="silk" aria-hidden="true">U22 CLUE NOTEPAD</p>
+        </div>
+        <div class="ex-text">
+          <h2><span class="year">2022</span> <span class="name">Clue-style notepad badge</span></h2>
+          <p class="one-liner">A Clue-style notepad with 52 LEDs and no screen. A stand-in kiosk hands out the clues.</p>
+          <div class="actions">
+          <a class="card-cta pad" href="?year=2022">Play Original Firmware</a>
+          </div>
+          <details class="dossier">
+            <summary>Hardware and credits</summary>
+            <div class="fine">
+              <p class="hw-summary">
+                RP2040 dual Cortex-M0+ (QSPI flash) • 52 charlieplexed RGB LEDs on GP0–GP14 (21 Suspects, 21 Attacks/Exploits, 10 Rooms) • UP / DOWN / SELECT tactile buttons (GP15–GP17) • Ambient light sensor (I2C0 @ 0x29) • Dual-wing minibadge connectors (8 total, 4 per wing) • Stand-in museum kiosk over firmware serial protocol.
+              </p>
+              <div class="credits-box">          <div class="main-credit">
+            <strong>Repo: <a href="https://github.com/compukidmike/saintcon2022" target="_blank" rel="noopener">compukidmike/saintcon2022</a></strong>
+            (<a href="https://github.com/compukidmike/saintcon2022/commit/383964e2e0e576dd3c153fc479d37fb429ce2969" target="_blank" rel="noopener"><code>383964e</code></a>)
+            • Licence not stated
+            • <a href="badges/2022/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">Third-party licenses</a>
+          </div>
+          <div class="sub-credit">
+            Runs the unpatched <code>Saintcon2022BadgeFirmwareFix.uf2</code> binary from <a href="https://github.com/compukidmike/saintcon2022" target="_blank" rel="noopener"><strong>compukidmike/saintcon2022</strong></a> (upstream repo provides guides and the UF2 binary; no firmware source or board design files are published) on a dual-core RP2040 emulator built with <a href="https://github.com/wokwi/rp2040js" target="_blank" rel="noopener">wokwi/rp2040js</a> (MIT)
+          </div>
+        
+              </div>
+            </div>
+          </details>
+        </div>
+      </article>
+
+      <article class="exhibit" id="card-2021">
+        <div class="via" aria-hidden="true"></div>
+        <div class="ex-pic">
+          <a class="mat" href="?year=2021" title="Launch SAINTCON 2021 Combination Lock Badge Emulator">
+            <img src="museum-art/2021.webp" width="542" height="760" loading="lazy" alt="SAINTCON 2021 combination lock badge PCB" />
+          </a>
+          <p class="silk" aria-hidden="true">U21 COMBO LOCK</p>
+        </div>
+        <div class="ex-text">
+          <h2><span class="year">2021</span> <span class="name">Combination lock badge</span></h2>
+          <p class="one-liner">A combination lock with a round screen and a touch dial. Stand-in NFC tags and a solo trade partner fill in for the conference.</p>
+          <div class="actions">
+          <a class="card-cta pad" href="?year=2021">Play Original Firmware</a>
+          </div>
+          <details class="dossier">
+            <summary>Hardware and credits</summary>
+            <div class="fine">
+              <p class="hw-summary">
+                ATSAME53J18A • Round 240×240 ILI9331 16-bit LCD • QTouch capacitive dial wheel + shackle &amp; shim sensors • Back button (SW3) • 1 RGB LED (D1) • 8 MB QSPI flash • ST25R95 NFC reader/tag • I2C minibadge bus.
+              </p>
+              <div class="credits-box">          <div class="main-credit">
+            <strong>Badge by <a href="https://github.com/compukidmike" target="_blank" rel="noopener">compukidmike</a>, <a href="https://github.com/Professor-plum" target="_blank" rel="noopener">Professor_Plum</a>, and <a href="https://github.com/Sodium-Hydrogen" target="_blank" rel="noopener">Sodium_Hydrogen</a></strong>
+            • Repo: <a href="https://github.com/compukidmike/Saintcon2021" target="_blank" rel="noopener">github.com/compukidmike/Saintcon2021</a>
+            (<a href="https://github.com/compukidmike/Saintcon2021/tree/092bf1c68a90cd5d13794006667fd52c3cbb3efd/Saintcon2021/Saintcon2021" target="_blank" rel="noopener"><code>092bf1c</code></a>)
+            • <a href="badges/2021/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">Third-party licenses</a>
+          </div>
+          <div class="sub-credit">
+            Original combination lock badge firmware from <a href="https://github.com/compukidmike/Saintcon2021" target="_blank" rel="noopener"><strong>compukidmike/Saintcon2021</strong></a>, with firmware contribution from <a href="https://github.com/compukidmike/Saintcon2021/commit/bfef3ea" target="_blank" rel="noopener">kfeuz</a> (<code>bfef3ea</code>, <code>menuScene.c</code>)
+          </div>
+        
+              </div>
+            </div>
+          </details>
+        </div>
+      </article>
+
+      <article class="exhibit" id="card-2020">
+        <div class="via" aria-hidden="true"></div>
+        <div class="ex-pic">
+          <a class="mat" href="?year=2020" title="Launch SAINTCON 2020 Badge Emulator">
+            <img src="museum-art/2020.webp" width="714" height="760" loading="lazy" alt="SAINTCON 2020 LED badge PCBs" />
+          </a>
+          <p class="silk" aria-hidden="true">U20 LED BADGE</p>
+        </div>
+        <div class="ex-text">
+          <h2><span class="year">2020</span> <span class="name">LED badge</span></h2>
+          <p class="one-liner">Eight LEDs, one button and eight light modes, plus a hidden boot mode.</p>
+          <div class="actions">
+          <a class="card-cta pad" href="?year=2020">Play Original Firmware</a>
+          </div>
+          <details class="dossier">
+            <summary>Hardware and credits</summary>
+            <div class="fine">
+              <p class="hw-summary">
+                ATtiny84A (SOIC-14 on DaughterBoard) • 8× 5 mm LEDs on PORTA (D1–D4 on MainBoard front <code>F.Cu</code>, D5–D8 on MainBoard back <code>B.Cu</code>; 1 kHz Timer1 software PWM; colour not specified in files) • Button SW1 on PB2 (8 modes in EEPROM) • Test pads TP1 &amp; TP2 (hold TP1 low at power-on for hidden binary messages) • Upstream README states 17 power-only minibadges (panel has 13 <code>MinibadgeHolder</code> + 4 <code>MinibadgeHolder90</code>; MainBoard has 7 slots, VerticalBoard 6, HorizontalBoard 4 connectors).
+              </p>
+              <div class="credits-box">          <div class="main-credit">
+            <strong>Badge by <a href="https://github.com/compukidmike" target="_blank" rel="noopener">compukidmike</a></strong>
+            • Repo: <a href="https://github.com/compukidmike/Saintcon2020" target="_blank" rel="noopener">github.com/compukidmike/Saintcon2020</a>
+            (<a href="https://github.com/compukidmike/Saintcon2020/tree/9b11ef8514be376b9b798ec66248ab2f7a8d1fd3/Firmware/Saintcon2020" target="_blank" rel="noopener"><code>9b11ef8</code></a>)
+            • Licence not stated
+            • <a href="badges/2020/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">Third-party licenses</a>
+          </div>
+          <div class="sub-credit">
+            Original ATtiny84A firmware &amp; KiCad multi-board hardware from <a href="https://github.com/compukidmike/Saintcon2020" target="_blank" rel="noopener"><strong>compukidmike/Saintcon2020</strong></a>
+          </div>
+        
+              </div>
+            </div>
+          </details>
+        </div>
+      </article>
+
+      <article class="exhibit" id="card-2019">
+        <div class="via" aria-hidden="true"></div>
+        <div class="ex-pic">
+          <a class="mat" href="?year=2019" title="Launch SAINTCON 2019 Enigma Badge Emulator">
+            <img src="museum-art/2019.webp" width="760" height="755" loading="lazy" alt="SAINTCON 2019 Enigma badge PCB" />
+          </a>
+          <p class="silk" aria-hidden="true">U19 ENIGMA</p>
+        </div>
+        <div class="ex-text">
+          <h2><span class="year">2019</span> <span class="name">Enigma badge</span></h2>
+          <p class="one-liner">An Enigma machine with lamps, keys and a plugboard. The at-home challenge plays to the end.</p>
+          <div class="actions">
+          <a class="card-cta pad" href="?year=2019">Play Original Firmware</a>
+          </div>
+          <details class="dossier">
+            <summary>Hardware and credits</summary>
+            <div class="fine">
+              <p class="hw-summary">
+                STM32L433VCTx • ICE40HX1K-TQ144 + 64×16 arched RGB LED matrix • 26 RGB lampboard LEDs (IS31FL3736 @ 0x50) • 26 tactile QWERTZ keys (SW1–SW26) • 26-pin A–Z jumper plugboard • I2C minibadge bus.
+              </p>
+              <div class="credits-box">          <div class="main-credit">
+            <strong>Badge by <a href="https://github.com/compukidmike" target="_blank" rel="noopener">compukidmike</a></strong>
+            • Repo: <a href="https://github.com/compukidmike/Saintcon2019" target="_blank" rel="noopener">github.com/compukidmike/Saintcon2019</a>
+            (<a href="https://github.com/compukidmike/Saintcon2019/tree/4ec59a1626dca09a0c75969f449a0ed3cca18bac/Firmware/Saintcon2019" target="_blank" rel="noopener"><code>4ec59a1</code></a>)
+            • <a href="badges/2019/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">Third-party licenses</a>
+          </div>
+          <div class="sub-credit">
+            Original badge firmware from <a href="https://github.com/compukidmike/Saintcon2019" target="_blank" rel="noopener"><strong>compukidmike/Saintcon2019</strong></a> • Enigma machine code copied from <a href="http://corylutton.com/enigma-c.html" target="_blank" rel="noopener">Cory Lutton's enigma-c</a> (Apache 2.0) and heavily modified by @_bashNinja; Snake, Screen Animations &amp; User Profile by bashNinja • IS31FL3736 driver by <a href="http://andnxor.com/" target="_blank" rel="noopener">AND!XOR LLC</a> (@andnxor, @zappbrandnxor, @hyr0n1, @exc3ls1or, @lacosteaef, @bitstr3m, Apache 2.0) • Matrix effects (<code>mapf</code>, <code>plasma</code>, <code>bound</code>, <code>LED_waveEffect</code>) from <a href="https://github.com/bikefrivolously/led_matrix" target="_blank" rel="noopener">bikefrivolously/led_matrix</a>
+          </div>
+        
+              </div>
+            </div>
+          </details>
+        </div>
+      </article>
+
+      <article class="exhibit" id="card-2018">
+        <div class="via" aria-hidden="true"></div>
+        <div class="ex-pic">
+          <a class="mat" href="?year=2018" title="Launch SAINTCON 2018 LED Matrix Badge Emulator">
+            <img src="museum-art/2018.webp" width="465" height="760" loading="lazy" alt="SAINTCON 2018 LED matrix badge PCB" />
+          </a>
+          <p class="silk" aria-hidden="true">U18 LED MATRIX</p>
+        </div>
+        <div class="ex-text">
+          <h2><span class="year">2018</span> <span class="name">LED matrix badge</span></h2>
+          <p class="one-liner">A padlock with an 8 by 32 LED matrix, running its original MicroPython code.</p>
+          <div class="actions">
+          <a class="card-cta pad" href="?year=2018">Play Original Firmware</a>
+          </div>
+          <details class="dossier">
+            <summary>Hardware and credits</summary>
+            <div class="fine">
+              <p class="hw-summary">
+                ESP32 (LOLIN D32, MicroPython) • 8×32 red 0603 LED shackle matrix (2× IS31FL3730 @ 0x60/0x61) • UP / DOWN / SELECT tactile buttons (SW1–SW3) • Wi-Fi AP config portal (microWebSrv) • I2C minibadge bus.
+              </p>
+              <div class="credits-box">          <div class="main-credit">
+            <strong>Badge by <a href="https://github.com/compukidmike" target="_blank" rel="noopener">compukidmike</a></strong>
+            • Repo: <a href="https://github.com/compukidmike/Saintcon2018" target="_blank" rel="noopener">github.com/compukidmike/Saintcon2018</a>
+            (<a href="https://github.com/compukidmike/Saintcon2018/tree/fee2837d4607ee8a0360e99709894fc5fc608948/Badge/Badge%20Source%20Code" target="_blank" rel="noopener"><code>fee2837</code></a>)
+            • <a href="badges/2018/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">Third-party licenses</a>
+          </div>
+          <div class="sub-credit">
+            Original MicroPython badge firmware &amp; web configuration portal from <a href="https://github.com/compukidmike/Saintcon2018" target="_blank" rel="noopener"><strong>compukidmike/Saintcon2018</strong></a>, with contributions from <a href="https://github.com/compukidmike/Saintcon2018/commits?author=miketweaver" target="_blank" rel="noopener">miketweaver</a>
+          </div>
+        
+              </div>
+            </div>
+          </details>
+        </div>
+      </article>
+
+      <article class="exhibit" id="card-2017">
+        <div class="via" aria-hidden="true"></div>
+        <div class="ex-pic">
+          <a class="mat" href="?year=2017" title="Launch HITB Minibadge 2017 Emulator">
+            <img src="museum-art/2017.webp" width="760" height="355" loading="lazy" alt="HITB Minibadge 2017 PCB" />
+          </a>
+          <p class="silk" aria-hidden="true">U17 HITB MINIBADGE</p>
+        </div>
+        <div class="ex-text">
+          <h2><span class="year">2017</span> <span class="name">HITB Minibadge</span></h2>
+          <p class="one-liner">A minibadge with two LEDs and two touch pads. This is not the main 2017 badge, whose firmware is not in the repo.</p>
+          <div class="actions">
+          <a class="card-cta pad" href="?year=2017">Play Original Firmware</a>
+          </div>
+          <details class="dossier">
+            <summary>Hardware and credits</summary>
+            <div class="fine">
+              <p class="hw-summary">
+                <strong>Note:</strong> This is a <strong>minibadge</strong> (HITB Minibadge 2017), not the main 2017 conference badge. The main 2017 badge's firmware is not in this repository. ATtiny45 (<code>Tiny45-20-SMT</code>) • 2× APA102 5050 RGB LEDs (U2, U3 @ brightness 10) • 2 capacitive touch pads: Pad 1 ring &amp; <code>TOUCH_BTN_1</code> on bottom (A3, <code>value0 &gt; 40</code>) &amp; "You Can't Touch This" polygon on top + <code>TOUCH_BTN_2</code> on bottom (A2, <code>value1 &gt; 10</code>) • 16-pin minibadge header.
+              </p>
+              <div class="credits-box">          <div class="main-credit">
             <strong>Minibadge by <a href="https://github.com/compukidmike" target="_blank" rel="noopener">compukidmike</a></strong>
             • Repo: <a href="https://github.com/compukidmike/Saintcon2017" target="_blank" rel="noopener">github.com/compukidmike/Saintcon2017</a>
             (<a href="https://github.com/compukidmike/Saintcon2017/tree/d5f1d932035e589253eafbd97a414d78ee9b37e8/HITBUTT_Minibadge" target="_blank" rel="noopener"><code>d5f1d93</code></a>)
@@ -461,391 +884,51 @@
           <div class="sub-credit">
             Original <code>HITB_Test.ino</code> sketch &amp; EAGLE board from <a href="https://github.com/compukidmike/Saintcon2017/tree/d5f1d932035e589253eafbd97a414d78ee9b37e8/HITBUTT_Minibadge" target="_blank" rel="noopener"><strong>compukidmike/Saintcon2017</strong></a> (also includes <a href="https://github.com/compukidmike/Saintcon2017/tree/d5f1d932035e589253eafbd97a414d78ee9b37e8/MinibadgeTutorial" target="_blank" rel="noopener">MinibadgeTutorial</a>) • Written to be used with <code>APA102</code> by pololu and <code>ADCTouch</code> by martin2250 (replaced by our emulator shims)
           </div>
-        </div>
-
-        <div class="card-actions">
-          <a class="card-cta" href="?year=2017">Play Original Firmware →</a>
-        </div>
-      </article>
-
-      <!-- 2018 Badge Card (LIVE) -->
-      <article class="year-card" id="card-2018">
-        <div class="card-top">
-          <a class="card-thumb" href="?year=2018" title="Launch SAINTCON 2018 LED Matrix Badge Emulator">
-            <img src="badges/2018/board.png" alt="SAINTCON 2018 LED matrix badge PCB" />
-          </a>
-          <div class="card-head-info">
-            <div class="status-row">
-              <span class="year-badge">2018</span>
-              <span class="status-pill live">● Live</span>
+        
+              </div>
             </div>
-            <h2><a href="?year=2018" style="color: inherit;">LED matrix badge</a></h2>
-            <p class="hw-summary">
-              ESP32 (LOLIN D32, MicroPython) • 8×32 red 0603 LED shackle matrix (2× IS31FL3730 @ 0x60/0x61) • UP / DOWN / SELECT tactile buttons (SW1–SW3) • Wi-Fi AP config portal (microWebSrv) • I2C minibadge bus.
-            </p>
-          </div>
-        </div>
-
-        <div class="modes-row">
-          <a class="mode-chip" href="?year=2018" style="color: inherit;">🚀 <strong>Original Firmware</strong></a>
-        </div>
-
-        <div class="credits-box">
-          <div class="main-credit">
-            <strong>Badge by <a href="https://github.com/compukidmike" target="_blank" rel="noopener">compukidmike</a></strong>
-            • Repo: <a href="https://github.com/compukidmike/Saintcon2018" target="_blank" rel="noopener">github.com/compukidmike/Saintcon2018</a>
-            (<a href="https://github.com/compukidmike/Saintcon2018/tree/fee2837d4607ee8a0360e99709894fc5fc608948/Badge/Badge%20Source%20Code" target="_blank" rel="noopener"><code>fee2837</code></a>)
-            • <a href="badges/2018/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">Third-party licenses</a>
-          </div>
-          <div class="sub-credit">
-            Original MicroPython badge firmware &amp; web configuration portal from <a href="https://github.com/compukidmike/Saintcon2018" target="_blank" rel="noopener"><strong>compukidmike/Saintcon2018</strong></a>, with contributions from <a href="https://github.com/compukidmike/Saintcon2018/commits?author=miketweaver" target="_blank" rel="noopener">miketweaver</a>
-          </div>
-        </div>
-
-        <div class="card-actions">
-          <a class="card-cta" href="?year=2018">Play Original Firmware →</a>
-        </div>
-      </article>
-
-      <!-- 2019 Badge Card (LIVE) -->
-      <article class="year-card" id="card-2019">
-        <div class="card-top">
-          <a class="card-thumb landscape" href="?year=2019" title="Launch SAINTCON 2019 Enigma Badge Emulator">
-            <img src="badges/2019/board.png" alt="SAINTCON 2019 Enigma badge PCB" />
-          </a>
-          <div class="card-head-info">
-            <div class="status-row">
-              <span class="year-badge">2019</span>
-              <span class="status-pill live">● Live</span>
-            </div>
-            <h2><a href="?year=2019" style="color: inherit;">Enigma badge</a></h2>
-            <p class="hw-summary">
-              STM32L433VCTx • ICE40HX1K-TQ144 + 64×16 arched RGB LED matrix • 26 RGB lampboard LEDs (IS31FL3736 @ 0x50) • 26 tactile QWERTZ keys (SW1–SW26) • 26-pin A–Z jumper plugboard • I2C minibadge bus.
-            </p>
-          </div>
-        </div>
-
-        <div class="modes-row">
-          <a class="mode-chip" href="?year=2019" style="color: inherit;">🚀 <strong>Original Firmware</strong></a>
-        </div>
-
-        <div class="credits-box">
-          <div class="main-credit">
-            <strong>Badge by <a href="https://github.com/compukidmike" target="_blank" rel="noopener">compukidmike</a></strong>
-            • Repo: <a href="https://github.com/compukidmike/Saintcon2019" target="_blank" rel="noopener">github.com/compukidmike/Saintcon2019</a>
-            (<a href="https://github.com/compukidmike/Saintcon2019/tree/4ec59a1626dca09a0c75969f449a0ed3cca18bac/Firmware/Saintcon2019" target="_blank" rel="noopener"><code>4ec59a1</code></a>)
-            • <a href="badges/2019/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">Third-party licenses</a>
-          </div>
-          <div class="sub-credit">
-            Original badge firmware from <a href="https://github.com/compukidmike/Saintcon2019" target="_blank" rel="noopener"><strong>compukidmike/Saintcon2019</strong></a> • Enigma machine code copied from <a href="http://corylutton.com/enigma-c.html" target="_blank" rel="noopener">Cory Lutton's enigma-c</a> (Apache 2.0) and heavily modified by @_bashNinja; Snake, Screen Animations &amp; User Profile by bashNinja • IS31FL3736 driver by <a href="http://andnxor.com/" target="_blank" rel="noopener">AND!XOR LLC</a> (@andnxor, @zappbrandnxor, @hyr0n1, @exc3ls1or, @lacosteaef, @bitstr3m, Apache 2.0) • Matrix effects (<code>mapf</code>, <code>plasma</code>, <code>bound</code>, <code>LED_waveEffect</code>) from <a href="https://github.com/bikefrivolously/led_matrix" target="_blank" rel="noopener">bikefrivolously/led_matrix</a>
-          </div>
-        </div>
-
-        <div class="card-actions">
-          <a class="card-cta" href="?year=2019">Play Original Firmware →</a>
-        </div>
-      </article>
-
-      <!-- 2020 Badge Card (LIVE) -->
-      <article class="year-card" id="card-2020">
-        <div class="card-top">
-          <a class="card-thumb landscape" href="?year=2020" title="Launch SAINTCON 2020 Badge Emulator">
-            <img src="badges/2020/board.png" alt="SAINTCON 2020 LED badge PCBs" />
-          </a>
-          <div class="card-head-info">
-            <div class="status-row">
-              <span class="year-badge">2020</span>
-              <span class="status-pill live">● Live</span>
-            </div>
-            <h2><a href="?year=2020" style="color: inherit;">LED badge</a></h2>
-            <p class="hw-summary">
-              ATtiny84A (SOIC-14 on DaughterBoard) • 8× 5 mm LEDs on PORTA (D1–D4 on MainBoard front <code>F.Cu</code>, D5–D8 on MainBoard back <code>B.Cu</code>; 1 kHz Timer1 software PWM; colour not specified in files) • Button SW1 on PB2 (8 modes in EEPROM) • Test pads TP1 &amp; TP2 (hold TP1 low at power-on for hidden binary messages) • Upstream README states 17 power-only minibadges (panel has 13 <code>MinibadgeHolder</code> + 4 <code>MinibadgeHolder90</code>; MainBoard has 7 slots, VerticalBoard 6, HorizontalBoard 4 connectors).
-            </p>
-          </div>
-        </div>
-
-        <div class="modes-row">
-          <a class="mode-chip" href="?year=2020" style="color: inherit;">🚀 <strong>Original Firmware</strong></a>
-        </div>
-
-        <div class="credits-box">
-          <div class="main-credit">
-            <strong>Badge by <a href="https://github.com/compukidmike" target="_blank" rel="noopener">compukidmike</a></strong>
-            • Repo: <a href="https://github.com/compukidmike/Saintcon2020" target="_blank" rel="noopener">github.com/compukidmike/Saintcon2020</a>
-            (<a href="https://github.com/compukidmike/Saintcon2020/tree/9b11ef8514be376b9b798ec66248ab2f7a8d1fd3/Firmware/Saintcon2020" target="_blank" rel="noopener"><code>9b11ef8</code></a>)
-            • Licence not stated
-            • <a href="badges/2020/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">Third-party licenses</a>
-          </div>
-          <div class="sub-credit">
-            Original ATtiny84A firmware &amp; KiCad multi-board hardware from <a href="https://github.com/compukidmike/Saintcon2020" target="_blank" rel="noopener"><strong>compukidmike/Saintcon2020</strong></a>
-          </div>
-        </div>
-
-        <div class="card-actions">
-          <a class="card-cta" href="?year=2020">Play Original Firmware →</a>
-        </div>
-      </article>
-
-      <!-- 2021 Badge Card (LIVE) -->
-      <article class="year-card" id="card-2021">
-        <div class="card-top">
-          <a class="card-thumb" href="?year=2021" title="Launch SAINTCON 2021 Combination Lock Badge Emulator">
-            <img src="badges/2021/board.png" alt="SAINTCON 2021 combination lock badge PCB" />
-          </a>
-          <div class="card-head-info">
-            <div class="status-row">
-              <span class="year-badge">2021</span>
-              <span class="status-pill live">● Live</span>
-            </div>
-            <h2><a href="?year=2021" style="color: inherit;">Combination lock badge</a></h2>
-            <p class="hw-summary">
-              ATSAME53J18A • Round 240×240 ILI9331 16-bit LCD • QTouch capacitive dial wheel + shackle &amp; shim sensors • Back button (SW3) • 1 RGB LED (D1) • 8 MB QSPI flash • ST25R95 NFC reader/tag • I2C minibadge bus.
-            </p>
-          </div>
-        </div>
-
-        <div class="modes-row">
-          <a class="mode-chip" href="?year=2021" style="color: inherit;">🚀 <strong>Original Firmware</strong></a>
-        </div>
-
-        <div class="credits-box">
-          <div class="main-credit">
-            <strong>Badge by <a href="https://github.com/compukidmike" target="_blank" rel="noopener">compukidmike</a>, <a href="https://github.com/Professor-plum" target="_blank" rel="noopener">Professor_Plum</a>, and <a href="https://github.com/Sodium-Hydrogen" target="_blank" rel="noopener">Sodium_Hydrogen</a></strong>
-            • Repo: <a href="https://github.com/compukidmike/Saintcon2021" target="_blank" rel="noopener">github.com/compukidmike/Saintcon2021</a>
-            (<a href="https://github.com/compukidmike/Saintcon2021/tree/092bf1c68a90cd5d13794006667fd52c3cbb3efd/Saintcon2021/Saintcon2021" target="_blank" rel="noopener"><code>092bf1c</code></a>)
-            • <a href="badges/2021/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">Third-party licenses</a>
-          </div>
-          <div class="sub-credit">
-            Original combination lock badge firmware from <a href="https://github.com/compukidmike/Saintcon2021" target="_blank" rel="noopener"><strong>compukidmike/Saintcon2021</strong></a>, with firmware contribution from <a href="https://github.com/compukidmike/Saintcon2021/commit/bfef3ea" target="_blank" rel="noopener">kfeuz</a> (<code>bfef3ea</code>, <code>menuScene.c</code>)
-          </div>
-        </div>
-
-        <div class="card-actions">
-          <a class="card-cta" href="?year=2021">Play Original Firmware →</a>
-        </div>
-      </article>
-
-      <!-- 2022 Badge Card (LIVE) -->
-      <article class="year-card" id="card-2022">
-        <div class="card-top">
-          <a class="card-thumb" href="?year=2022" title="Launch SAINTCON 2022 Clue-Style Notepad Badge Emulator">
-            <img src="badges/2022/board.png" alt="SAINTCON 2022 Clue-style notepad badge drawing" />
-          </a>
-          <div class="card-head-info">
-            <div class="status-row">
-              <span class="year-badge">2022</span>
-              <span class="status-pill live">● Live</span>
-            </div>
-            <h2><a href="?year=2022" style="color: inherit;">Clue-style notepad badge</a></h2>
-            <p class="hw-summary">
-              RP2040 dual Cortex-M0+ (QSPI flash) • 52 charlieplexed RGB LEDs on GP0–GP14 (21 Suspects, 21 Attacks/Exploits, 10 Rooms) • UP / DOWN / SELECT tactile buttons (GP15–GP17) • Ambient light sensor (I2C0 @ 0x29) • Dual-wing minibadge connectors (8 total, 4 per wing) • Stand-in museum kiosk over firmware serial protocol.
-            </p>
-          </div>
-        </div>
-
-        <div class="modes-row">
-          <a class="mode-chip" href="?year=2022" style="color: inherit;">🚀 <strong>Original UF2 Firmware</strong></a>
-        </div>
-
-        <div class="credits-box">
-          <div class="main-credit">
-            <strong>Repo: <a href="https://github.com/compukidmike/saintcon2022" target="_blank" rel="noopener">compukidmike/saintcon2022</a></strong>
-            (<a href="https://github.com/compukidmike/saintcon2022/commit/383964e2e0e576dd3c153fc479d37fb429ce2969" target="_blank" rel="noopener"><code>383964e</code></a>)
-            • Licence not stated
-            • <a href="badges/2022/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">Third-party licenses</a>
-          </div>
-          <div class="sub-credit">
-            Runs the unpatched <code>Saintcon2022BadgeFirmwareFix.uf2</code> binary from <a href="https://github.com/compukidmike/saintcon2022" target="_blank" rel="noopener"><strong>compukidmike/saintcon2022</strong></a> (upstream repo provides guides and the UF2 binary; no firmware source or board design files are published) on a dual-core RP2040 emulator built with <a href="https://github.com/wokwi/rp2040js" target="_blank" rel="noopener">wokwi/rp2040js</a> (MIT)
-          </div>
-        </div>
-
-        <div class="card-actions">
-          <a class="card-cta" href="?year=2022">Play Original Firmware →</a>
-        </div>
-      </article>
-
-      <!-- 2023 Badge Card (LIVE) -->
-      <article class="year-card" id="card-2023">
-        <div class="card-top">
-          <a class="card-thumb landscape" href="?year=2023" title="Launch SAINTCON 2023 Incidents Badge Emulator">
-            <img src="badges/2023/board.png" alt="SAINTCON 2023 Incidents Badge PCB" />
-          </a>
-          <div class="card-head-info">
-            <div class="status-row">
-              <span class="year-badge">2023</span>
-              <span class="status-pill live">● Live</span>
-            </div>
-            <h2><a href="?year=2023" style="color: inherit;">"Incidents"</a></h2>
-            <p class="hw-summary">
-              ESP32-S3-WROOM-1 • 2.8" 320×240 ST7789 8080 LCD • 20 SK6812MINI LEDs • 4-way switch (SW5) + A &amp; B buttons (SW2, SW3) • NEC IR TX/RX • 4 I2C minibadge slots.
-            </p>
-          </div>
-        </div>
-
-        <div class="modes-row">
-          <a class="mode-chip" href="?year=2023" style="color: inherit;">🚀 <strong>Original Firmware</strong></a>
-        </div>
-
-        <div class="credits-box">
-          <div class="main-credit">
-            <strong>Badge by <a href="https://github.com/compukidmike" target="_blank" rel="noopener">compukidmike</a></strong>
-            • Repo: <a href="https://github.com/compukidmike/Saintcon2023" target="_blank" rel="noopener">github.com/compukidmike/Saintcon2023</a>
-            (<a href="https://github.com/compukidmike/Saintcon2023/tree/6f5f3407bb57000e0131fc317ad907f27bda7234/Firmware/Source" target="_blank" rel="noopener"><code>6f5f340</code></a>)
-            • <a href="badges/2023/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">Third-party licenses</a>
-          </div>
-          <div class="sub-credit">
-            Original badge firmware &amp; Incidents dungeon crawler from <a href="https://github.com/compukidmike/Saintcon2023" target="_blank" rel="noopener"><strong>compukidmike/Saintcon2023</strong></a>, with contributions from <a href="https://github.com/compukidmike/Saintcon2023/commits?author=jarmknecht" target="_blank" rel="noopener">jarmknecht</a> and <a href="https://github.com/compukidmike/Saintcon2023/pull/6" target="_blank" rel="noopener">klipperx</a>
-          </div>
-        </div>
-
-        <div class="card-actions">
-          <a class="card-cta" href="?year=2023">Play Original Firmware →</a>
-        </div>
-      </article>
-
-      <!-- 2024 Badge Card (LIVE) -->
-      <article class="year-card" id="card-2024">
-        <div class="card-top">
-          <a class="card-thumb landscape" href="?year=2024" title="Launch SAINTCON 2024 Wrist Badge Emulator">
-            <img src="badges/2024/board.png" alt="SAINTCON 2024 Tower Battle Wrist Badge PCB" />
-          </a>
-          <div class="card-head-info">
-            <div class="status-row">
-              <span class="year-badge">2024</span>
-              <span class="status-pill live">● Live</span>
-            </div>
-            <h2><a href="?year=2024" style="color: inherit;">"Tower Battle"</a></h2>
-            <p class="hw-summary">
-              ESP32-S3-WROOM-1 • 2.8" 320×240 ST7789 8080 LCD + GT911 capacitive touch • NEC IR TX/RX • MC3419 accelerometer • Klip-on I2C mux.
-            </p>
-          </div>
-        </div>
-
-        <div class="modes-row">
-          <a class="mode-chip" href="?year=2024" style="color: inherit;">🚀 <strong>Original Firmware</strong></a>
-        </div>
-
-        <div class="credits-box">
-          <div class="main-credit">
-            <strong>Badge by <a href="https://github.com/compukidmike" target="_blank" rel="noopener">compukidmike</a></strong>
-            • Repo: <a href="https://github.com/compukidmike/Saintcon2024" target="_blank" rel="noopener">github.com/compukidmike/Saintcon2024</a>
-            (<a href="https://github.com/compukidmike/Saintcon2024/tree/5e9412c837334379d7f6cadf68327fc0771f636d/Firmware" target="_blank" rel="noopener"><code>5e9412c</code></a>)
-            • <a href="badges/2024/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">Third-party licenses</a>
-          </div>
-          <div class="sub-credit">
-            Original wrist badge firmware &amp; 11-tower IR battle game from <a href="https://github.com/compukidmike/Saintcon2024" target="_blank" rel="noopener"><strong>compukidmike/Saintcon2024</strong></a>
-          </div>
-        </div>
-
-        <div class="card-actions">
-          <a class="card-cta" href="?year=2024">Play Original Firmware →</a>
-        </div>
-      </article>
-
-      <!-- 2025 Badge Card (LIVE) -->
-      <article class="year-card" id="card-2025">
-        <div class="card-top">
-          <a class="card-thumb" href="?year=2025" title="Launch SAINTCON 2025 Badge Emulator">
-            <img src="badges/2025/board.png" alt="SAINTCON 2025 Wrench Badge PCB" />
-          </a>
-          <div class="card-head-info">
-            <div class="status-row">
-              <span class="year-badge">2025</span>
-              <span class="status-pill live">● Live</span>
-            </div>
-            <h2><a href="?year=2025" style="color: inherit;">"The Wrench"</a></h2>
-            <p class="hw-summary">
-              ESP32-S3-WROOM-1 • 2.0" 240×320 ST7789V LCD • 20 WS2812B-2020 LEDs • 5-way navigation switch (SW2) • ST25DV04K 512B NFC tag.
-            </p>
-          </div>
-        </div>
-
-        <div class="modes-row">
-          <a class="mode-chip" href="?year=2025&amp;mode=stock" style="color: inherit;">🚀 <strong>Original Firmware</strong></a>
-          <a class="mode-chip" href="?year=2025&amp;mode=pug" style="color: inherit;">🐾 <strong>Pug Pet</strong></a>
-        </div>
-
-        <div class="credits-box">
-          <div class="main-credit">
-            <strong>Badge by <a href="https://github.com/compukidmike" target="_blank" rel="noopener">compukidmike</a></strong>
-            • Repo: <a href="https://github.com/compukidmike/Saintcon2025" target="_blank" rel="noopener">github.com/compukidmike/Saintcon2025</a>
-            • <a href="badges/2025/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">Third-party licenses</a>
-          </div>
-          <div class="sub-credit">
-            Stock firmware &amp; faction game from <a href="https://github.com/compukidmike/Saintcon2025" target="_blank" rel="noopener"><strong>compukidmike/Saintcon2025</strong></a> • Pug pet by <strong>PugTechnology</strong>
-          </div>
-        </div>
-
-        <div class="card-actions" style="gap: 8px;">
-          <a class="card-cta" href="?year=2025&amp;mode=stock">Play Original Firmware →</a>
-          <a class="card-cta secondary" href="?year=2025&amp;mode=pug">Play Pug Pet →</a>
-        </div>
-      </article>
-
-      <!-- 2026 Badge Card (LIVE) -->
-      <article class="year-card" id="card-2026">
-        <div class="card-top">
-          <a class="card-thumb" href="?year=2026" title="Launch SAINTCON 2026 Badge Emulator">
-            <img src="badges/2026/board.png" alt="SAINTCON 2026 Orion Trail Rocket Badge PCB" />
-          </a>
-          <div class="card-head-info">
-            <div class="status-row">
-              <span class="year-badge">2026</span>
-              <span class="status-pill live">● Live</span>
-            </div>
-            <h2><a href="?year=2026" style="color: inherit;">"Orion Trail"</a></h2>
-            <p class="hw-summary">
-              RP2350A • 1.85" 360×360 Round ST77916 QSPI LCD • 9 WS2812C LEDs • 5-way joystick (SW4 / C) + A &amp; B buttons (SW2, SW3) • 24CS08 1 KB EEPROM.
-            </p>
-          </div>
-        </div>
-
-        <div class="modes-row">
-          <span class="mode-chip">🚀 <strong>Original Firmware</strong></span>
-          <span class="mode-chip muted">🔒 <strong>Pug Pet</strong> (Coming Soon)</span>
-        </div>
-
-        <div class="credits-box">
-          <div class="main-credit">
-            <strong>Badge by <a href="https://github.com/Professor-plum" target="_blank" rel="noopener">Professor-plum</a></strong> •
-            Repo: <a href="https://github.com/Professor-plum/SAINTCON-BADGE-2026" target="_blank" rel="noopener">github.com/Professor-plum/SAINTCON-BADGE-2026</a>
-            (<a href="https://github.com/Professor-plum/SAINTCON-BADGE-2026/tree/2168f62/firmware" target="_blank" rel="noopener"><code>2168f62</code></a>) •
-            <a href="badges/2026/LICENSE.txt" target="_blank" rel="noopener"><strong>MIT License</strong></a>
-            (<a href="https://github.com/Professor-plum/SAINTCON-BADGE-2026/blob/2168f62/LICENSE" target="_blank" rel="noopener">upstream</a>) •
-            <a href="badges/2026/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">Third-party licenses</a>
-          </div>
-          <div class="sub-credit">
-            Copyright (c) 2026 Professor Plum • Stock "Orion Trail" firmware live (pug pet mode not on the 2026 page yet)
-          </div>
-        </div>
-
-        <div class="card-actions">
-          <a class="card-cta" href="?year=2026">Launch 2026 Emulator →</a>
+          </details>
         </div>
       </article>
     </div>
 
-    <!-- About Section -->
-    <section class="about-panel" aria-label="About SAINTCON Badge Museum">
-      <h3>About This Museum</h3>
-      <p>
-        <strong>Unofficial fan project. Not affiliated with or endorsed by SAINTCON or UtahSAINT.</strong>
-      </p>
-      <p>
-        <strong><a href="https://saintcon.org" target="_blank" rel="noopener">SAINTCON</a></strong> is Utah's annual cybersecurity and hackers conference, organized by the UtahSAINT community and known for its custom electronic badges.
-      </p>
-      <p>
-        2017 (HITB Minibadge 2017), 2018, 2019, 2020, 2023, 2024, and 2025 are built from <a href="https://github.com/compukidmike" target="_blank" rel="noopener">compukidmike</a>'s source (<a href="badges/2017/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2017 third-party licenses</a>, <a href="badges/2018/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2018 third-party licenses</a>, <a href="badges/2019/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2019 third-party licenses</a>, <a href="badges/2020/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2020 third-party licenses</a>, <a href="badges/2023/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2023 third-party licenses</a>, <a href="badges/2024/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2024 third-party licenses</a>, <a href="badges/2025/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2025 third-party licenses</a>); 2021 is built from the badge created by <a href="https://github.com/compukidmike" target="_blank" rel="noopener">compukidmike</a>, <a href="https://github.com/Professor-plum" target="_blank" rel="noopener">Professor_Plum</a>, and <a href="https://github.com/Sodium-Hydrogen" target="_blank" rel="noopener">Sodium_Hydrogen</a> (<a href="badges/2021/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2021 third-party licenses</a>); 2026 is built from <a href="https://github.com/Professor-plum" target="_blank" rel="noopener">Professor-plum</a>'s <a href="badges/2026/LICENSE.txt" target="_blank" rel="noopener">MIT-licensed</a> source (<a href="badges/2026/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2026 third-party licenses</a>). The 2022 badge runs the UF2 binary from <a href="https://github.com/compukidmike/saintcon2022" target="_blank" rel="noopener">compukidmike's repository</a> (<a href="badges/2022/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2022 third-party licenses</a>), because no source is published.
-      </p>
-      <p>
-        <strong>Browser-Only Storage:</strong> Each badge's simulated EEPROM/flash is stored locally in your browser's <code>localStorage</code> (isolated per year and mode). No external CDNs, no analytics, and no cookies are used.
-      </p>
+    <section class="about" aria-labelledby="about-title">
+      <div class="wrap">
+        <div class="backside">
+          <i class="hole h1"></i><i class="hole h2"></i><i class="hole h3"></i><i class="hole h4"></i>
+          <div class="backside-text">
+            <h2 id="about-title">About this museum</h2>
+            <p>
+              <strong>Unofficial fan project. Not affiliated with or endorsed by SAINTCON or UtahSAINT.</strong>
+            </p>
+            <p>
+              <strong><a href="https://saintcon.org" target="_blank" rel="noopener">SAINTCON</a></strong> is Utah's annual cybersecurity and hackers conference, organized by the UtahSAINT community and known for its custom electronic badges.
+            </p>
+            <p>
+              <strong>Browser-Only Storage:</strong> Each badge's simulated EEPROM/flash is stored locally in your browser's <code>localStorage</code> (isolated per year and mode). No external CDNs, no analytics, and no cookies are used.
+            </p>
+            <details class="dossier">
+              <summary>Sources and licences</summary>
+              <div class="fine">
+                <p>
+                  2017 (HITB Minibadge 2017), 2018, 2019, 2020, 2023, 2024, and 2025 are built from <a href="https://github.com/compukidmike" target="_blank" rel="noopener">compukidmike</a>'s source (<a href="badges/2017/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2017 third-party licenses</a>, <a href="badges/2018/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2018 third-party licenses</a>, <a href="badges/2019/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2019 third-party licenses</a>, <a href="badges/2020/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2020 third-party licenses</a>, <a href="badges/2023/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2023 third-party licenses</a>, <a href="badges/2024/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2024 third-party licenses</a>, <a href="badges/2025/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2025 third-party licenses</a>); 2021 is built from the badge created by <a href="https://github.com/compukidmike" target="_blank" rel="noopener">compukidmike</a>, <a href="https://github.com/Professor-plum" target="_blank" rel="noopener">Professor_Plum</a>, and <a href="https://github.com/Sodium-Hydrogen" target="_blank" rel="noopener">Sodium_Hydrogen</a> (<a href="badges/2021/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2021 third-party licenses</a>); 2026 is built from <a href="https://github.com/Professor-plum" target="_blank" rel="noopener">Professor-plum</a>'s <a href="badges/2026/LICENSE.txt" target="_blank" rel="noopener">MIT-licensed</a> source (<a href="badges/2026/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2026 third-party licenses</a>). The 2022 badge runs the UF2 binary from <a href="https://github.com/compukidmike/saintcon2022" target="_blank" rel="noopener">compukidmike's repository</a> (<a href="badges/2022/THIRD_PARTY_LICENSES.txt" target="_blank" rel="noopener">2022 third-party licenses</a>), because no source is published.
+                </p>
+                <p>
+                  Type: Chakra Petch for display and JetBrains Mono for labels and small print, both under the SIL Open Font License (<a href="museum-art/fonts/chakra-petch-OFL.txt" target="_blank" rel="noopener">Chakra Petch OFL</a>, <a href="museum-art/fonts/jetbrains-mono-OFL.txt" target="_blank" rel="noopener">JetBrains Mono OFL</a>).
+                </p>
+              </div>
+            </details>
+          </div>
+        </div>
+      </div>
     </section>
   </main>
   <footer class="site-footer">
+    <div class="wrap">
     <a href="https://saintcon.org/" target="_blank" rel="noopener">SAINTCON</a> is Utah's annual cybersecurity conference, run by
     <a href="https://www.utahsaint.org/" target="_blank" rel="noopener">UtahSAINT</a>.
     Unofficial fan project, not affiliated with or endorsed by SAINTCON or UtahSAINT.
+    </div>
   </footer>
 </body>
 </html>
