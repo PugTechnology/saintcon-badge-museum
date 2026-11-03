@@ -1,0 +1,38 @@
+/* Shared look for the museum, every year page and the 404 page. Static: no animation, no blur.
+   Font urls are relative to this file. */
+/* Fonts: Chakra Petch (display) and JetBrains Mono (labels), both SIL OFL, served from museum-art/fonts. */
+@font-face { font-family: "Chakra Petch"; font-style: normal; font-weight: 600; font-display: swap; src: url("fonts/chakra-petch-latin-600-normal.woff2") format("woff2"); }
+@font-face { font-family: "Chakra Petch"; font-style: normal; font-weight: 700; font-display: swap; src: url("fonts/chakra-petch-latin-700-normal.woff2") format("woff2"); }
+@font-face { font-family: "JetBrains Mono"; font-style: normal; font-weight: 400; font-display: swap; src: url("fonts/jetbrains-mono-latin-400-normal.woff2") format("woff2"); }
+@font-face { font-family: "JetBrains Mono"; font-style: normal; font-weight: 500; font-display: swap; src: url("fonts/jetbrains-mono-latin-500-normal.woff2") format("woff2"); }
+
+/* The page is a circuit board: black solder mask, gold plating, white silkscreen. */
+:root {
+  --mask: #0a0e0c;
+  --mask-raised: #121815;
+  --line: #2a342e;
+  --gold: #e8b93a;
+  --gold-dim: #8a6c1e;
+  --copper: #c8743a;
+  --silk: #f2efe6;
+  --muted: #a3aca6;
+  --led: #59ff9a;
+  --display: "Chakra Petch", "Arial Narrow", Impact, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --ch: 12px;
+  --red: #ff6b61;
+  --red-dim: #6b1f1b;
+  --amber: #f0c654;
+  --ok: #56d364;
+  color-scheme: dark;
+}
+
+html { background: var(--mask); }
+
+/* Faint traces and vias. Colours here repeat --line (data URIs cannot read custom properties). */
+body {
+  background-color: var(--mask);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240' viewBox='0 0 240 240'%3E%3Cg fill='none' stroke='%232a342e' stroke-opacity='.5' stroke-width='3' stroke-linejoin='bevel'%3E%3Cpath d='M0 48H60L84 72H156L180 48H240'/%3E%3Cpath d='M0 180H36L60 156H108L132 180H240'/%3E%3Cpath d='M204 0V72L180 96V144L204 168V240'/%3E%3Cpath d='M24 0V30L48 48'/%3E%3Cpath d='M108 156V108L132 84'/%3E%3C/g%3E%3Cg fill='none' stroke='%232a342e' stroke-opacity='.6' stroke-width='3'%3E%3Ccircle cx='84' cy='72' r='6'/%3E%3Ccircle cx='156' cy='72' r='6'/%3E%3Ccircle cx='60' cy='156' r='6'/%3E%3Ccircle cx='132' cy='84' r='6'/%3E%3Ccircle cx='204' cy='168' r='6'/%3E%3C/g%3E%3Cg fill='%232a342e' fill-opacity='.5'%3E%3Crect x='16' y='24' width='10' height='10'/%3E%3Crect x='214' y='206' width='10' height='10'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 240px 240px;
+}

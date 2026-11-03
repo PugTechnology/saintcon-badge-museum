@@ -26,257 +26,320 @@
       }
     })();
   </script>
+  <link rel="stylesheet" href="museum-art/theme.css" />
+  <meta name="color-scheme" content="dark" />
   <style>
     :root {
-      --bg-dark: #0d1117;
-      --panel-bg: #161b22;
-      --panel-border: #30363d;
-      --text-main: #e6edf3;
-      --text-muted: #8b949e;
-      --accent-gold: #d4a72c;
-      --accent-cyan: #39d353;
-      --accent-blue: #58a6ff;
-      --danger: #f85149;
+      /* Old names kept as aliases of the shared theme tokens. */
+      --bg-dark: var(--mask);
+      --panel-bg: var(--mask-raised);
+      --panel-border: var(--line);
+      --text-main: var(--silk);
+      --text-muted: var(--muted);
+      --accent-gold: var(--gold);
+      --danger: var(--red);
+      --cut: 10px;
+    }
+
+    :focus-visible {
+      outline: 3px solid var(--silk);
+      outline-offset: 2px;
+      box-shadow: 0 0 0 7px var(--mask); /* dark edge so the ring shows on white boards */
     }
 
     * {
-      box-sizing: border-box;
-      user-select: none;
-      -webkit-user-select: none;
-    }
+          box-sizing: border-box;
+          user-select: none;
+          -webkit-user-select: none;
+        }
 
     body {
       margin: 0;
       padding: 0;
-      background: radial-gradient(circle at 50% 18%, #1c2331 0%, #0b0e14 100%);
-      color: var(--text-main);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      color: var(--silk);
+      font-family: var(--sans);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
-      overflow-x: hidden;
     }
 
     a {
-      color: var(--accent-blue);
-      text-decoration: none;
+      color: var(--gold);
+      text-decoration: underline;
+      text-underline-offset: 3px;
     }
 
     a:hover {
-      text-decoration: underline;
+      color: var(--silk);
+    }
+
+    code {
+      font-family: var(--mono);
+      font-size: 0.92em;
+      color: var(--silk);
     }
 
     header {
+      position: relative;
       width: 100%;
-      max-width: 1480px;
-      padding: 8px 18px;
+      max-width: 1900px;
+      padding: 10px 18px 20px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      border-bottom: 1px solid var(--panel-border);
-      background: rgba(13, 17, 23, 0.9);
-      backdrop-filter: blur(8px);
-      gap: 12px;
+      gap: 10px 12px;
       flex-wrap: wrap;
+    }
+
+    /* Thin gold trace under the header, a nod to the bus on the main page. */
+    header::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--gold) 0 140px, var(--gold-dim) 140px);
+    }
+
+    header::after {
+      content: "";
+      position: absolute;
+      left: 134px;
+      bottom: -4px;
+      width: 10px;
+      height: 10px;
+      border: 2px solid var(--gold);
+      border-radius: 50%;
+      background: var(--mask);
     }
 
     .brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          flex-wrap: wrap;
+        }
 
     .brand h1 {
-      font-size: 1rem;
+      font: 700 1.1rem/1.1 var(--display);
       margin: 0;
       letter-spacing: 0.04em;
-      color: var(--accent-gold);
+      color: var(--gold);
       text-transform: uppercase;
     }
 
     .badge-pill {
-      font-size: 0.72rem;
-      padding: 2px 8px;
-      border-radius: 999px;
-      font-weight: 600;
-      background: rgba(212, 167, 44, 0.16);
-      border: 1px solid rgba(212, 167, 44, 0.45);
-      color: #f0c654;
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 2px 7px;
+      border: 1px solid var(--gold-dim);
+      background: var(--mask);
+      color: var(--gold);
     }
 
     .museum-nav-link {
-      font-size: 0.78rem;
-      font-weight: 600;
-      padding: 4px 10px;
-      border-radius: 6px;
-      background: #21262d;
-      border: 1px solid var(--panel-border);
-      color: var(--text-main);
+      position: relative;
+      isolation: isolate;
+      display: inline-flex;
+      align-items: center;
+      min-height: 32px;
+      padding: 5px 14px;
+      font: 700 0.82rem/1.2 var(--display);
+      letter-spacing: 0.03em;
+      color: var(--silk);
       text-decoration: none;
-      transition: border-color 0.12s, background 0.12s;
+    }
+
+    .museum-nav-link::before,
+    .museum-nav-link::after {
+      content: "";
+      position: absolute;
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    .museum-nav-link::before {
+      inset: 0;
+      background: var(--gold);
+      clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+    }
+
+    .museum-nav-link::after {
+      inset: 2px;
+      background: var(--mask);
+      clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
     }
 
     .museum-nav-link:hover {
-      border-color: var(--accent-blue);
-      background: #292e36;
+      color: var(--gold);
       text-decoration: none;
+    }
+
+    .museum-nav-link:hover::after {
+      background: var(--mask-raised);
     }
 
     .status-strip {
       display: flex;
       align-items: center;
-      gap: 14px;
-      font-size: 0.8rem;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-      color: var(--text-muted);
+      gap: 4px 16px;
+      font-family: var(--mono);
+      font-size: 0.76rem;
+      color: var(--muted);
       flex-wrap: wrap;
     }
 
     .status-strip strong {
-      color: var(--text-main);
+      color: var(--silk);
+      font-weight: 500;
     }
 
-    /* Main Workspace: Desktop fits badge height, Big Screen next to badge, Controls on right */
     main {
       width: 100%;
-      max-width: 1560px;
+      max-width: 1900px;
       flex: 1;
       display: flex;
       flex-direction: row;
+      flex-wrap: wrap;
       align-items: flex-start;
       justify-content: center;
-      gap: 14px;
-      padding: 10px 10px 16px;
+      gap: 10px;
+      padding: 14px 6px 16px;
     }
 
     /* Column 1: Physical Badge + Credits Strip Under Badge */
     .badge-column {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-      flex-shrink: 0;
-      transition: opacity 0.12s ease;
-    }
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 8px;
+          flex-shrink: 0;
+          transition: opacity 0.12s ease;
+        }
 
     .badge-column.badge-loading {
-      visibility: hidden;
-      opacity: 0;
-    }
+          visibility: hidden;
+          opacity: 0;
+        }
 
     .board-stage-wrap {
-      position: relative;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
+          position: relative;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        }
 
-    /* Tall badge PCB: fit viewport height on desktop while leaving room for credits strip below */
     .board-stage {
       position: relative;
       height: clamp(460px, calc(100vh - 174px), 980px);
       max-width: 88vw;
       aspect-ratio: 784 / 1792;
-      filter: drop-shadow(0 14px 32px rgba(0, 0, 0, 0.78));
       touch-action: none;
     }
 
     /* Landscape wrist badge PCB (e.g. 2024 844x570): size by width so 3-column desktop fits 1280px */
     .board-stage.landscape {
-      width: clamp(290px, 27vw, 440px);
-      height: auto;
-    }
+          width: clamp(290px, 27vw, 440px);
+          height: auto;
+        }
 
     /* Wide portrait PCB (e.g. 2018 858x1385 padlock): size by width so 3-column desktop fits 1280px */
     .board-stage.wide-portrait {
-      width: clamp(280px, 28vw, 430px);
-      height: auto;
-    }
+          width: clamp(280px, 28vw, 430px);
+          height: auto;
+        }
 
     /* Screenless LED-board PCB (2020 multi-board & 2017 minibadge): 2-column desktop layout */
     .board-stage.led-board {
-      width: clamp(290px, 42vw, 540px);
-      height: auto;
-    }
+          width: clamp(290px, 42vw, 540px);
+          height: auto;
+        }
+
     .board-stage.led-board.landscape {
-      width: clamp(300px, 50vw, 660px);
-      height: auto;
-    }
+          width: clamp(300px, 50vw, 660px);
+          height: auto;
+        }
+
     .led-bit-strip {
       display: grid;
       grid-template-columns: repeat(8, 1fr);
       gap: 4px;
       margin: 6px 0;
     }
+
     .led-bit-cell {
-      background: #0d1117;
-      border: 1px solid #292e36;
-      border-radius: 6px;
+      background: var(--mask);
+      border: 1px solid var(--line);
       padding: 4px 2px;
       text-align: center;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-family: var(--mono);
       font-size: 0.72rem;
       line-height: 1.25;
-      color: var(--text-muted);
-    }
-    .led-bit-cell.on,
-    .led-bit-cell.bit-on {
-      border-color: rgba(255, 232, 168, 0.85);
-      background: rgba(255, 232, 168, 0.18);
-      color: #fff4d2;
-      font-weight: 700;
-    }
-    .led-bit-cell .bit-lbl {
-      display: block;
-      font-size: 0.58rem;
-      color: var(--text-muted);
-      font-weight: 400;
+      color: var(--muted);
     }
 
-    .board-stage img#board-img {
-      width: 100%;
-      height: 100%;
-      display: block;
-      pointer-events: none;
+    .led-bit-cell.on,
+    .led-bit-cell.bit-on {
+      border-color: var(--gold);
+      background: color-mix(in srgb, var(--gold) 20%, var(--mask));
+      color: var(--silk);
+      font-weight: 700;
     }
+
+    .led-bit-cell .bit-lbl {
+          display: block;
+          font-size: 0.58rem;
+          color: var(--text-muted);
+          font-weight: 400;
+        }
+
+    .board-stage img#board-img {
+          width: 100%;
+          height: 100%;
+          display: block;
+          pointer-events: none;
+        }
 
     /* Live LCD Screen Canvas on the PCB */
     .screen-holder {
-      position: absolute;
-      overflow: hidden;
-      background: #05070a;
-      box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.9);
-      border-radius: 1px;
-    }
+          position: absolute;
+          overflow: hidden;
+          background: #05070a;
+          box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.9);
+          border-radius: 1px;
+        }
 
     .screen-holder.round {
-      border-radius: 50%;
-    }
+          border-radius: 50%;
+        }
 
     canvas#screen-canvas {
-      width: 100%;
-      height: 100%;
-      display: block;
-      image-rendering: -moz-crisp-edges;
-      image-rendering: crisp-edges;
-      image-rendering: pixelated;
-      transform-origin: top left;
-    }
+          width: 100%;
+          height: 100%;
+          display: block;
+          image-rendering: -moz-crisp-edges;
+          image-rendering: crisp-edges;
+          image-rendering: pixelated;
+          transform-origin: top left;
+        }
 
     canvas#screen-canvas.touch-enabled,
-    canvas#big-screen-canvas.touch-enabled {
-      cursor: pointer;
-      touch-action: none;
-    }
+        canvas#big-screen-canvas.touch-enabled {
+          cursor: pointer;
+          touch-action: none;
+        }
 
     /* 20 WS2812B-2020 LEDs */
     .led-layer {
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-    }
+          position: absolute;
+          inset: 0;
+          pointer-events: none;
+        }
 
     .led-dot {
       position: absolute;
@@ -284,42 +347,41 @@
       aspect-ratio: 1 / 1;
       transform: translate(-50%, -50%);
       border-radius: 50%;
-      background: #1f242b;
-      border: 1px solid rgba(40, 46, 54, 0.85);
+      background: #1c221e;
+      border: 1px solid #2a312c;
       transition: box-shadow 0.03s linear;
     }
 
     .led-dot.off {
-      background: radial-gradient(circle, #2a3038 0%, #15191e 75%, #0d1014 100%);
-      box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.12);
+      background: radial-gradient(circle, #2c332e 0%, #171b18 75%, #0d100e 100%);
+      box-shadow: inset 0 1px 2px rgba(242, 239, 230, 0.12);
     }
 
     /* On-board SW2 5-way joystick overlay */
     .sw2-overlay {
-      position: absolute;
-      transform: translate(-50%, -50%);
-      border-radius: 50%;
-      cursor: pointer;
-      touch-action: none;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
+          position: absolute;
+          transform: translate(-50%, -50%);
+          border-radius: 50%;
+          cursor: pointer;
+          touch-action: none;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
 
     .sw2-Overlay-ring {
       position: absolute;
       inset: 0;
       border-radius: 50%;
-      border: 1.5px solid rgba(255, 255, 255, 0.28);
-      background: radial-gradient(circle, rgba(30, 36, 46, 0.55) 0%, rgba(12, 16, 22, 0.75) 100%);
+      border: 1.5px solid rgba(242, 239, 230, 0.3);
+      background: radial-gradient(circle, rgba(18, 24, 21, 0.55) 0%, rgba(10, 14, 12, 0.75) 100%);
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.65);
-      transition: border-color 0.12s, background 0.12s;
     }
 
     .sw2-overlay:hover .sw2-Overlay-ring,
     .sw2-overlay.active .sw2-Overlay-ring {
-      border-color: rgba(88, 166, 255, 0.85);
-      background: radial-gradient(circle, rgba(45, 65, 95, 0.7) 0%, rgba(16, 24, 36, 0.85) 100%);
+      border-color: var(--gold);
+      background: radial-gradient(circle, rgba(138, 108, 30, 0.55) 0%, rgba(10, 14, 12, 0.85) 100%);
     }
 
     .sw2-cap {
@@ -327,32 +389,33 @@
       width: 46%;
       height: 46%;
       border-radius: 35%;
-      background: radial-gradient(circle at 35% 35%, #f0f4f8 0%, #9aa4b0 60%, #525a65 100%);
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.8), inset 0 1px 1px rgba(255, 255, 255, 0.8);
+      background: radial-gradient(circle at 35% 35%, #f2efe6 0%, #a3aca6 60%, #4a524d 100%);
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.8), inset 0 1px 1px rgba(242, 239, 230, 0.8);
       transition: transform 0.05s ease-out, background 0.08s;
       pointer-events: none;
     }
 
     .sw2-overlay.center-pressed .sw2-cap {
-      background: radial-gradient(circle at 35% 35%, #ffd875 0%, #d4a72c 70%, #8a6812 100%);
+      background: radial-gradient(circle at 35% 35%, #f6d87a 0%, #e8b93a 70%, #8a6c1e 100%);
     }
 
     /* On-board physical push-button overlays (e.g. 2026 SW2=A, SW3=B) */
     .board-buttons-layer {
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-    }
+          position: absolute;
+          inset: 0;
+          pointer-events: none;
+        }
 
     .board-push-btn {
       position: absolute;
       transform: translate(-50%, -50%);
       border-radius: 50%;
-      border: 1.5px solid rgba(255, 255, 255, 0.32);
-      background: radial-gradient(circle, rgba(24, 30, 40, 0.35) 0%, rgba(12, 16, 22, 0.55) 100%);
-      color: rgba(255, 255, 255, 0.9);
+      border: 1.5px solid rgba(242, 239, 230, 0.32);
+      background: radial-gradient(circle, rgba(18, 24, 21, 0.35) 0%, rgba(10, 14, 12, 0.55) 100%);
+      color: rgba(242, 239, 230, 0.92);
+      font-family: var(--mono);
       font-size: 0.72rem;
-      font-weight: 800;
+      font-weight: 700;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -364,78 +427,133 @@
     }
 
     .board-push-btn:hover {
-      border-color: rgba(88, 166, 255, 0.9);
-      background: radial-gradient(circle, rgba(45, 70, 105, 0.55) 0%, rgba(16, 24, 36, 0.75) 100%);
+      border-color: var(--gold);
+      background: radial-gradient(circle, rgba(138, 108, 30, 0.5) 0%, rgba(10, 14, 12, 0.75) 100%);
     }
 
     .board-push-btn.pressed {
       transform: translate(-50%, -50%) scale(0.92);
-      border-color: #ffd33d;
-      background: radial-gradient(circle, rgba(212, 167, 44, 0.78) 0%, rgba(138, 104, 18, 0.85) 100%);
-      color: #ffffff;
+      border-color: var(--gold);
+      background: radial-gradient(circle, rgba(232, 185, 58, 0.8) 0%, rgba(138, 108, 30, 0.88) 100%);
+      color: var(--mask);
     }
 
-    /* Credits Strip Directly Under the Badge (Owner Rule) */
+    /* Panels: raised mask with a thin line border and chamfered corners (same technique as .mat on the main page). */
+
+    .panel-card,
+    .touch-dpad-card,
+    .big-screen-card,
     .badge-credits-strip {
-      background: rgba(22, 27, 34, 0.92);
-      border: 1px solid var(--panel-border);
-      border-radius: 10px;
-      padding: 7px 12px;
+      position: relative;
+      isolation: isolate;
+      background: none;
+      border: 0;
+    }
+
+    .panel-card::before,
+    .panel-card::after,
+    .touch-dpad-card::before,
+    .touch-dpad-card::after,
+    .big-screen-card::before,
+    .big-screen-card::after,
+    .badge-credits-strip::before,
+    .badge-credits-strip::after,
+    .sc18-modal-dialog::before,
+    .sc18-modal-dialog::after,
+    .phone-notification::before,
+    .phone-notification::after {
+      content: "";
+      position: absolute;
+      z-index: -1;
+      pointer-events: none;
+      clip-path: polygon(var(--cut) 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%, 0 var(--cut));
+    }
+
+    .panel-card::before,
+    .touch-dpad-card::before,
+    .big-screen-card::before,
+    .badge-credits-strip::before,
+    .sc18-modal-dialog::before,
+    .phone-notification::before {
+      inset: 0;
+      background: var(--line);
+    }
+
+    .panel-card::after,
+    .touch-dpad-card::after,
+    .big-screen-card::after,
+    .badge-credits-strip::after,
+    .sc18-modal-dialog::after,
+    .phone-notification::after {
+      inset: 1px;
+      background: var(--mask-raised);
+    }
+
+    /* Small gold fiducial dots on the two square corners. */
+    .panel-card::after,
+    .touch-dpad-card::after,
+    .big-screen-card::after {
+      background:
+        radial-gradient(circle at calc(100% - 7px) 7px, var(--gold) 0 2px, transparent 2.5px),
+        radial-gradient(circle at 7px calc(100% - 7px), var(--gold) 0 2px, transparent 2.5px),
+        var(--mask-raised);
+    }
+
+    .badge-credits-strip {
+      --cut: 8px;
+      padding: 8px 14px;
       text-align: center;
       max-width: 370px;
       width: 100%;
-      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
       user-select: text;
       -webkit-user-select: text;
     }
 
     .badge-credits-strip .credits-primary {
       font-size: 0.78rem;
-      color: var(--text-main);
+      color: var(--silk);
       line-height: 1.35;
     }
 
     .badge-credits-strip .credits-primary strong {
-      color: #f0c654;
+      color: var(--gold);
     }
 
     .badge-credits-strip .credits-secondary {
       margin-top: 3px;
-      font-size: 0.68rem;
-      color: var(--text-muted);
-      line-height: 1.25;
+      font-family: var(--mono);
+      font-size: 0.66rem;
+      color: var(--muted);
+      line-height: 1.35;
     }
 
     .badge-credits-strip .credits-disclaimer {
       margin-top: 3px;
-      font-size: 0.66rem;
-      color: #f0c654;
-      line-height: 1.25;
+      font-family: var(--mono);
+      font-size: 0.64rem;
+      color: var(--amber);
+      line-height: 1.35;
     }
 
     /* Column 2: Big Screen Panel (Integer-scaled crisp 240x320 LCD copy next to badge) */
     .big-screen-column {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-      flex-shrink: 0;
-    }
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 8px;
+          flex-shrink: 0;
+        }
 
     .big-screen-column.hidden {
-      display: none !important;
-    }
+          display: none !important;
+        }
 
     .big-screen-card {
-      background: var(--panel-bg);
-      border: 1px solid var(--panel-border);
-      border-radius: 14px;
-      padding: 10px;
+      padding: 8px;
       display: flex;
       flex-direction: column;
       align-items: center;
       gap: 8px;
-      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
     }
 
     .big-screen-header {
@@ -443,76 +561,73 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      font-size: 0.74rem;
+      font-family: var(--mono);
+      font-weight: 500;
+      font-size: 0.72rem;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--text-muted);
+      letter-spacing: 0.1em;
+      color: var(--muted);
       gap: 8px;
     }
 
     .big-screen-scale-tag {
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-      font-size: 0.7rem;
-      color: #f0c654;
-      background: rgba(212, 167, 44, 0.14);
-      border: 1px solid rgba(212, 167, 44, 0.4);
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      letter-spacing: 0.06em;
+      color: var(--gold);
+      background: var(--mask);
+      border: 1px solid var(--gold-dim);
       padding: 1px 6px;
-      border-radius: 4px;
     }
 
     .big-screen-bezel {
       background: #05070a;
-      border: 2px solid #2d333b;
-      border-radius: 6px;
+      border: 2px solid var(--line);
       overflow: hidden;
-      box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.95);
       display: flex;
       align-items: center;
       justify-content: center;
     }
 
     .big-screen-bezel.round {
-      border-radius: 50%;
-    }
+          border-radius: 50%;
+        }
 
     canvas#big-screen-canvas {
-      display: block;
-      width: 480px;
-      height: 640px;
-      image-rendering: -moz-crisp-edges;
-      image-rendering: crisp-edges;
-      image-rendering: pixelated;
-    }
+          display: block;
+          width: 480px;
+          height: 640px;
+          image-rendering: -moz-crisp-edges;
+          image-rendering: crisp-edges;
+          image-rendering: pixelated;
+        }
 
     /* Column 3: Joystick Pad + Controls + Telemetry + About */
     .controls-column {
-      flex: 1;
-      min-width: 286px;
-      max-width: 420px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
+          flex: 1;
+          min-width: 282px;
+          max-width: 420px;
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        }
 
-    /* Touch-Friendly 5-Way Joystick Pad + Key Hints */
     .touch-dpad-card {
-      background: var(--panel-bg);
-      border: 1px solid var(--panel-border);
-      border-radius: 14px;
-      padding: 10px 10px;
+      padding: 11px;
       display: flex;
       flex-direction: column;
       align-items: center;
       gap: 8px;
       width: 100%;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
     }
 
     .touch-dpad-title {
-      font-size: 0.75rem;
+      font-family: var(--mono);
+      font-weight: 500;
+      font-size: 0.72rem;
       text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: var(--text-muted);
+      letter-spacing: 0.1em;
+      color: var(--silk);
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -527,80 +642,81 @@
       flex-wrap: wrap;
       justify-content: center;
       gap: 6px;
-      font-size: 0.72rem;
-      color: var(--text-muted);
-      background: #0d1117;
-      border: 1px solid #21262d;
-      border-radius: 8px;
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--muted);
+      background: var(--mask);
+      border: 1px solid var(--line);
       padding: 5px 8px;
     }
 
-    .key-hints-bar kbd {
-      background: #21262d;
-      border: 1px solid #3b434d;
-      border-bottom-width: 2px;
-      border-radius: 4px;
+    .key-hints-bar kbd,
+    .sc21-section kbd,
+    .towers-hint kbd {
+      background: var(--mask-raised);
+      border: 1px solid var(--line);
+      border-bottom: 2px solid var(--gold-dim);
+      border-radius: 2px;
       padding: 1px 5px;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-family: var(--mono);
       font-size: 0.68rem;
-      color: var(--text-main);
+      color: var(--silk);
     }
 
     .pad-layout {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      width: 100%;
-      flex-wrap: nowrap;
-    }
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          width: 100%;
+          flex-wrap: nowrap;
+        }
 
     .dpad-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 72px);
-      grid-template-rows: repeat(3, 52px);
-      gap: 7px;
-      touch-action: none;
-    }
+          display: grid;
+          grid-template-columns: repeat(3, 72px);
+          grid-template-rows: repeat(3, 52px);
+          gap: 7px;
+          touch-action: none;
+        }
 
     .pad-layout:has(.action-pad-col.visible) .dpad-grid {
-      grid-template-columns: repeat(3, 58px);
-      grid-template-rows: repeat(3, 48px);
-      gap: 6px;
-    }
+          grid-template-columns: repeat(3, 58px);
+          grid-template-rows: repeat(3, 48px);
+          gap: 6px;
+        }
 
     .action-pad-col {
-      display: none;
-      flex-direction: column;
-      gap: 10px;
-      touch-action: none;
-    }
+          display: none;
+          flex-direction: column;
+          gap: 10px;
+          touch-action: none;
+        }
 
     .action-pad-col.visible {
-      display: flex;
-    }
+          display: flex;
+        }
 
     .action-pad-btn {
       width: 64px;
       height: 73px;
-      border-radius: 14px;
-      background: #21262d;
-      border: 1px solid #3b434d;
     }
 
     .action-pad-btn.btn-a {
-      border-color: rgba(63, 185, 80, 0.55);
+      border-color: var(--ok);
     }
 
     .action-pad-btn.btn-b {
-      border-color: rgba(212, 167, 44, 0.55);
+      border-color: var(--gold);
     }
 
+    /* Joystick and A/B keys read as tactile switches: dark cap, hard edge below, drops and fills gold when pressed. */
+
     .dpad-btn {
-      background: #21262d;
-      border: 1px solid #3b434d;
-      border-radius: 10px;
-      color: var(--text-main);
+      background: var(--mask);
+      border: 1px solid var(--line);
+      border-radius: 3px;
+      color: var(--silk);
       font-size: 0.82rem;
       font-weight: 700;
       display: flex;
@@ -609,105 +725,163 @@
       justify-content: center;
       cursor: pointer;
       touch-action: none;
-      box-shadow: 0 3px 0 #0d1117;
-      transition: transform 0.05s, background 0.08s, border-color 0.08s;
+      box-shadow: 0 3px 0 var(--gold-dim), inset 0 1px 0 rgba(242, 239, 230, 0.1);
+      transition: transform 0.05s;
       padding: 2px;
     }
 
     .dpad-btn span.sub {
-      font-size: 0.58rem;
-      font-weight: 600;
-      color: var(--text-muted);
+      font-family: var(--mono);
+      font-size: 0.55rem;
+      font-weight: 500;
+      color: var(--muted);
       margin-top: 1px;
-      letter-spacing: 0.01em;
+      letter-spacing: 0;
     }
 
     .dpad-btn:active,
     .dpad-btn.pressed {
       transform: translateY(2px);
-      box-shadow: 0 1px 0 #0d1117;
-      background: #1f6feb;
-      border-color: #79c0ff;
-      color: #ffffff;
+      box-shadow: 0 1px 0 var(--gold-dim);
+      background: var(--gold);
+      border-color: var(--gold);
+      color: var(--mask);
     }
 
     .dpad-btn:active span.sub,
     .dpad-btn.pressed span.sub {
-      color: #dbeafe;
+      color: var(--mask);
     }
 
     .dpad-btn.center-btn.pressed {
-      background: #b8860b;
-      border-color: #ffd33d;
+      background: var(--gold);
+      border-color: var(--silk);
     }
 
     .panel-card {
-      background: var(--panel-bg);
-      border: 1px solid var(--panel-border);
-      border-radius: 12px;
-      padding: 13px 15px;
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+      padding: 14px 16px;
     }
 
     .panel-card h2 {
       margin: 0 0 10px 0;
-      font-size: 0.82rem;
+      padding-bottom: 7px;
+      border-bottom: 1px dashed var(--line);
+      font-family: var(--mono);
+      font-weight: 500;
+      font-size: 0.74rem;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--text-muted);
+      letter-spacing: 0.12em;
+      line-height: 1.35;
+      color: var(--silk);
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 8px;
     }
 
     .control-group {
-      margin-bottom: 11px;
-    }
+          margin-bottom: 11px;
+        }
 
     .control-group:last-child {
-      margin-bottom: 0;
-    }
+          margin-bottom: 0;
+        }
 
     .control-label {
-      font-size: 0.74rem;
-      color: var(--text-muted);
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      letter-spacing: 0.04em;
+      color: var(--muted);
       margin-bottom: 5px;
       display: block;
     }
 
+    /* Buttons: outlined chamfered pads. Primary (.gold) and selected (.active) are solid gold with dark text. */
+
     .btn-row {
-      display: flex;
-      gap: 7px;
-      flex-wrap: wrap;
-    }
+          display: flex;
+          gap: 7px;
+          flex-wrap: wrap;
+        }
 
     button.ctrl-btn {
+      position: relative;
+      isolation: isolate;
       flex: 1;
       min-width: 56px;
-      padding: 7px 10px;
-      border-radius: 8px;
-      border: 1px solid #3b434d;
-      background: #21262d;
-      color: var(--text-main);
-      font-size: 0.8rem;
-      font-weight: 600;
+      padding: 8px 10px;
+      border: 0;
+      background: none;
+      color: var(--silk);
+      font: 700 0.8rem/1.2 var(--display);
+      letter-spacing: 0.03em;
       cursor: pointer;
-      transition: background 0.12s, border-color 0.12s, transform 0.05s;
+    }
+
+    button.ctrl-btn::before,
+    button.ctrl-btn::after {
+      content: "";
+      position: absolute;
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    button.ctrl-btn::before {
+      inset: 0;
+      background: var(--gold-dim);
+      clip-path: polygon(7px 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%, 0 7px);
+    }
+
+    button.ctrl-btn::after {
+      inset: 1.5px;
+      background: var(--mask);
+      clip-path: polygon(5.5px 0, 100% 0, 100% calc(100% - 5.5px), calc(100% - 5.5px) 100%, 0 100%, 0 5.5px);
     }
 
     button.ctrl-btn:hover:not(:disabled) {
-      background: #292e36;
-      border-color: #58a6ff;
+      color: var(--gold);
+    }
+
+    button.ctrl-btn:hover:not(:disabled)::before {
+      background: var(--gold);
     }
 
     button.ctrl-btn:active:not(:disabled) {
       transform: translateY(1px);
     }
 
-    button.ctrl-btn.active {
-      background: #1f6feb;
-      border-color: #58a6ff;
-      color: #ffffff;
+    button.ctrl-btn.active,
+    button.ctrl-btn.gold {
+      color: var(--mask);
+    }
+
+    button.ctrl-btn.active::before,
+    button.ctrl-btn.gold::before {
+      background: var(--gold);
+    }
+
+    button.ctrl-btn.active:hover:not(:disabled),
+    button.ctrl-btn.gold:hover:not(:disabled) {
+      color: var(--mask);
+    }
+
+    button.ctrl-btn.active:hover:not(:disabled)::before,
+    button.ctrl-btn.gold:hover:not(:disabled)::before {
+      filter: brightness(1.15);
+    }
+
+    button.ctrl-btn.active::after,
+    button.ctrl-btn.gold::after {
+      display: none;
+    }
+
+    /* Selected state keeps a dark underline so it still reads apart from a plain primary action. */
+    button.ctrl-btn.active::after {
+      display: block;
+      inset: auto 12px 3px 12px;
+      height: 2px;
+      background: var(--mask);
+      clip-path: none;
     }
 
     button.ctrl-btn:disabled {
@@ -715,78 +889,82 @@
       cursor: not-allowed;
     }
 
+    /* The 2026 page has no pug mode yet. Script still creates this button, so it is only hidden. */
+    button.ctrl-btn[title="Pug (Soon) coming soon"] {
+      display: none;
+    }
+
     button.ctrl-btn.warn {
-      border-color: rgba(248, 81, 73, 0.5);
-      color: #ff7b72;
+      color: var(--red);
     }
 
-    button.ctrl-btn.warn:hover {
-      background: rgba(248, 81, 73, 0.18);
-      border-color: var(--danger);
+    button.ctrl-btn.warn::before {
+      background: var(--red);
     }
 
-    button.ctrl-btn.gold {
-      background: rgba(212, 167, 44, 0.18);
-      border-color: rgba(212, 167, 44, 0.6);
-      color: #f8d26a;
+    button.ctrl-btn.warn:hover:not(:disabled) {
+      color: var(--silk);
     }
 
-    button.ctrl-btn.gold:hover {
-      background: rgba(212, 167, 44, 0.28);
-      border-color: #f8d26a;
+    button.ctrl-btn.warn:hover:not(:disabled)::before {
+      background: var(--red);
+    }
+
+    button.ctrl-btn.warn:hover:not(:disabled)::after {
+      background: var(--red-dim);
     }
 
     select.nut-select {
       flex: 1;
       min-width: 110px;
       padding: 6px 8px;
-      border-radius: 8px;
-      border: 1px solid #3b434d;
-      background: #0d1117;
-      color: var(--text-main);
-      font-size: 0.77rem;
-      font-weight: 600;
+      border-radius: 0;
+      border: 1px solid var(--gold-dim);
+      background: var(--mask);
+      color: var(--silk);
+      font-family: var(--mono);
+      font-size: 0.74rem;
+      font-weight: 500;
     }
 
     select.nut-select:focus {
-      outline: none;
-      border-color: #58a6ff;
+      border-color: var(--gold);
     }
 
     .nut-status-box {
       margin-top: 7px;
-      padding: 6px 8px;
-      border-radius: 7px;
-      background: #0d1117;
-      border: 1px solid #2a313a;
+      padding: 6px 9px;
+      background: var(--mask);
+      border: 1px solid var(--line);
+      border-left: 2px solid var(--gold-dim);
       font-size: 0.72rem;
-      color: var(--text-muted);
+      color: var(--muted);
       line-height: 1.4;
     }
 
     .nut-status-box strong {
-      color: #f8d26a;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      color: var(--gold);
+      font-family: var(--mono);
     }
 
     /* 2024 Virtual IR Towers Panel */
     .towers-hint {
-      font-size: 0.73rem;
-      color: var(--text-muted);
-      line-height: 1.38;
-      margin: 0 0 7px 0;
-    }
+          font-size: 0.73rem;
+          color: var(--text-muted);
+          line-height: 1.38;
+          margin: 0 0 7px 0;
+        }
 
     .towers-hint strong {
-      color: #f0c654;
+      color: var(--gold);
     }
 
     .towers-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 5px;
-      margin-bottom: 7px;
-    }
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 5px;
+          margin-bottom: 7px;
+        }
 
     button.tower-station-btn {
       display: flex;
@@ -794,62 +972,59 @@
       align-items: flex-start;
       gap: 2px;
       padding: 5px 7px;
-      border-radius: 8px;
-      border: 1px solid #30363d;
-      background: #0d1117;
-      color: var(--text-main);
+      border: 1px solid var(--line);
+      background: var(--mask);
+      color: var(--silk);
       cursor: pointer;
       text-align: left;
-      transition: border-color 0.1s, background 0.1s;
     }
 
     button.tower-station-btn:hover {
-      border-color: #f0883e;
-      background: rgba(240, 136, 62, 0.12);
+      border-color: var(--copper);
+      background: color-mix(in srgb, var(--copper) 14%, var(--mask));
     }
 
     button.tower-station-btn.active-beacon {
-      border-color: #f0883e;
-      background: rgba(240, 136, 62, 0.18);
-      box-shadow: 0 0 0 1px rgba(240, 136, 62, 0.35) inset;
+      border-color: var(--copper);
+      background: color-mix(in srgb, var(--copper) 22%, var(--mask));
+      box-shadow: 0 0 0 1px var(--copper) inset;
     }
 
     button.tower-station-btn.defeated {
-      border-color: rgba(63, 185, 80, 0.55);
-      background: rgba(46, 160, 67, 0.11);
+      border-color: var(--ok);
+      background: color-mix(in srgb, var(--ok) 11%, var(--mask));
     }
 
     .tower-btn-top {
-      width: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 4px;
-      font-size: 0.73rem;
-      font-weight: 700;
-    }
+          width: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 4px;
+          font-size: 0.73rem;
+          font-weight: 700;
+        }
 
     .tower-name {
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
 
     .tower-lvl {
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-family: var(--mono);
       font-size: 0.65rem;
-      color: #f0c654;
-      background: rgba(212, 167, 44, 0.14);
-      border: 1px solid rgba(212, 167, 44, 0.38);
-      border-radius: 4px;
+      color: var(--gold);
+      background: var(--mask);
+      border: 1px solid var(--gold-dim);
       padding: 0 4px;
       flex-shrink: 0;
     }
 
     .tower-meta {
       font-size: 0.65rem;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-      color: var(--text-muted);
+      font-family: var(--mono);
+      color: var(--muted);
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -857,45 +1032,43 @@
     }
 
     button.tower-station-btn.defeated .tower-meta {
-      color: #56d364;
+      color: var(--ok);
     }
 
     /* 2023 Incidents Companion — 4 Virtual I2C Minibadge Slots */
     .mb-slots-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 6px;
-      margin-bottom: 7px;
-    }
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 6px;
+          margin-bottom: 7px;
+        }
 
     .mb-slot-item {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+        }
 
     .mb-slot-label {
       font-size: 0.65rem;
       font-weight: 700;
-      letter-spacing: 0.03em;
-      color: var(--text-muted);
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      font-family: var(--mono);
     }
 
-    /* 2018 Companion — Wi-Fi Config Portal (microWebSrv) & I2C2 Minibadges */
     .sc18-web-wrap {
       display: none;
       flex-direction: column;
-      border: 1px solid #30363d;
-      border-radius: 8px;
+      border: 1px solid var(--line);
       overflow: hidden;
-      background: #0d1117;
+      background: var(--mask);
       margin-top: 7px;
     }
 
     .sc18-web-wrap.visible {
-      display: flex;
-    }
+          display: flex;
+        }
 
     .sc18-url-bar {
       display: flex;
@@ -903,47 +1076,46 @@
       justify-content: space-between;
       gap: 6px;
       padding: 4px 8px;
-      background: #161b22;
-      border-bottom: 1px solid #30363d;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      background: var(--mask-raised);
+      border-bottom: 1px solid var(--line);
+      font-family: var(--mono);
       font-size: 0.68rem;
-      color: #93c5fd;
+      color: var(--silk);
     }
 
     .sc18-web-frame {
-      width: 100%;
-      height: 320px;
-      border: 0;
-      background: #1b1b1b;
-      display: block;
-    }
+          width: 100%;
+          height: 320px;
+          border: 0;
+          background: #1b1b1b;
+          display: block;
+        }
 
     .sc18-inline-row {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      flex-wrap: wrap;
-      margin-top: 7px;
-    }
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          flex-wrap: wrap;
+          margin-top: 7px;
+        }
 
     .sc18-text-input {
-      background: #0d1117;
-      color: var(--text-main);
-      border: 1px solid #3b434d;
-      border-radius: 7px;
+      background: var(--mask);
+      color: var(--silk);
+      border: 1px solid var(--gold-dim);
       padding: 5px 8px;
       font-size: 0.76rem;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-family: var(--mono);
       user-select: text;
       -webkit-user-select: text;
     }
 
     .sc18-mb-list {
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
-      margin-bottom: 7px;
-    }
+          display: flex;
+          flex-direction: column;
+          gap: 5px;
+          margin-bottom: 7px;
+        }
 
     .sc18-mb-row {
       display: flex;
@@ -951,42 +1123,40 @@
       justify-content: space-between;
       gap: 8px;
       padding: 5px 8px;
-      border-radius: 7px;
-      background: #0d1117;
-      border: 1px solid #21262d;
+      background: var(--mask);
+      border: 1px solid var(--line);
       font-size: 0.71rem;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-family: var(--mono);
     }
 
     .sc18-mb-row.plugged {
-      border-color: rgba(63, 185, 80, 0.55);
-      background: rgba(46, 160, 67, 0.09);
+      border-color: var(--ok);
+      background: color-mix(in srgb, var(--ok) 9%, var(--mask));
     }
 
     .sc18-mb-toggle {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      cursor: pointer;
-      font-weight: 700;
-      color: var(--text-main);
-      flex-shrink: 0;
-    }
+          display: flex;
+          align-items: center;
+          gap: 5px;
+          cursor: pointer;
+          font-weight: 700;
+          color: var(--text-main);
+          flex-shrink: 0;
+        }
 
     .sc18-mb-telemetry {
-      color: var(--text-muted);
-      text-align: right;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
+          color: var(--text-muted);
+          text-align: right;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
 
     .sc18-modal-backdrop {
       display: none;
       position: fixed;
       inset: 0;
-      background: rgba(5, 8, 13, 0.82);
-      backdrop-filter: blur(4px);
+      background: rgba(10, 14, 12, 0.88);
       z-index: 1100;
       align-items: center;
       justify-content: center;
@@ -994,19 +1164,24 @@
     }
 
     .sc18-modal-backdrop.visible {
-      display: flex;
-    }
+          display: flex;
+        }
 
     .sc18-modal-dialog {
+      --cut: 14px;
+      position: relative;
+      isolation: isolate;
       width: min(96vw, 680px);
       max-height: 90vh;
-      background: #161b22;
-      border: 1px solid #58a6ff;
-      border-radius: 12px;
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.85);
       display: flex;
       flex-direction: column;
       overflow: hidden;
+      padding: 1px;
+      clip-path: polygon(var(--cut) 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%, 0 var(--cut));
+    }
+
+    .sc18-modal-dialog::before {
+      background: var(--gold);
     }
 
     .sc18-modal-header {
@@ -1014,39 +1189,35 @@
       align-items: center;
       justify-content: space-between;
       gap: 8px;
-      padding: 8px 12px;
-      background: #0d1117;
-      border-bottom: 1px solid #30363d;
-      font-size: 0.8rem;
-      font-weight: 700;
-      color: #f0c654;
+      padding: 10px 14px 8px 20px;
+      background: var(--mask);
+      border-bottom: 1px solid var(--line);
+      font-family: var(--mono);
+      font-size: 0.76rem;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      color: var(--gold);
     }
 
     .sc18-modal-frame {
-      width: 100%;
-      height: min(74vh, 540px);
-      border: 0;
-      background: #1b1b1b;
-      display: block;
-    }
+          width: 100%;
+          height: min(74vh, 540px);
+          border: 0;
+          background: #1b1b1b;
+          display: block;
+        }
 
-    /* Phone Tap Notification Banner: Styled like a phone notification sliding in, dismisses on click */
     .phone-notification {
+      --cut: 12px;
       position: fixed;
       top: 54px;
       right: 20px;
       transform: translateY(-150%);
       width: min(92vw, 400px);
-      background: rgba(20, 28, 42, 0.97);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
-      border: 1px solid rgba(121, 192, 255, 0.5);
-      border-radius: 18px;
       padding: 12px 16px;
       display: flex;
       flex-direction: column;
       gap: 5px;
-      box-shadow: 0 18px 42px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.08) inset;
       cursor: pointer;
       z-index: 1000;
       opacity: 0;
@@ -1054,17 +1225,20 @@
       transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.24s ease;
     }
 
-    .phone-notification.visible {
-      transform: translateY(0);
-      opacity: 1;
-      pointer-events: auto;
+    .phone-notification::before {
+      background: var(--gold);
     }
+
+    .phone-notification.visible {
+          transform: translateY(0);
+          opacity: 1;
+          pointer-events: auto;
+        }
 
     .phone-notif-pill-handle {
       width: 36px;
-      height: 4px;
-      border-radius: 999px;
-      background: rgba(255, 255, 255, 0.24);
+      height: 3px;
+      background: var(--gold-dim);
       align-self: center;
       margin-bottom: 2px;
     }
@@ -1073,84 +1247,87 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      font-size: 0.72rem;
-      color: #93c5fd;
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--gold);
       text-transform: uppercase;
-      letter-spacing: 0.05em;
-      font-weight: 600;
+      letter-spacing: 0.1em;
+      font-weight: 500;
     }
 
     .notif-dismiss-hint {
-      font-size: 0.68rem;
-      color: #9ca3af;
+      font-size: 0.66rem;
+      color: var(--muted);
       text-transform: none;
-      font-weight: 500;
+      letter-spacing: 0.02em;
+      font-weight: 400;
     }
 
     .notif-body {
       font-size: 0.94rem;
       font-weight: 600;
-      color: #f9fafb;
+      color: var(--silk);
       word-break: break-word;
       line-height: 1.35;
     }
 
     .notif-meta {
       font-size: 0.71rem;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-      color: #9ca3af;
+      font-family: var(--mono);
+      color: var(--muted);
     }
 
     .telemetry-grid {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 7px;
       font-size: 0.76rem;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-family: var(--mono);
     }
 
     .telemetry-item {
-      background: #0d1117;
-      border: 1px solid #21262d;
-      border-radius: 6px;
+      min-width: 0;
+      overflow-wrap: anywhere;
+      background: var(--mask);
+      border: 1px solid var(--line);
       padding: 6px 9px;
     }
 
     .telemetry-item .k {
-      color: var(--text-muted);
-      font-size: 0.66rem;
+      color: var(--muted);
+      font-size: 0.64rem;
+      letter-spacing: 0.06em;
       display: block;
     }
 
     .telemetry-item .v {
-      color: var(--text-main);
-      font-weight: 600;
-    }
+          color: var(--text-main);
+          font-weight: 600;
+        }
 
     /* Short About Section */
     .about-card p {
-      margin: 0 0 7px 0;
-      font-size: 0.77rem;
-      line-height: 1.42;
-      color: var(--text-muted);
-      user-select: text;
-      -webkit-user-select: text;
-    }
+          margin: 0 0 7px 0;
+          font-size: 0.77rem;
+          line-height: 1.42;
+          color: var(--text-muted);
+          user-select: text;
+          -webkit-user-select: text;
+        }
 
     .about-card p:last-child {
-      margin-bottom: 0;
-    }
+          margin-bottom: 0;
+        }
 
     .about-card strong {
-      color: var(--text-main);
-    }
+          color: var(--text-main);
+        }
 
-    /* Coming Soon Overlay for Unbuilt Years */
     .coming-soon-banner {
       display: none;
-      background: rgba(212, 167, 44, 0.12);
-      border: 1px solid rgba(212, 167, 44, 0.5);
-      border-radius: 12px;
+      background: color-mix(in srgb, var(--amber) 10%, var(--mask));
+      border: 1px solid var(--amber);
+      border-left-width: 3px;
       padding: 16px 20px;
       max-width: 640px;
       margin: 18px auto 0;
@@ -1158,204 +1335,221 @@
     }
 
     .coming-soon-banner.visible {
-      display: block;
-    }
+          display: block;
+        }
 
     .coming-soon-banner.error {
-      background: rgba(248, 81, 73, 0.16);
-      border-color: rgba(248, 81, 73, 0.65);
-      color: #ffdcd7;
+      background: color-mix(in srgb, var(--red) 14%, var(--mask));
+      border-color: var(--red);
+      color: var(--silk);
     }
 
     .storage-warning-note {
       display: none;
       margin-top: 6px;
       padding: 5px 8px;
-      border-radius: 6px;
-      background: rgba(248, 81, 73, 0.15);
-      border: 1px solid rgba(248, 81, 73, 0.55);
-      color: #ff7b72;
+      background: color-mix(in srgb, var(--red) 14%, var(--mask));
+      border: 1px solid var(--red);
+      color: var(--red);
       font-size: 0.72rem;
       font-weight: 600;
       text-align: center;
     }
 
     .storage-warning-note.visible {
-      display: block;
-    }
+          display: block;
+        }
 
     /* Phone / Narrow Viewport Layout: Badge on top, then Big Joystick Pad, Big Screen off by default */
     @media (max-width: 820px) {
-      header {
-        padding: 6px 12px;
-        gap: 6px;
-      }
+          header {
+            padding: 6px 12px;
+            gap: 6px;
+          }
 
-      .brand h1 {
-        font-size: 0.9rem;
-      }
+          .brand h1 {
+            font-size: 0.9rem;
+          }
 
-      .status-strip {
-        gap: 8px;
-        font-size: 0.72rem;
-      }
+          .status-strip {
+            gap: 8px;
+            font-size: 0.72rem;
+          }
 
-      main {
-        flex-direction: column;
-        align-items: center;
-        gap: 10px;
-        padding: 8px 10px 20px;
-      }
+          main {
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 10px 20px;
+          }
 
-      .badge-column {
-        order: 1;
-        width: 100%;
-        gap: 6px;
-      }
+          .badge-column {
+            order: 1;
+            width: 100%;
+            gap: 6px;
+          }
 
-      .board-stage {
-        height: min(45vh, 390px);
-        min-height: 280px;
-        max-width: 82vw;
-      }
+          .board-stage {
+            height: min(45vh, 390px);
+            min-height: 280px;
+            max-width: 82vw;
+          }
 
-      .board-stage.landscape {
-        width: min(94vw, 420px);
-        max-width: 94vw;
-        height: auto;
-        min-height: 0;
-      }
+          .board-stage.landscape {
+            width: min(94vw, 420px);
+            max-width: 94vw;
+            height: auto;
+            min-height: 0;
+          }
 
-      .board-stage.wide-portrait {
-        width: auto;
-        height: min(45vh, 390px);
-        min-height: 280px;
-        max-width: 82vw;
-      }
+          .board-stage.wide-portrait {
+            width: auto;
+            height: min(45vh, 390px);
+            min-height: 280px;
+            max-width: 82vw;
+          }
 
-      .board-stage.led-board:not(.landscape) {
-        width: min(88vw, 350px);
-        height: auto;
-        min-height: 0;
-        max-width: 90vw;
-      }
+          .board-stage.led-board:not(.landscape) {
+            width: min(88vw, 350px);
+            height: auto;
+            min-height: 0;
+            max-width: 90vw;
+          }
 
-      .badge-credits-strip {
-        padding: 5px 10px;
-      }
+          .badge-credits-strip {
+            padding: 5px 10px;
+          }
 
-      .badge-credits-strip .credits-primary {
-        font-size: 0.7rem;
-      }
+          .badge-credits-strip .credits-primary {
+            font-size: 0.7rem;
+          }
 
-      .badge-credits-strip .credits-secondary {
-        font-size: 0.63rem;
-      }
+          .badge-credits-strip .credits-secondary {
+            font-size: 0.63rem;
+          }
 
-      .controls-column {
-        order: 2;
-        width: 100%;
-        max-width: 400px;
-        gap: 10px;
-      }
+          .controls-column {
+            order: 2;
+            width: 100%;
+            max-width: 400px;
+            gap: 10px;
+          }
 
-      .big-screen-column {
-        order: 3;
-        width: 100%;
-      }
+          .big-screen-column {
+            order: 3;
+            width: 100%;
+          }
 
-      .phone-notification {
-        top: 12px;
-        left: 50%;
-        right: auto;
-        transform: translate(-50%, -150%);
-      }
+          .phone-notification {
+            top: 12px;
+            left: 50%;
+            right: auto;
+            transform: translate(-50%, -150%);
+          }
 
-      .phone-notification.visible {
-        transform: translate(-50%, 0);
-      }
-    }
+          .phone-notification.visible {
+            transform: translate(-50%, 0);
+          }
+        }
+
     .site-footer {
+      width: 100%;
+      border-top: 1px solid var(--line);
       text-align: center;
-      font-size: 0.8rem;
-      color: #8b949e;
-      padding: 20px 16px 28px;
-      line-height: 1.6;
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      color: var(--muted);
+      padding: 22px 16px 30px;
+      line-height: 1.7;
     }
-    .site-footer a { color: #58a6ff; text-decoration: none; }
-    .site-footer a:hover { text-decoration: underline; }
+
+    .site-footer a {
+      color: var(--gold);
+    }
+
+    .site-footer a:hover {
+      color: var(--silk);
+    }
 
     /* 2021 QTouch Capacitive Dial Wheel Overlay & Companion Panel */
     .touch-wheel-overlay {
-      position: absolute;
-      border-radius: 50%;
-      cursor: grab;
-      touch-action: none;
-    }
+          position: absolute;
+          border-radius: 50%;
+          cursor: grab;
+          touch-action: none;
+        }
+
     .touch-wheel-overlay:active {
-      cursor: grabbing;
-    }
+          cursor: grabbing;
+        }
+
     .sc21-section {
-      border-top: 1px solid #21262d;
-      padding-top: 7px;
-      margin-top: 7px;
+      border-top: 1px solid var(--line);
+      padding-top: 8px;
+      margin-top: 8px;
       display: flex;
       flex-direction: column;
       gap: 6px;
     }
+
     .sc21-section:first-of-type {
-      border-top: none;
-      padding-top: 0;
-      margin-top: 0;
-    }
+          border-top: none;
+          padding-top: 0;
+          margin-top: 0;
+        }
+
     .sc21-subhead {
-      font-size: 0.69rem;
-      font-weight: 700;
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      font-weight: 500;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: #d4a72c;
+      letter-spacing: 0.08em;
+      color: var(--gold);
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 6px;
     }
+
     .sc21-textarea {
       width: 100%;
       min-height: 54px;
       max-height: 96px;
       resize: vertical;
-      background: #0d1117;
-      border: 1px solid #30363d;
-      border-radius: 6px;
-      color: var(--text-main);
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      background: var(--mask);
+      border: 1px solid var(--gold-dim);
+      color: var(--silk);
+      font-family: var(--mono);
       font-size: 0.72rem;
       line-height: 1.35;
       padding: 5px 7px;
       user-select: text;
       -webkit-user-select: text;
     }
+
     .sc21-chk-label {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      font-size: 0.73rem;
-      color: var(--text-main);
-      cursor: pointer;
-      white-space: nowrap;
-    }
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          font-size: 0.73rem;
+          color: var(--text-main);
+          cursor: pointer;
+          white-space: nowrap;
+        }
+
     .sc21-trade-row {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) 58px;
-      align-items: center;
-      gap: 6px;
-    }
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) 58px;
+          align-items: center;
+          gap: 6px;
+        }
+
     .sc21-qty-input {
       width: 100%;
-      background: #0d1117;
-      border: 1px solid #30363d;
-      border-radius: 6px;
-      color: var(--text-main);
+      background: var(--mask);
+      border: 1px solid var(--gold-dim);
+      color: var(--silk);
+      font-family: var(--mono);
       font-size: 0.75rem;
       padding: 4px 6px;
       user-select: text;
@@ -1364,51 +1558,59 @@
 
     /* 2019 Enigma Badge: Arched 64x16 Matrix Overlay, 26-Key QWERTZ Pad & Plugboard */
     .screen-holder.arch-matrix {
-      background: transparent;
-      box-shadow: none;
-      overflow: visible;
-    }
+          background: transparent;
+          box-shadow: none;
+          overflow: visible;
+        }
+
     .screen-holder.arch-matrix canvas#screen-canvas {
-      opacity: 0 !important;
-      pointer-events: none;
-    }
+          opacity: 0 !important;
+          pointer-events: none;
+        }
+
     canvas#arch-screen-canvas {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      display: none;
-      pointer-events: none;
-    }
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          display: none;
+          pointer-events: none;
+        }
+
     .screen-holder.arch-matrix canvas#arch-screen-canvas {
-      display: block;
-    }
+          display: block;
+        }
+
     svg.board-plug-svg {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      z-index: 4;
-      overflow: visible;
-    }
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          pointer-events: none;
+          z-index: 4;
+          overflow: visible;
+        }
+
     .sc19-qwertz-pad {
-      display: none;
-      flex-direction: column;
-      gap: 5px;
-      width: 100%;
-      touch-action: none;
-    }
+          display: none;
+          flex-direction: column;
+          gap: 5px;
+          width: 100%;
+          touch-action: none;
+        }
+
     .sc19-qwertz-pad.visible {
-      display: flex;
-    }
+          display: flex;
+        }
+
     .sc19-qwertz-row {
-      display: flex;
-      justify-content: center;
-      gap: 4px;
-      width: 100%;
-      touch-action: none;
-    }
+          display: flex;
+          justify-content: center;
+          gap: 4px;
+          width: 100%;
+          touch-action: none;
+        }
+
     .sc19-qwertz-key {
       position: relative;
       flex: 1 1 0;
@@ -1416,31 +1618,35 @@
       min-width: 28px;
       height: 38px;
       padding: 2px 1px;
-      border-radius: 8px;
-      border: 1px solid #3b434d;
-      background: #21262d;
-      color: var(--text-main);
+      border-radius: 3px;
+      border: 1px solid var(--line);
+      background: var(--mask);
+      color: var(--silk);
+      font-family: var(--mono);
       font-size: 0.8rem;
-      font-weight: 800;
+      font-weight: 700;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       cursor: pointer;
       touch-action: none;
-      box-shadow: 0 2px 0 #0d1117;
-      transition: transform 0.05s, background 0.08s, border-color 0.08s;
+      box-shadow: 0 2px 0 var(--gold-dim), inset 0 1px 0 rgba(242, 239, 230, 0.1);
+      transition: transform 0.05s;
     }
+
     .sc19-qwertz-key.nav-key {
-      border-color: rgba(212, 167, 44, 0.55);
+      border-color: var(--gold);
     }
+
     .sc19-qwertz-key .sub {
       font-size: 0.52rem;
       font-weight: 700;
-      color: #f0c654;
+      color: var(--gold);
       line-height: 1;
       margin-top: 1px;
     }
+
     .sc19-qwertz-key .key-lamp {
       position: absolute;
       top: 3px;
@@ -1448,43 +1654,51 @@
       width: 5px;
       height: 5px;
       border-radius: 50%;
-      background: #161b22;
-      border: 1px solid rgba(255, 255, 255, 0.16);
+      background: var(--mask-raised);
+      border: 1px solid rgba(242, 239, 230, 0.16);
       pointer-events: none;
     }
+
     .sc19-qwertz-key:active,
     .sc19-qwertz-key.pressed {
       transform: translateY(2px);
-      box-shadow: 0 0 0 #0d1117;
-      background: #1f6feb;
-      border-color: #79c0ff;
-      color: #ffffff;
+      box-shadow: 0 0 0 var(--gold-dim);
+      background: var(--gold);
+      border-color: var(--gold);
+      color: var(--mask);
     }
+
+    .sc19-qwertz-key:active .sub,
+    .sc19-qwertz-key.pressed .sub {
+      color: var(--mask);
+    }
+
     .sc19-plugboard-wrap {
       position: relative;
-      background: #0d1117;
-      border: 1px solid #2a313a;
-      border-radius: 9px;
+      background: var(--mask);
+      border: 1px solid var(--line);
       padding: 8px 6px;
     }
+
     .sc19-plugboard-grid {
-      position: relative;
-      display: grid;
-      grid-template-columns: repeat(13, minmax(0, 1fr));
-      gap: 8px 3px;
-      z-index: 2;
-    }
+          position: relative;
+          display: grid;
+          grid-template-columns: repeat(13, minmax(0, 1fr));
+          gap: 8px 3px;
+          z-index: 2;
+        }
+
     .sc19-plug-btn {
       position: relative;
       height: 36px;
       padding: 2px 1px;
-      border-radius: 6px;
-      border: 1px solid #30363d;
-      background: rgba(22, 27, 34, 0.92);
-      color: var(--text-main);
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      border-radius: 3px;
+      border: 1px solid var(--line);
+      background: var(--mask-raised);
+      color: var(--silk);
+      font-family: var(--mono);
       font-size: 0.72rem;
-      font-weight: 800;
+      font-weight: 700;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -1493,82 +1707,91 @@
       touch-action: manipulation;
       transition: border-color 0.1s, background 0.1s, transform 0.05s;
     }
+
     .sc19-plug-btn:hover {
-      border-color: #58a6ff;
-    }
-    .sc19-plug-btn.selected {
-      border-color: #ffd33d;
-      background: rgba(212, 167, 44, 0.28);
-      box-shadow: 0 0 0 1px #ffd33d inset;
-    }
-    .sc19-plug-btn.wired {
-      background: rgba(30, 38, 50, 0.95);
-    }
-    .sc19-plug-btn .plug-pair {
-      font-size: 0.52rem;
-      font-weight: 700;
-      line-height: 1;
-      margin-top: 2px;
-      color: var(--text-muted);
-    }
-    svg.sc19-plugboard-svg {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      z-index: 3;
-      overflow: visible;
+      border-color: var(--gold);
     }
 
-    /* 2022 Clue Notepad Badge — Stand-in Kiosk, Serial Log & Bootloader Banner */
+    .sc19-plug-btn.selected {
+      border-color: var(--gold);
+      background: color-mix(in srgb, var(--gold) 28%, var(--mask));
+      box-shadow: 0 0 0 1px var(--gold) inset;
+    }
+
+    .sc19-plug-btn.wired {
+      background: color-mix(in srgb, var(--gold) 8%, var(--mask-raised));
+    }
+
+    .sc19-plug-btn .plug-pair {
+          font-size: 0.52rem;
+          font-weight: 700;
+          line-height: 1;
+          margin-top: 2px;
+          color: var(--text-muted);
+        }
+
+    svg.sc19-plugboard-svg {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          pointer-events: none;
+          z-index: 3;
+          overflow: visible;
+        }
+
     .sc22-bootloader-banner {
       display: none;
-      background: rgba(248, 81, 73, 0.16);
-      border: 1px solid rgba(248, 81, 73, 0.65);
-      border-radius: 8px;
+      background: color-mix(in srgb, var(--red) 14%, var(--mask));
+      border: 1px solid var(--red);
+      border-left-width: 3px;
       padding: 8px 10px;
       margin-bottom: 8px;
       font-size: 0.74rem;
       line-height: 1.4;
-      color: #ffdcd7;
+      color: var(--silk);
       user-select: text;
       -webkit-user-select: text;
     }
+
     .sc22-bootloader-banner.visible {
-      display: block;
-    }
+          display: block;
+        }
+
     .board-push-btn.sc22-overlay-btn {
-      background: rgba(15, 20, 28, 0.08);
+      background: rgba(10, 14, 12, 0.08);
       border: 1.5px solid rgba(240, 198, 84, 0.45);
       box-shadow: none;
     }
+
     .board-push-btn.sc22-overlay-btn:hover {
       background: rgba(240, 198, 84, 0.14);
       border-color: rgba(240, 198, 84, 0.85);
     }
+
     .board-push-btn.sc22-overlay-btn.pressed {
       background: rgba(240, 198, 84, 0.28);
-      border-color: #f0c654;
+      border-color: var(--amber);
     }
+
     .sc22-serial-log {
       width: 100%;
       min-height: 74px;
       max-height: 132px;
       overflow-y: auto;
-      background: #0d1117;
-      border: 1px solid #2a313a;
-      border-radius: 7px;
+      background: var(--mask);
+      border: 1px solid var(--line);
       padding: 6px 8px;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-family: var(--mono);
       font-size: 0.69rem;
       line-height: 1.38;
-      color: #93c5fd;
+      color: var(--silk);
       white-space: pre-wrap;
       word-break: break-all;
       user-select: text;
       -webkit-user-select: text;
     }
+
     .sc22-board-notice {
       display: none;
       align-items: center;
@@ -1578,46 +1801,69 @@
       max-width: 520px;
       margin-top: 6px;
       padding: 8px 10px;
-      border-radius: 8px;
-      border: 1px solid rgba(212, 167, 44, 0.55);
-      background: rgba(212, 167, 44, 0.12);
-      color: var(--text-main);
+      border: 1px solid var(--amber);
+      border-left-width: 3px;
+      background: color-mix(in srgb, var(--amber) 10%, var(--mask));
+      color: var(--silk);
       font-size: 0.75rem;
       line-height: 1.35;
     }
+
     .sc22-board-notice.visible {
-      display: flex;
-    }
+          display: flex;
+        }
+
     .sc22-board-notice-text {
-      flex: 1 1 auto;
-      min-width: 0;
-    }
+          flex: 1 1 auto;
+          min-width: 0;
+        }
+
     .sc22-blink-note {
       margin-top: 6px;
       font-size: 0.78rem;
-      color: #c9d1d9;
+      color: var(--muted);
       line-height: 1.35;
     }
+
     .sc22-blink-note[hidden] { display: none; }
+
     button.ctrl-btn.sc22-board-reset-btn {
-      flex: 0 0 auto;
-      white-space: nowrap;
-      padding: 6px 10px;
-      font-size: 0.74rem;
-    }
+          flex: 0 0 auto;
+          white-space: nowrap;
+          padding: 6px 10px;
+          font-size: 0.74rem;
+        }
+
     .sc22-kiosk-disabled-note {
       display: none;
       margin: 0 0 6px 0;
       padding: 5px 8px;
-      border-radius: 6px;
-      border: 1px solid rgba(212, 167, 44, 0.45);
-      background: rgba(212, 167, 44, 0.1);
-      color: #f0c654;
+      border: 1px solid var(--amber);
+      background: color-mix(in srgb, var(--amber) 10%, var(--mask));
+      color: var(--amber);
       font-size: 0.71rem;
       line-height: 1.3;
     }
+
     .sc22-kiosk-disabled-note.visible {
-      display: block;
+          display: block;
+        }
+
+    /* Later and stronger than the board button rules, so the dark edge also shows on white boards. */
+    .board-push-btn:focus-visible,
+    .board-push-btn.sc22-overlay-btn:focus-visible {
+      box-shadow: 0 0 0 7px var(--mask);
+    }
+
+    @media (max-width: 820px) {
+      .btn-row button.ctrl-btn { min-height: 44px; }
+      /* A big screen wider than the phone scales down instead of pushing the page sideways. */
+      .big-screen-column,
+      .big-screen-card,
+      .big-screen-bezel { max-width: 100%; }
+      .big-screen-header { flex-wrap: wrap; }
+      #big-screen-canvas { max-width: 100%; height: auto !important; }
+      .led-bit-strip { grid-template-columns: repeat(4, minmax(0, 1fr)); }
     }
   </style>
 </head>
@@ -1626,7 +1872,7 @@
   <div id="phone-notification" class="phone-notification" role="status" aria-live="polite" title="Click to dismiss">
     <div class="phone-notif-pill-handle"></div>
     <div class="notif-header">
-      <span>📲 NFC Tag Read • ST25DV04K</span>
+      <span>NFC Tag Read • ST25DV04K</span>
       <span class="notif-dismiss-hint">Tap to dismiss ✕</span>
     </div>
     <div id="notif-text" class="notif-body">—</div>
@@ -1637,7 +1883,7 @@
   <div id="sc18-web-modal" class="sc18-modal-backdrop" role="dialog" aria-modal="true" aria-label="SAINTCON 2018 Badge Config Web Page">
     <div class="sc18-modal-dialog">
       <div class="sc18-modal-header">
-        <span id="sc18-modal-title">🌐 SAINTCON 2018 Badge Config Portal (http://192.168.4.1/)</span>
+        <span id="sc18-modal-title">SAINTCON 2018 Badge Config Portal (http://192.168.4.1/)</span>
         <button type="button" class="ctrl-btn" id="btn-sc18-modal-close" style="flex: 0 0 auto; padding: 3px 9px;">✕ Close</button>
       </div>
       <iframe id="sc18-modal-frame" class="sc18-modal-frame" sandbox="allow-same-origin allow-forms" title="SAINTCON 2018 Badge Config Popup"></iframe>
@@ -1648,9 +1894,9 @@
     <div class="brand">
       <h1 id="page-heading">SAINTCON Badge Emulator</h1>
       <span id="core-mode-pill" class="badge-pill">LOADING...</span>
-      <a class="museum-nav-link" id="museum-nav-link" href="museum.html">🏛️ Badge Museum</a>
+      <a class="museum-nav-link" id="museum-nav-link" href="museum.html">Badge Museum</a>
     </div>
-    <div id="page-subheading" style="display: none; width: 100%; font-size: 0.75rem; color: #f0c654; margin: 2px 0 4px 0; line-height: 1.3;"></div>
+    <div id="page-subheading" style="display: none; width: 100%; font-size: 0.75rem; color: var(--amber); margin: 2px 0 4px 0; line-height: 1.3;"></div>
     <div class="status-strip">
       <span>Year: <strong id="year-readout">—</strong></span>
       <span>Mode: <strong id="mode-readout">—</strong></span>
@@ -1724,18 +1970,18 @@
         </p>
         <div id="towers-grid" class="towers-grid" aria-label="11 Virtual IR Tower Stations"></div>
         <div class="btn-row" style="margin-bottom: 6px;">
-          <button type="button" class="ctrl-btn gold" id="btn-ir-levelup" title="Send a Community Level-Up IR beacon">⬆️ Level-Up IR</button>
-          <button type="button" class="ctrl-btn" id="btn-ir-savior" title="Send a Savior revive IR beacon when disconnected">🚑 Savior IR</button>
-          <button type="button" class="ctrl-btn" id="btn-towers-respawn" title="Restore all 11 towers to full health">🔄 Respawn</button>
+          <button type="button" class="ctrl-btn gold" id="btn-ir-levelup" title="Send a Community Level-Up IR beacon">Level-Up IR</button>
+          <button type="button" class="ctrl-btn" id="btn-ir-savior" title="Send a Savior revive IR beacon when disconnected">Savior IR</button>
+          <button type="button" class="ctrl-btn" id="btn-towers-respawn" title="Restore all 11 towers to full health">Respawn</button>
         </div>
         <div class="btn-row">
           <select id="wrist-tilt-select" class="nut-select" aria-label="Wrist Accelerometer Tilt (MC3419)">
-            <option value="0,0,16384">⌚ Wrist Tilt: Flat (0, 0, +1g)</option>
-            <option value="-16384,0,0">⌚ Wrist Tilt: Left (-1g, 0, 0)</option>
-            <option value="16384,0,0">⌚ Wrist Tilt: Right (+1g, 0, 0)</option>
-            <option value="0,16384,0">⌚ Wrist Tilt: Forward (0, +1g, 0)</option>
-            <option value="0,-16384,0">⌚ Wrist Tilt: Back (0, -1g, 0)</option>
-            <option value="0,0,-16384">⌚ Wrist Tilt: Flipped (0, 0, -1g)</option>
+            <option value="0,0,16384">Wrist Tilt: Flat (0, 0, +1g)</option>
+            <option value="-16384,0,0">Wrist Tilt: Left (-1g, 0, 0)</option>
+            <option value="16384,0,0">Wrist Tilt: Right (+1g, 0, 0)</option>
+            <option value="0,16384,0">Wrist Tilt: Forward (0, +1g, 0)</option>
+            <option value="0,-16384,0">Wrist Tilt: Back (0, -1g, 0)</option>
+            <option value="0,0,-16384">Wrist Tilt: Flipped (0, 0, -1g)</option>
           </select>
         </div>
         <div class="nut-status-box" id="towers-status-box">
@@ -1808,13 +2054,13 @@
           </label>
         </div>
         <div class="btn-row" style="margin-bottom: 6px;">
-          <button type="button" class="ctrl-btn gold" id="btn-sc23-levelup" title="Beam a one-time Level-Up NEC IR code while on Level-up → Level Up">⬆️ Level-Up IR</button>
-          <button type="button" class="ctrl-btn" id="btn-sc23-party-ir" title="Beam Bot Party NEC IR code 232323 while on Party → Find Party">🤝 Party IR</button>
-          <button type="button" class="ctrl-btn" id="btn-sc23-bot-allies" title="Toggle BotAlpha &amp; BotBravo allies for solo party Incident battles">🤖 Bot Allies: OFF</button>
+          <button type="button" class="ctrl-btn gold" id="btn-sc23-levelup" title="Beam a one-time Level-Up NEC IR code while on Level-up → Level Up">Level-Up IR</button>
+          <button type="button" class="ctrl-btn" id="btn-sc23-party-ir" title="Beam Bot Party NEC IR code 232323 while on Party → Find Party">Party IR</button>
+          <button type="button" class="ctrl-btn" id="btn-sc23-bot-allies" title="Toggle BotAlpha &amp; BotBravo allies for solo party Incident battles">Bot Allies: OFF</button>
         </div>
         <div class="btn-row">
-          <button type="button" class="ctrl-btn" id="btn-sc23-starter-gear" title="Plug a balanced 4-slot set (Klipper Helm, SAINTCON Hoodie, Pixel Broadsword, Hot Coffee) into U9–U14">🎒 Starter Gear</button>
-          <button type="button" class="ctrl-btn" id="btn-sc23-loot" title="Add +1 pending loot drop to test the Vending machine menu">🎁 +1 Loot Drop</button>
+          <button type="button" class="ctrl-btn" id="btn-sc23-starter-gear" title="Plug a balanced 4-slot set (Klipper Helm, SAINTCON Hoodie, Pixel Broadsword, Hot Coffee) into U9–U14">Starter Gear</button>
+          <button type="button" class="ctrl-btn" id="btn-sc23-loot" title="Add +1 pending loot drop to test the Vending machine menu">+1 Loot Drop</button>
         </div>
         <div class="nut-status-box" id="incidents-status-box">
           First boot: use ↑/↓ + A (Z / Enter) to choose a class, avatar, and handle on the badge.
@@ -1828,10 +2074,10 @@
           In <code>WIFI CONFIG</code> mode, the badge starts its own Wi-Fi AP and serves <code>www/</code> via <code>microWebSrv</code>. Form posts route directly into the running MicroPython firmware:
         </p>
         <div class="btn-row" style="margin-bottom: 6px;">
-          <button type="button" class="ctrl-btn gold" id="btn-sc18-auto-ap" title="Drive SELECT → DOWN ×2 → SELECT on the badge to enter WIFI CONFIG mode">⚡ Start WIFI CONFIG</button>
-          <button type="button" class="ctrl-btn" id="btn-sc18-load-home" title="Request GET / from the badge's microWebSrv">🌐 Load /</button>
-          <button type="button" class="ctrl-btn" id="btn-sc18-parrot" title="Request GET /partyparrot.html from the badge's microWebSrv">🦜 Parrot</button>
-          <button type="button" class="ctrl-btn" id="btn-sc18-popup" title="Open the badge config web page in a larger popup">🗗 Popup</button>
+          <button type="button" class="ctrl-btn gold" id="btn-sc18-auto-ap" title="Drive SELECT → DOWN ×2 → SELECT on the badge to enter WIFI CONFIG mode">Start WIFI CONFIG</button>
+          <button type="button" class="ctrl-btn" id="btn-sc18-load-home" title="Request GET / from the badge's microWebSrv">Load /</button>
+          <button type="button" class="ctrl-btn" id="btn-sc18-parrot" title="Request GET /partyparrot.html from the badge's microWebSrv">Parrot</button>
+          <button type="button" class="ctrl-btn" id="btn-sc18-popup" title="Open the badge config web page in a larger popup">Popup</button>
         </div>
         <div class="nut-status-box" id="sc18-ap-status">
           AP Offline — press SELECT → DOWN ×2 ("WIFI CONFIG") → SELECT on the badge (takes ~4s), or click Start WIFI CONFIG.
@@ -1868,9 +2114,9 @@
           <input id="sc18-mb-msg" class="sc18-text-input" type="text" maxlength="48" value="HI SC18" style="flex: 1 1 110px; min-width: 0;" aria-label="Minibadge Text Message" />
         </div>
         <div class="btn-row">
-          <button type="button" class="ctrl-btn gold" id="btn-sc18-mb-text" title="Queue a type 0x02 text message from this minibadge on next I2C2 poll">💬 Send Text</button>
-          <button type="button" class="ctrl-btn" id="btn-sc18-mb-pixels" title="Queue a type 0x03 8×32 pixel graphic from this minibadge for 2 seconds">✨ Send Graphic</button>
-          <button type="button" class="ctrl-btn" id="btn-sc18-mb-btn" title="Queue a type 0x01 minibadge button event">🔘 Button</button>
+          <button type="button" class="ctrl-btn gold" id="btn-sc18-mb-text" title="Queue a type 0x02 text message from this minibadge on next I2C2 poll">Send Text</button>
+          <button type="button" class="ctrl-btn" id="btn-sc18-mb-pixels" title="Queue a type 0x03 8×32 pixel graphic from this minibadge for 2 seconds">Send Graphic</button>
+          <button type="button" class="ctrl-btn" id="btn-sc18-mb-btn" title="Queue a type 0x01 minibadge button event">Button</button>
         </div>
         <div class="nut-status-box" id="sc18-mb-status">
           Plug in one or more virtual minibadges above to watch live I2C2 brightness, score, and status polls.
@@ -1897,22 +2143,22 @@
             </label>
           </div>
           <div class="btn-row">
-            <button type="button" class="ctrl-btn gold" id="btn-sc21-pull-shackle" title="Pull shackle open briefly (tests dialed code in Combo Lock or builds a ready module in Build)">🔓 Pull Shackle</button>
-            <button type="button" class="ctrl-btn" id="btn-sc21-shim" title="Pulse QTouch shim sensor 6 once (grants UNLOCK_SHIM reward once, shows 'Shim already unlocked' once per power cycle, then does nothing)">🗡️ Insert Shim</button>
+            <button type="button" class="ctrl-btn gold" id="btn-sc21-pull-shackle" title="Pull shackle open briefly (tests dialed code in Combo Lock or builds a ready module in Build)">Pull Shackle</button>
+            <button type="button" class="ctrl-btn" id="btn-sc21-shim" title="Pulse QTouch shim sensor 6 once (grants UNLOCK_SHIM reward once, shows 'Shim already unlocked' once per power cycle, then does nothing)">Insert Shim</button>
           </div>
         </div>
 
         <div class="sc21-section">
           <div class="sc21-subhead">
             <span>Registration &amp; vCard (ST25R95 Tag)</span>
-            <span id="sc21-vcard-byte-count" style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 0.66rem; color: var(--text-muted); text-transform: none;">72 / 159 bytes</span>
+            <span id="sc21-vcard-byte-count" style="font-family: var(--mono); font-size: 0.66rem; color: var(--text-muted); text-transform: none;">72 / 159 bytes</span>
           </div>
           <textarea id="sc21-vcard-input" class="sc21-textarea" rows="3" aria-label="Registration vCard Fields">FN:Badge Visitor
 ORG:SAINTCON Badge Museum
 EMAIL:visitor@example.invalid</textarea>
           <div class="btn-row">
-            <button type="button" class="ctrl-btn gold" id="btn-sc21-write-vcard" title="Write NDEF text/vcard with saintcon_2021_magic over NFC when badge is listening (up to 159 bytes of fields / 223 bytes total vCard) to save vCard and reboot into Menu">📲 Write Registration vCard</button>
-            <button type="button" class="ctrl-btn" id="btn-sc21-read-tag" title="Read the badge's emulated NFC tag when in tag mode (unlocks UNLOCK_CONTACT in Menu; hold shackle open to read your vCard)">📖 Read Badge Tag</button>
+            <button type="button" class="ctrl-btn gold" id="btn-sc21-write-vcard" title="Write NDEF text/vcard with saintcon_2021_magic over NFC when badge is listening (up to 159 bytes of fields / 223 bytes total vCard) to save vCard and reboot into Menu">Write Registration vCard</button>
+            <button type="button" class="ctrl-btn" id="btn-sc21-read-tag" title="Read the badge's emulated NFC tag when in tag mode (unlocks UNLOCK_CONTACT in Menu; hold shackle open to read your vCard)">Read Badge Tag</button>
           </div>
         </div>
 
@@ -1924,7 +2170,7 @@ EMAIL:visitor@example.invalid</textarea>
             <select id="sc21-quote-select" class="nut-select" aria-label="Upstream NFC Quote Tag"></select>
           </div>
           <div class="btn-row">
-            <button type="button" class="ctrl-btn gold" id="btn-sc21-present-tag" title="Hold selected NFC quote tag against ST25R95 reader (open Read Tag on the badge to scan; press Back to return to Menu)">🏷️ Present Tag</button>
+            <button type="button" class="ctrl-btn gold" id="btn-sc21-present-tag" title="Hold selected NFC quote tag against ST25R95 reader (open Read Tag on the badge to scan; press Back to return to Menu)">Present Tag</button>
             <button type="button" class="ctrl-btn" id="btn-sc21-clear-tag" title="Remove virtual NFC tag from reader field">✕ Remove Tag</button>
           </div>
         </div>
@@ -1968,7 +2214,7 @@ EMAIL:visitor@example.invalid</textarea>
             <input id="sc21-bot-qty1" class="sc21-qty-input" type="number" min="0" max="20" value="4" aria-label="Museum Bot Part 2 Quantity" />
           </div>
           <div class="btn-row">
-            <button type="button" class="ctrl-btn gold" id="btn-sc21-bot-trade" title="Arm Museum Bot NFC trade partner — once you have at least 1 part from a reward (e.g. Insert Shim), open Trading first to pick an offer, or arm it first and open Trading to get the bot's parts without giving any; press Back when done">🤝 Arm Museum Bot Trade</button>
+            <button type="button" class="ctrl-btn gold" id="btn-sc21-bot-trade" title="Arm Museum Bot NFC trade partner, once you have at least 1 part from a reward (e.g. Insert Shim), open Trading first to pick an offer, or arm it first and open Trading to get the bot's parts without giving any; press Back when done">Arm Museum Bot Trade</button>
           </div>
         </div>
 
@@ -1982,8 +2228,8 @@ EMAIL:visitor@example.invalid</textarea>
           </div>
           <div class="btn-row">
             <input id="sc21-mb-text" class="sc18-text-input" type="text" maxlength="64" value="HELLO MUSEUM" style="flex: 1 1 110px; min-width: 0;" aria-label="2021 Minibadge Message" />
-            <button type="button" class="ctrl-btn" id="btn-sc21-mb-send" style="flex: 0 0 auto;" title="Send scrolling text message from minibadge 0x28 in MENU">💬 Text</button>
-            <button type="button" class="ctrl-btn" id="btn-sc21-mb-btn" style="flex: 0 0 auto;" title="Trigger minibadge 0x01 button event (WHAMMY animation in MENU)">🔘 Btn</button>
+            <button type="button" class="ctrl-btn" id="btn-sc21-mb-send" style="flex: 0 0 auto;" title="Send scrolling text message from minibadge 0x28 in MENU">Text</button>
+            <button type="button" class="ctrl-btn" id="btn-sc21-mb-btn" style="flex: 0 0 auto;" title="Trigger minibadge 0x01 button event (WHAMMY animation in MENU)">Btn</button>
           </div>
         </div>
 
@@ -2013,7 +2259,7 @@ EMAIL:visitor@example.invalid</textarea>
         <div class="sc21-section">
           <div class="sc21-subhead">
             <span>Plugboard Jumper Wires (J3 / J4)</span>
-            <span id="sc19-plug-count" style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 0.66rem; color: var(--text-muted); text-transform: none;">0 / 10 wires</span>
+            <span id="sc19-plug-count" style="font-family: var(--mono); font-size: 0.66rem; color: var(--text-muted); text-transform: none;">0 / 10 wires</span>
           </div>
           <p class="towers-hint" style="margin: 0;">Click or tap two letters to connect them with a jumper wire; click a wired letter to remove its wire. <strong>Run Factory Test</strong> runs the build-table test: press every key A–Z, <strong>Reset Badge</strong> returns, and your progress is kept.</p>
           <div class="sc19-plugboard-wrap" id="sc19-plugboard-wrap">
@@ -2021,8 +2267,8 @@ EMAIL:visitor@example.invalid</textarea>
             <svg id="sc19-plugboard-svg" class="sc19-plugboard-svg" aria-hidden="true"></svg>
           </div>
           <div class="btn-row">
-            <button type="button" class="ctrl-btn" id="btn-sc19-plug-clear" title="Remove all jumper wires from the 26-pin plugboard">🔌 Clear Wires</button>
-            <button type="button" class="ctrl-btn gold" id="btn-sc19-factory-test" title="Runs the build-table test: press every key A–Z, Reset Badge returns, your progress is kept">🧪 Run Factory Test</button>
+            <button type="button" class="ctrl-btn" id="btn-sc19-plug-clear" title="Remove all jumper wires from the 26-pin plugboard">Clear Wires</button>
+            <button type="button" class="ctrl-btn gold" id="btn-sc19-factory-test" title="Runs the build-table test: press every key A–Z, Reset Badge returns, your progress is kept">Run Factory Test</button>
           </div>
         </div>
 
@@ -2049,10 +2295,10 @@ EMAIL:visitor@example.invalid</textarea>
           <div class="sc21-section">
             <div class="sc21-subhead">
               <span>Button SW1 (PB2) &amp; Boot Pad (TP1 on PB0)</span>
-              <span id="sc20-mode-pill" style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 0.68rem; color: var(--accent-gold);">Mode 0: Ring</span>
+              <span id="sc20-mode-pill" style="font-family: var(--mono); font-size: 0.68rem; color: var(--accent-gold);">Mode 0: Ring</span>
             </div>
             <div class="btn-row" style="margin-bottom: 6px;">
-              <button type="button" class="ctrl-btn gold" id="btn-sc20-mode" title="Press Button SW1 on PB2 (>50 ms debounce) to cycle through the 8 LED display modes and save to EEPROM[0]">🔘 Press Button SW1 (Space / Enter)</button>
+              <button type="button" class="ctrl-btn gold" id="btn-sc20-mode" title="Press Button SW1 on PB2 (>50 ms debounce) to cycle through the 8 LED display modes and save to EEPROM[0]">Press Button SW1 (Space / Enter)</button>
             </div>
             <label class="sc21-chk-label" style="display: flex; align-items: flex-start; gap: 8px; font-size: 0.78rem; line-height: 1.35; white-space: normal; cursor: pointer;">
               <input type="checkbox" id="chk-sc20-tp1-boot" style="margin-top: 2px; flex: 0 0 auto;" />
@@ -2063,7 +2309,7 @@ EMAIL:visitor@example.invalid</textarea>
           <div class="sc21-section">
             <div class="sc21-subhead">
               <span>8-LED Binary Aid (D1..D8 on PORTA)</span>
-              <span id="sc20-porta-hex" style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 0.68rem; color: var(--text-muted);">PORTA = 0x00</span>
+              <span id="sc20-porta-hex" style="font-family: var(--mono); font-size: 0.68rem; color: var(--text-muted);">PORTA = 0x00</span>
             </div>
             <div class="led-bit-strip" id="sc20-bit-strip" aria-label="8 LED Binary Readout D1 to D8">
               <div class="led-bit-cell" data-led-idx="0"><span class="bit-val">0</span><span class="bit-lbl">D1·b7</span></div>
@@ -2089,7 +2335,7 @@ EMAIL:visitor@example.invalid</textarea>
           <div class="sc21-section">
             <div class="sc21-subhead">
               <span>Test Pads TP1 (PB0) &amp; TP2 (PB1)</span>
-              <span id="sc20-tp-readout" style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 0.68rem; color: var(--text-muted);">TP1 pull-up=OFF (0 pulses since reset) • TP2=LOW</span>
+              <span id="sc20-tp-readout" style="font-family: var(--mono); font-size: 0.68rem; color: var(--text-muted);">TP1 pull-up=OFF (0 pulses since reset) • TP2=LOW</span>
             </div>
             <p class="towers-hint" style="margin: 0;">
               Because <code>//DDRB |= 1&lt;&lt;TP1PIN;</code> is commented out at <code>main.cpp:89</code>, <code>TP1</code> (<code>PB0</code>) stays an input; the <code>PORTB |= 1&lt;&lt;TP1PIN;</code> and <code>PORTB &amp;= ~(1&lt;&lt;TP1PIN);</code> code at <code>main.cpp:385-401, 540-556</code> only toggles the internal pull-up resistor on input <code>TP1</code> (<code>1..8</code> times for modes <code>0..7</code> before pausing). <code>TP2</code> (<code>PB1</code>) is configured as output low at boot (<code>main.cpp:87</code>) and is never pulsed. <code>LONGPRESSTIME</code> and <code>set_sleep_mode(SLEEP_MODE_PWR_DOWN)</code> are configured at boot (<code>main.cpp:29, 77-79</code>), but the firmware never calls <code>sleep_mode()</code> or <code>sleep_cpu()</code>.
@@ -2121,7 +2367,7 @@ EMAIL:visitor@example.invalid</textarea>
           <div class="sc21-section">
             <div class="sc21-subhead">
               <span>Capacitive Touch Pads (ADCTouch on A3 &amp; A2)</span>
-              <span id="sc17-adc-readout" style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 0.68rem; color: var(--accent-gold);">value0=0 • value1=0</span>
+              <span id="sc17-adc-readout" style="font-family: var(--mono); font-size: 0.68rem; color: var(--accent-gold);">value0=0 • value1=0</span>
             </div>
             <p class="towers-hint" style="margin: 0 0 6px 0;">
               Press and hold either pad directly on the board picture, use the hold buttons below (or keys <kbd>1</kbd>/<kbd>A</kbd> and <kbd>2</kbd>/<kbd>B</kbd>), or hold both together:
@@ -2139,7 +2385,7 @@ EMAIL:visitor@example.invalid</textarea>
           <div class="sc21-section">
             <div class="sc21-subhead">
               <span>APA102 RGB Output (U2 &amp; U3 @ Brightness 10/31)</span>
-              <span id="sc17-rgb-readout" style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 0.68rem; color: var(--text-muted);">raw=(0,255,0) b=10</span>
+              <span id="sc17-rgb-readout" style="font-family: var(--mono); font-size: 0.68rem; color: var(--text-muted);">raw=(0,255,0) b=10</span>
             </div>
             <p class="towers-hint" style="margin: 0;">
               <strong>No save data needed:</strong> <code>HITB_Test.ino</code> calibrates <code>ref0</code> and <code>ref1</code> in <code>setup()</code> and does not read or write EEPROM.
@@ -2152,7 +2398,7 @@ EMAIL:visitor@example.invalid</textarea>
 
       <!-- 2022 Clue Notepad Badge — Stand-in Museum Kiosk, Boot-Hold Reset & Firmware Notes -->
       <div class="panel-card" id="sc22-panel-card" style="display: none;" aria-label="2022 Stand-in Kiosk and Hardware Companion">
-        <h2>Stand-in Kiosk (Museum Companion) <span id="sc22-mode-pill" style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 0.68rem; color: var(--accent-gold); text-transform: none;">Clue Notepad</span></h2>
+        <h2>Stand-in Kiosk (Museum Companion) <span id="sc22-mode-pill" style="font-family: var(--mono); font-size: 0.68rem; color: var(--accent-gold); text-transform: none;">Clue Notepad</span></h2>
 
         <div id="sc22-bootloader-banner" class="sc22-bootloader-banner" role="status">
           <strong>USB Bootloader Active:</strong> The badge is waiting for a firmware file in the RP2040 ROM USB bootloader and all 52 LEDs are off. Click <strong>Reset Badge</strong> to leave the bootloader and start the notepad.
@@ -2168,13 +2414,13 @@ EMAIL:visitor@example.invalid</textarea>
         <div class="sc21-section">
           <div class="sc21-subhead">
             <span>Clue Kiosk &amp; Accusation</span>
-            <span id="sc22-clue-progress" style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 0.68rem; color: var(--text-muted); text-transform: none;">0 / 10 clues • 0/21 S, 0/21 A, 0/10 R cleared</span>
+            <span id="sc22-clue-progress" style="font-family: var(--mono); font-size: 0.68rem; color: var(--text-muted); text-transform: none;">0 / 10 clues • 0/21 S, 0/21 A, 0/10 R cleared</span>
           </div>
           <div id="sc22-kiosk-disabled-note" class="sc22-kiosk-disabled-note" role="status"></div>
           <div class="btn-row" style="margin-bottom: 6px;">
-            <button type="button" class="ctrl-btn gold" id="btn-sc22-visit-kiosk" title="Query the badge over serial and send the cumulative elimination masks for all clues collected so far">🔍 Visit a Kiosk (Next Clue)</button>
-            <button type="button" class="ctrl-btn" id="btn-sc22-hi" title="Request the badge's current serial number and cursor state">📋 Read Badge State</button>
-            <button type="button" class="ctrl-btn" id="btn-sc22-ping" title="Send a serial ping to the badge">📡 Ping Badge</button>
+            <button type="button" class="ctrl-btn gold" id="btn-sc22-visit-kiosk" title="Query the badge over serial and send the cumulative elimination masks for all clues collected so far">Visit a Kiosk (Next Clue)</button>
+            <button type="button" class="ctrl-btn" id="btn-sc22-hi" title="Request the badge's current serial number and cursor state">Read Badge State</button>
+            <button type="button" class="ctrl-btn" id="btn-sc22-ping" title="Send a serial ping to the badge">Ping Badge</button>
           </div>
           <div class="btn-row" style="margin-bottom: 6px; flex-wrap: wrap;">
             <select id="sc22-accuse-suspect" class="nut-select" style="flex: 1 1 130px;" aria-label="Suspect choice for accusation"></select>
@@ -2182,7 +2428,7 @@ EMAIL:visitor@example.invalid</textarea>
           </div>
           <div class="btn-row" style="margin-bottom: 6px;">
             <select id="sc22-accuse-room" class="nut-select" aria-label="Room choice for accusation"></select>
-            <button type="button" class="ctrl-btn gold" id="btn-sc22-accuse" style="flex: 0 0 auto;" title="Check your chosen Suspect, Attack, and Room against the hidden solution in one step">🎯 Accuse</button>
+            <button type="button" class="ctrl-btn gold" id="btn-sc22-accuse" style="flex: 0 0 auto;" title="Check your chosen Suspect, Attack, and Room against the hidden solution in one step">Accuse</button>
           </div>
           <div class="nut-status-box" id="sc22-status-box">
             Click <strong>Visit a Kiosk</strong> to light eliminated Suspects, Attacks, and Rooms in Green. When you deduce the remaining unlit Suspect, Attack, and Room, choose them above and click <strong>Accuse</strong>. After each Visit the new clue blinks on the badge for about 15 seconds; leave the badge buttons alone until it ends.
@@ -2195,14 +2441,14 @@ EMAIL:visitor@example.invalid</textarea>
             <span>Skip Game (Ends Game at Once &amp; Shows Answer)</span>
           </div>
           <div class="btn-row">
-            <button type="button" class="ctrl-btn" id="btn-sc22-win-now" title="Immediately send the winning masks to the badge, reveal the hidden solution, and unlock the post-win LED modes">🏆 End Game &amp; Show Answer</button>
+            <button type="button" class="ctrl-btn" id="btn-sc22-win-now" title="Immediately send the winning masks to the badge, reveal the hidden solution, and unlock the post-win LED modes">End Game &amp; Show Answer</button>
           </div>
         </div>
 
         <div class="sc21-section">
           <div class="sc21-subhead">
             <span>Firmware Serial Log</span>
-            <span id="sc22-cursor-readout" style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 0.66rem; color: var(--text-muted); text-transform: none;">Cursor: Anonymous</span>
+            <span id="sc22-cursor-readout" style="font-family: var(--mono); font-size: 0.66rem; color: var(--text-muted); text-transform: none;">Cursor: Anonymous</span>
           </div>
           <div id="sc22-serial-log" class="sc22-serial-log" aria-label="Real Firmware Serial Output Log">(Serial idle — click Visit a Kiosk, Read Badge State, or Ping Badge)</div>
           <p class="towers-hint" style="margin: 4px 0 0 0;">
@@ -2263,14 +2509,14 @@ EMAIL:visitor@example.invalid</textarea>
           <span class="control-label">Display &amp; Firmware Mode</span>
           <div class="btn-row" id="display-mode-row">
             <button type="button" class="ctrl-btn active" id="btn-big-screen" aria-pressed="true">
-              🔍 Big Screen: ON
+              Big Screen: ON
             </button>
             <span id="mode-buttons-slot" style="display: contents;">
               <button type="button" class="ctrl-btn active" id="btn-mode-stock" data-mode="stock">
-                🚀 Original Firmware
+                Original Firmware
               </button>
               <button type="button" class="ctrl-btn" id="btn-mode-pug" data-mode="pug">
-                🐾 Pug Pet
+                Pug Pet
               </button>
             </span>
           </div>
@@ -2299,12 +2545,12 @@ EMAIL:visitor@example.invalid</textarea>
           <span class="control-label">Solo Game • Physical "Nut" NFC Dispenser</span>
           <div class="btn-row" style="margin-bottom: 6px;">
             <select id="nut-type-select" class="nut-select" aria-label="Nut Type">
-              <option value="SORTING_HAT">🎩 Sorting Hat Nut (Assign Faction)</option>
-              <option value="TELECOM">📡 Telecom Node Nut (+75 cr, Unlock Sector)</option>
-              <option value="CONTEST">🏆 Contest Nut (+120 cr)</option>
-              <option value="EVENT">🎟️ Event Nut (+50 cr)</option>
-              <option value="VENDOR">🤝 Vendor Nut (+40 cr)</option>
-              <option value="COMMUNITY">🌟 Community Level Nut (+100 cr)</option>
+              <option value="SORTING_HAT">Sorting Hat Nut (Assign Faction)</option>
+              <option value="TELECOM">Telecom Node Nut (+75 cr, Unlock Sector)</option>
+              <option value="CONTEST">Contest Nut (+120 cr)</option>
+              <option value="EVENT">Event Nut (+50 cr)</option>
+              <option value="VENDOR">Vendor Nut (+40 cr)</option>
+              <option value="COMMUNITY">Community Level Nut (+100 cr)</option>
             </select>
             <select id="nut-faction-select" class="nut-select" aria-label="Sorting Hat Faction">
               <option value="3">3 • Dawn Accord (Gold)</option>
@@ -2317,8 +2563,8 @@ EMAIL:visitor@example.invalid</textarea>
             </select>
           </div>
           <div class="btn-row">
-            <button type="button" class="ctrl-btn gold" id="btn-tap-nut">🔩 Tap Nut (NFC)</button>
-            <button type="button" class="ctrl-btn" id="btn-dispense-code" title="Generate a one-time 5-character code to enter manually in Code Entry">🔢 Manual Code</button>
+            <button type="button" class="ctrl-btn gold" id="btn-tap-nut">Tap Nut (NFC)</button>
+            <button type="button" class="ctrl-btn" id="btn-dispense-code" title="Generate a one-time 5-character code to enter manually in Code Entry">Manual Code</button>
           </div>
           <div class="nut-status-box" id="nut-status-box">
             Register a handle on the badge, then tap a <strong>Sorting Hat</strong> Nut to join a faction and <strong>Telecom</strong> Nuts to unlock the 31-node map.
@@ -2328,8 +2574,8 @@ EMAIL:visitor@example.invalid</textarea>
         <div class="control-group">
           <span class="control-label" id="nfc-capture-label">NFC Tag &amp; Capture</span>
           <div class="btn-row">
-            <button type="button" class="ctrl-btn gold" id="btn-phone-tap">📲 Phone Tap (NFC)</button>
-            <button type="button" class="ctrl-btn" id="btn-screenshot">📷 Screenshot PNG</button>
+            <button type="button" class="ctrl-btn gold" id="btn-phone-tap">Phone Tap (NFC)</button>
+            <button type="button" class="ctrl-btn" id="btn-screenshot">Screenshot PNG</button>
           </div>
         </div>
       </div>
@@ -2814,7 +3060,7 @@ EMAIL:visitor@example.invalid</textarea>
         bigScreenPanel.classList.toggle('hidden', !bigScreenEnabled);
         btnBigScreen.classList.toggle('active', bigScreenEnabled);
         btnBigScreen.setAttribute('aria-pressed', String(bigScreenEnabled));
-        btnBigScreen.textContent = bigScreenEnabled ? '🔍 Big Screen: ON' : '🔍 Big Screen: OFF';
+        btnBigScreen.textContent = bigScreenEnabled ? 'Big Screen: ON' : 'Big Screen: OFF';
 
         if (!bigScreenEnabled) return;
 
@@ -2825,7 +3071,21 @@ EMAIL:visitor@example.invalid</textarea>
           const availW = Math.max(screenW, window.innerWidth - 48);
           scale = Math.min(scale, Math.floor(availW / screenW));
         } else {
-          const availW = Math.max(screenW, window.innerWidth - 680);
+          // Room left beside the board and the controls, so all three columns stay on one row.
+          const mainEl = document.querySelector('main');
+          const mainStyle = getComputedStyle(mainEl);
+          const cardEl = bigScreenPanel.firstElementChild;
+          const cardStyle = getComputedStyle(cardEl);
+          const panelChrome = (document.getElementById('big-screen-bezel').offsetWidth - bigScreenCanvas.offsetWidth)
+            + (cardEl.offsetWidth - cardEl.clientWidth)
+            + parseFloat(cardStyle.paddingLeft || 0) + parseFloat(cardStyle.paddingRight || 0);
+          // The controls column stretches to fill spare room, so count its minimum width.
+          const sideW = badgeColumn.offsetWidth
+            + parseFloat(getComputedStyle(document.querySelector('.controls-column')).minWidth || 0)
+            + 2 * parseFloat(mainStyle.columnGap || 0)
+            + parseFloat(mainStyle.paddingLeft || 0) + parseFloat(mainStyle.paddingRight || 0)
+            + panelChrome;
+          const availW = Math.max(screenW, mainEl.clientWidth - sideW);
           scale = Math.min(scale, Math.floor(availW / screenW));
           if (window.innerWidth >= 1024 && window.innerHeight >= 720 && screenW * 2 <= availW) {
             scale = Math.max(2, scale);
@@ -2842,13 +3102,27 @@ EMAIL:visitor@example.invalid</textarea>
           bigScreenCanvas.style.width = `${targetW}px`;
           bigScreenCanvas.style.height = `${targetH}px`;
         }
-        bigScreenScaleLabel.textContent = `${scale}× (${targetW}×${targetH})`;
+        // On a phone the canvas may be shrunk to fit, so say the size it really shows at.
+        const shownW = bigScreenCanvas.offsetWidth;
+        bigScreenScaleLabel.textContent = shownW && shownW < targetW
+          ? `Fit (${shownW}×${bigScreenCanvas.offsetHeight})`
+          : `${scale}× (${targetW}×${targetH})`;
       }
 
       window.addEventListener('resize', () => {
         updateBigScreenLayout();
         if (core) renderOutputs();
       });
+
+      // The first column settles late (board picture, credits, fonts), so size the screen again when it does.
+      let lastBadgeColumnW = 0;
+      new ResizeObserver(() => {
+        const w = badgeColumn.offsetWidth;
+        if (w === lastBadgeColumnW) return;
+        lastBadgeColumnW = w;
+        updateBigScreenLayout();
+        if (core) renderOutputs();
+      }).observe(badgeColumn);
 
       btnBigScreen.addEventListener('click', () => {
         bigScreenUserOverridden = true;
@@ -3896,7 +4170,7 @@ EMAIL:visitor@example.invalid</textarea>
             const g = leds[i * 3 + 1] || 0;
             const b = leds[i * 3 + 2] || 0;
             if (r === 0 && g === 0 && b === 0) {
-              lampDot.style.background = '#161b22';
+              lampDot.style.background = 'var(--mask-raised)';
               lampDot.style.boxShadow = '';
             } else {
               lampDot.style.background = `rgb(${r},${g},${b})`;
@@ -4779,7 +5053,7 @@ EMAIL:visitor@example.invalid</textarea>
         if (extraInfo && typeof extraInfo === 'object') {
           const topDiv = document.createElement('div');
           topDiv.style.marginBottom = '3px';
-          topDiv.style.color = '#e6edf3';
+          topDiv.style.color = 'var(--silk)';
           if (extraInfo.kind === 'tap') {
             topDiv.append('🔩 Tapped NFC Nut ');
             const stCode = document.createElement('strong');
@@ -4937,7 +5211,7 @@ EMAIL:visitor@example.invalid</textarea>
         if (lastTowerBannerInfo && typeof lastTowerBannerInfo === 'object') {
           const evDiv = document.createElement('div');
           evDiv.style.marginBottom = '3px';
-          evDiv.style.color = '#e6edf3';
+          evDiv.style.color = 'var(--silk)';
           if (lastTowerBannerInfo.kind === 'tower') {
             evDiv.append('📡 IR Beacon sent: ');
             const st = document.createElement('strong');
@@ -5131,7 +5405,7 @@ EMAIL:visitor@example.invalid</textarea>
         }
         const st = window.__sc23FakeServer.getStateSummary();
         if (btnSc23BotAllies) {
-          btnSc23BotAllies.textContent = st.bot_allies ? '🤖 Bot Allies: ON' : '🤖 Bot Allies: OFF';
+          btnSc23BotAllies.textContent = st.bot_allies ? 'Bot Allies: ON' : 'Bot Allies: OFF';
           btnSc23BotAllies.classList.toggle('active', Boolean(st.bot_allies));
         }
 
@@ -5139,7 +5413,7 @@ EMAIL:visitor@example.invalid</textarea>
         if (lastIncidentsBannerInfo && typeof lastIncidentsBannerInfo === 'object') {
           const evDiv = document.createElement('div');
           evDiv.style.marginBottom = '3px';
-          evDiv.style.color = '#e6edf3';
+          evDiv.style.color = 'var(--silk)';
           if (lastIncidentsBannerInfo.kind === 'levelup') {
             evDiv.append('⬆️ Level-Up NEC IR code ');
             const codeEl = document.createElement('strong');
@@ -5625,7 +5899,7 @@ EMAIL:visitor@example.invalid</textarea>
           sc18UrlReadout.textContent = `http://192.168.4.1${cleanPath}`;
         }
         if (sc18ModalTitle) {
-          sc18ModalTitle.textContent = `🌐 SAINTCON 2018 Badge Config Portal (http://192.168.4.1${cleanPath})`;
+          sc18ModalTitle.textContent = `SAINTCON 2018 Badge Config Portal (http://192.168.4.1${cleanPath})`;
         }
         if (sc18HttpStatus) {
           sc18HttpStatus.textContent = parsed.statusShort;
@@ -5674,7 +5948,7 @@ EMAIL:visitor@example.invalid</textarea>
           sc18ApStatus.replaceChildren();
           if (sc18StatusNote) {
             const noteDiv = document.createElement('div');
-            noteDiv.style.color = '#f0c654';
+            noteDiv.style.color = 'var(--amber)';
             noteDiv.style.marginBottom = '3px';
             noteDiv.textContent = sc18StatusNote;
             sc18ApStatus.appendChild(noteDiv);
@@ -5682,10 +5956,10 @@ EMAIL:visitor@example.invalid</textarea>
 
           const apDiv = document.createElement('div');
           if (ap.ap_active && ap.http_listening) {
-            apDiv.style.color = '#56d364';
+            apDiv.style.color = 'var(--ok)';
             apDiv.textContent = `AP ACTIVE • SSID: ${ap.ap_ssid} • Password: ${ap.ap_pass} • microWebSrv http://192.168.4.1/`;
           } else if (ap.ap_active) {
-            apDiv.style.color = '#f0c654';
+            apDiv.style.color = 'var(--amber)';
             apDiv.textContent = `AP shutting down • SSID: ${ap.ap_ssid} (~6s wait before returning to menu)…`;
           } else {
             apDiv.textContent =
@@ -5925,7 +6199,7 @@ EMAIL:visitor@example.invalid</textarea>
         if (!sc21VcardByteCount || !sc21VcardInput) return;
         const m = measureSc21VcardBytes(sc21VcardInput.value);
         sc21VcardByteCount.textContent = `${m.fieldBytes} / ${m.maxFieldBytes} bytes`;
-        sc21VcardByteCount.style.color = m.fieldBytes > m.maxFieldBytes ? '#f85149' : 'var(--text-muted)';
+        sc21VcardByteCount.style.color = m.fieldBytes > m.maxFieldBytes ? 'var(--red)' : 'var(--text-muted)';
       }
 
       if (sc21VcardInput) {
@@ -6397,7 +6671,7 @@ EMAIL:visitor@example.invalid</textarea>
           const isSel = sc19SelectedPlugLetter === letter;
           btn.classList.toggle('selected', isSel);
           btn.classList.toggle('wired', Boolean(partner));
-          btn.style.borderColor = isSel ? '#ffd33d' : (col || '');
+          btn.style.borderColor = isSel ? 'var(--gold)' : (col || '');
           if (btn._pairEl) {
             btn._pairEl.textContent = partner ? `↔${partner}` : '•';
             btn._pairEl.style.color = col || '';
@@ -8599,13 +8873,12 @@ EMAIL:visitor@example.invalid</textarea>
         modeButtonsSlot.replaceChildren();
         for (const m of availModes) {
           const isActive = m === currentMode;
-          const icon = m === 'pug' ? '🐾' : '🚀';
           const label = m === 'pug' ? 'Pug Pet' : 'Original Firmware';
           const b = document.createElement('button');
           b.type = 'button';
           b.className = `ctrl-btn${isActive ? ' active' : ''}`;
           b.dataset.mode = String(m);
-          b.textContent = `${icon} ${label}`;
+          b.textContent = label;
           b.addEventListener('click', () => {
             const nextMode = b.dataset.mode;
             if (nextMode && nextMode !== currentMode) {
@@ -8786,7 +9059,7 @@ EMAIL:visitor@example.invalid</textarea>
               creditsSecondaryLine.append(buildLicenseNodes(), ' • ');
             }
             const modeSuffix = soonModes.includes('pug')
-              ? ` • Stock "${name}" firmware (pug pet mode not on the ${yr} page yet)`
+              ? ` • Stock "${name}" firmware`
               : (is2017
                 ? ' • Original HITB Minibadge 2017 sketch (minibadge — main 2017 badge firmware is not in this repo)'
                 : ` • Original SAINTCON ${yr} ${meta.name_is_description ? name : `"${name}"`} firmware`);

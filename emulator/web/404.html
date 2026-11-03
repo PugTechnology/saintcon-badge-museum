@@ -3,89 +3,98 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>404 Not Found — SAINTCON Badge Museum</title>
+  <meta name="color-scheme" content="dark" />
+  <title>404 Not Found | SAINTCON Badge Museum</title>
+  <link rel="stylesheet" href="/museum-art/theme.css" />
   <style>
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
     body {
       margin: 0;
       padding: 24px 16px;
-      background: radial-gradient(circle at 50% 15%, #1c2331 0%, #0b0e14 100%);
-      color: #e6edf3;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       text-align: center;
+      color: var(--silk);
+      font-family: var(--sans);
+      line-height: 1.55;
     }
-    .card {
-      background: #161b22;
-      border: 1px solid #30363d;
-      border-radius: 14px;
-      padding: 24px;
-      max-width: 480px;
-      width: 100%;
-      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+    a { color: var(--gold); text-underline-offset: 3px; }
+    a:hover { color: var(--silk); }
+    :focus-visible { outline: 3px solid var(--silk); outline-offset: 3px; }
+    .card { position: relative; isolation: isolate; width: 100%; max-width: 520px; padding: 32px 24px 24px; }
+    .card::before, .card::after {
+      content: "";
+      position: absolute;
+      z-index: -1;
+      clip-path: polygon(18px 0, 100% 0, 100% calc(100% - 18px), calc(100% - 18px) 100%, 0 100%, 0 18px);
     }
-    h1 {
-      margin: 0 0 10px 0;
-      font-size: 1.3rem;
-      color: #d4a72c;
+    .card::before { inset: 0; background: var(--line); }
+    .card::after {
+      inset: 1px;
+      background:
+        radial-gradient(circle at calc(100% - 16px) 16px, var(--gold) 0 3px, transparent 3.5px),
+        radial-gradient(circle at 16px calc(100% - 16px), var(--gold) 0 3px, transparent 3.5px),
+        var(--mask-raised);
     }
-    p {
-      margin: 0 0 14px 0;
-      font-size: 0.9rem;
-      color: #8b949e;
-      line-height: 1.45;
-    }
-    .links {
-      display: flex;
-      gap: 10px;
+    .code { margin: 0; font: 700 clamp(4.5rem, 24vw, 8rem)/0.95 var(--display); color: var(--gold); letter-spacing: 0.01em; }
+    .msg { margin: 12px 0 24px; font: 500 0.95rem/1.5 var(--mono); color: var(--silk); }
+    .pad {
+      position: relative;
+      isolation: isolate;
+      display: inline-flex;
+      align-items: center;
       justify-content: center;
-      flex-wrap: wrap;
-      margin-bottom: 14px;
-    }
-    a.btn {
-      padding: 8px 14px;
-      border-radius: 8px;
-      background: #1f6feb;
-      border: 1px solid #58a6ff;
-      color: #ffffff;
+      min-height: 48px;
+      padding: 10px 24px;
+      font: 700 1rem/1.2 var(--display);
+      letter-spacing: 0.03em;
       text-decoration: none;
-      font-size: 0.85rem;
-      font-weight: 600;
+      color: var(--mask);
     }
-    a.btn.secondary {
-      background: #21262d;
-      border-color: #3b434d;
-      color: #e6edf3;
+    .pad:hover { color: var(--mask); }
+    .pad::before, .pad::after {
+      content: "";
+      position: absolute;
+      z-index: -1;
+      inset: 0;
+      clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
     }
-    .disclaimer {
-      font-size: 0.74rem;
-      color: #f0c654;
-      margin: 0;
+    .pad::before { background: var(--gold); }
+    .pad:hover::before { filter: brightness(1.15); }
+    .pad::after { display: none; }
+    .pad.outline { color: var(--silk); }
+    .pad.outline:hover { color: var(--gold); }
+    .pad.outline::after {
+      display: block;
+      inset: 2px;
+      background: var(--mask);
+      clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
     }
+    .pad.small { min-width: 64px; min-height: 44px; padding: 8px 12px; font-size: 1rem; }
+    .years { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin: 22px 0 24px; }
+    .disclaimer { margin: 0 0 8px; font: 400 0.76rem/1.5 var(--mono); color: var(--muted); }
+    .disclaimer:last-child { margin-bottom: 0; }
   </style>
 </head>
 <body>
   <div class="card">
-    <h1>404 — Page Not Found</h1>
-    <p>No emulator resource exists at this URL.</p>
-    <div class="links">
-      <a class="btn" id="link-museum" href="/museum.html">🏛️ Badge Museum</a>
-      <a class="btn secondary" id="link-2017" href="/?year=2017">2017 Minibadge</a>
-      <a class="btn secondary" id="link-2018" href="/?year=2018">2018 Badge</a>
-      <a class="btn secondary" id="link-2019" href="/?year=2019">2019 Badge</a>
-      <a class="btn secondary" id="link-2020" href="/?year=2020">2020 Badge</a>
-      <a class="btn secondary" id="link-2021" href="/?year=2021">2021 Badge</a>
-      <a class="btn secondary" id="link-2022" href="/?year=2022">2022 Badge</a>
-      <a class="btn secondary" id="link-2023" href="/?year=2023">2023 Badge</a>
-      <a class="btn secondary" id="link-2024" href="/?year=2024">2024 Badge</a>
-      <a class="btn secondary" id="link-2025" href="/?year=2025">2025 Badge</a>
-      <a class="btn secondary" id="link-2026" href="/?year=2026">2026 Badge</a>
+    <h1 class="code">404</h1>
+    <p class="msg">Page not found. Nothing is connected at this address.</p>
+    <a class="pad" id="link-museum" href="/museum.html">Badge Museum</a>
+    <div class="years" aria-label="Badge years">
+        <a class="pad outline small" id="link-2026" href="/?year=2026">2026</a>
+        <a class="pad outline small" id="link-2025" href="/?year=2025">2025</a>
+        <a class="pad outline small" id="link-2024" href="/?year=2024">2024</a>
+        <a class="pad outline small" id="link-2023" href="/?year=2023">2023</a>
+        <a class="pad outline small" id="link-2022" href="/?year=2022">2022</a>
+        <a class="pad outline small" id="link-2021" href="/?year=2021">2021</a>
+        <a class="pad outline small" id="link-2020" href="/?year=2020">2020</a>
+        <a class="pad outline small" id="link-2019" href="/?year=2019">2019</a>
+        <a class="pad outline small" id="link-2018" href="/?year=2018">2018</a>
+        <a class="pad outline small" id="link-2017" href="/?year=2017">2017</a>
     </div>
     <p class="disclaimer">Unofficial fan project. Not affiliated with or endorsed by SAINTCON or UtahSAINT.</p>
     <p class="disclaimer"><a href="https://saintcon.org/" target="_blank" rel="noopener">SAINTCON</a> · <a href="https://www.utahsaint.org/" target="_blank" rel="noopener">UtahSAINT</a></p>
